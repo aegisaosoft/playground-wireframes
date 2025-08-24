@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import PlaygroundHero from "@/components/PlaygroundHero";
 import ExperiencesSection from "@/components/ExperiencesSection";
-import TestimonialsSection from "@/components/TestimonialsSection";
 import { RetreatGrid, Retreat } from "@/components/RetreatGrid";
 import { RetreatDetailsModal, RetreatDetail } from "@/components/RetreatDetailsModal";
 import { RetreatEditor, RetreatDetails } from "@/components/RetreatEditor";
@@ -304,9 +303,6 @@ const Index = () => {
       <main>
         {/* Hero Section */}
         <PlaygroundHero />
-
-        {/* Testimonials Section */}
-        <TestimonialsSection />
 
         {/* Experiences Section */}
         <ExperiencesSection />
