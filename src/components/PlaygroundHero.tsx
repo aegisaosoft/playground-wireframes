@@ -1,0 +1,68 @@
+import { Button } from "@/components/ui/button";
+
+const PlaygroundHero = () => {
+  return (
+    <div className="relative min-h-screen bg-background flex flex-col justify-center items-center overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 left-20 w-4 h-4 bg-neon-pink rounded-full animate-pulse"></div>
+        <div className="absolute top-1/3 right-1/4 w-6 h-6 bg-neon-cyan rounded-full animate-pulse delay-300"></div>
+        <div className="absolute bottom-1/3 left-1/3 w-3 h-3 bg-neon-yellow rounded-full animate-pulse delay-700"></div>
+        <div className="absolute bottom-20 right-20 w-5 h-5 bg-neon-green rounded-full animate-pulse delay-1000"></div>
+      </div>
+
+      {/* Main content */}
+      <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
+        {/* Announcement banner */}
+        <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-neon-pink/20 to-neon-purple/20 border border-neon-pink/30 mb-12">
+          <span className="text-neon-pink text-sm font-medium">
+            🚀 Now accepting applications for Q1 2024 experiences
+          </span>
+        </div>
+
+        {/* Main headline */}
+        <div className="space-y-6 mb-12">
+          <h1 className="text-6xl md:text-8xl font-bold leading-tight">
+            <span className="text-neon-pink">Your wild</span>
+            <br />
+            <span className="text-neon-yellow bg-gradient-to-r from-neon-yellow to-neon-orange bg-clip-text text-transparent">
+              experience
+            </span>
+            <br />
+            <span className="text-neon-cyan">starts here.</span>
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto">
+            A playground for those who mix ambition with adventure.
+          </p>
+        </div>
+
+        {/* CTA Button */}
+        <Button 
+          size="lg" 
+          className="bg-neon-pink hover:bg-neon-purple text-background font-bold text-lg px-12 py-6 rounded-full shadow-neon transition-all duration-300 hover:scale-105"
+        >
+          Join the Waitlist
+        </Button>
+
+        {/* Stats */}
+        <div className="flex justify-center items-center space-x-16 mt-20">
+          <div className="text-center">
+            <div className="text-4xl font-bold text-neon-pink mb-2">50+</div>
+            <div className="text-gray-400">Builders</div>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl font-bold text-neon-cyan mb-2">12</div>
+            <div className="text-gray-400">Countries</div>
+          </div>
+          <div className="text-center">
+            <div className="text-4xl font-bold text-neon-yellow mb-2">∞</div>
+            <div className="text-gray-400">Ideas</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PlaygroundHero;
