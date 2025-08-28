@@ -223,15 +223,6 @@ const Index = () => {
     setEditingRetreat(null);
   };
 
-  const handleRetreatClick = (retreat: Retreat) => {
-    // Convert Retreat to RetreatDetail for the modal
-    const retreatDetail: RetreatDetail = {
-      ...retreat,
-      // All properties are already compatible
-    };
-    setSelectedRetreat(retreatDetail);
-    setIsDetailsModalOpen(true);
-  };
 
   const handleCloseDetailsModal = () => {
     setIsDetailsModalOpen(false);
@@ -306,6 +297,13 @@ const Index = () => {
 
         {/* Experiences Section */}
         <ExperiencesSection />
+
+        {/* Retreat Grid */}
+        <RetreatGrid
+          retreats={retreats}
+          savedRetreats={savedRetreats}
+          onToggleSaveRetreat={handleToggleSaveRetreat}
+        />
       </main>
 
       {/* Retreat Details Modal */}

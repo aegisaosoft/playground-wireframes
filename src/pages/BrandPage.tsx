@@ -332,9 +332,9 @@ export const BrandPage = ({
                 location={retreat.location}
                 date={retreat.date}
                 title={retreat.title}
+                retreatId={retreat.id}
                 isSaved={savedRetreats.includes(retreat.id)}
                 onToggleSave={() => onToggleSaveRetreat?.(retreat.id)}
-                onClick={() => window.open(`/retreat/${retreat.id}`, '_blank')}
                 organizer={retreat.organizer}
               />
             ))}

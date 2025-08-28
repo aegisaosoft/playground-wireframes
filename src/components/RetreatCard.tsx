@@ -1,12 +1,13 @@
 import { Heart, MapPin, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface RetreatCardProps {
   image: string;
   location: string;
   date: string;
   title: string;
-  onClick: () => void;
+  retreatId: number;
   isSaved: boolean;
   onToggleSave: () => void;
   organizer?: {
@@ -15,8 +16,9 @@ interface RetreatCardProps {
   };
 }
 
-export const RetreatCard = ({ image, location, date, title, onClick, isSaved, onToggleSave, organizer }: RetreatCardProps) => {
+export const RetreatCard = ({ image, location, date, title, retreatId, isSaved, onToggleSave, organizer }: RetreatCardProps) => {
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -34,10 +36,15 @@ export const RetreatCard = ({ image, location, date, title, onClick, isSaved, on
     }
     onToggleSave();
   };
+
+  const handleCardClick = () => {
+    navigate(`/retreat/${retreatId}`);
+  };
+
   return (
     <div 
       className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group hover:scale-[1.02]"
-      onClick={onClick}
+      onClick={handleCardClick}
     >
       <div className="relative overflow-hidden">
         <img

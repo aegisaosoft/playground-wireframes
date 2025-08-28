@@ -34,12 +34,11 @@ export interface Retreat {
 
 interface RetreatGridProps {
   retreats: Retreat[];
-  onRetreatClick: (retreat: Retreat) => void;
   savedRetreats: number[];
   onToggleSaveRetreat: (retreatId: number) => void;
 }
 
-export const RetreatGrid = ({ retreats, onRetreatClick, savedRetreats, onToggleSaveRetreat }: RetreatGridProps) => {
+export const RetreatGrid = ({ retreats, savedRetreats, onToggleSaveRetreat }: RetreatGridProps) => {
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -59,7 +58,7 @@ export const RetreatGrid = ({ retreats, onRetreatClick, savedRetreats, onToggleS
               location={retreat.location}
               date={retreat.date}
               title={retreat.title}
-              onClick={() => onRetreatClick(retreat)}
+              retreatId={retreat.id}
               isSaved={savedRetreats.includes(retreat.id)}
               onToggleSave={() => onToggleSaveRetreat(retreat.id)}
               organizer={retreat.organizer}

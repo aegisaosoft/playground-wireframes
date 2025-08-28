@@ -6,7 +6,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Calendar, MapPin, Users, Clock, Heart, UserPlus, UserCheck, ArrowLeft } from "lucide-react";
+import { Calendar, MapPin, Users, Clock, Heart, UserPlus, UserCheck, ArrowLeft, Star, Camera, MessageCircle } from "lucide-react";
 import { RichContentDisplay } from "@/components/RichContentDisplay";
 import { RetreatDetail } from "@/components/RetreatDetailsModal";
 import { Retreat } from "@/components/RetreatGrid";
@@ -22,7 +22,6 @@ import retreatGreece from "@/assets/retreat-greece.jpg";
 
 // Get retreat data from the main app - this should ideally come from a shared data source or API
 const getRetreatData = (): RetreatDetail[] => {
-  // Import the actual retreat data from Index.tsx
   const retreatData: RetreatDetail[] = [
     {
       id: 1,
@@ -110,167 +109,98 @@ const getRetreatData = (): RetreatDetail[] => {
       id: 2,
       image: retreatCostaRica,
       location: "Costa Rica",
-      date: "Feb 10–17",
-      title: "Adventure & Wellness Retreat in Manuel Antonio",
-      description: "Experience the perfect blend of adventure and relaxation in Costa Rica's stunning Manuel Antonio National Park.",
-      capacity: 16,
+      date: "Feb 20–27",
+      title: "Pura Vida Adventure & Wellness Retreat",
+      description: "Experience the pure life of Costa Rica through adventure activities, wellness practices, and sustainable living workshops.",
+      capacity: 15,
       spotsRemaining: 8,
-      price: 1650,
+      price: 950,
       requiresApplication: false,
-      agendaVisibility: 'public',
-      agenda: [
-        {
-          date: "February 10",
-          activities: [
-            { time: "10:00", title: "Arrival & Check-in" },
-            { time: "15:00", title: "Beach Yoga Session" },
-            { time: "18:00", title: "Welcome Dinner" }
-          ]
-        }
-      ],
+      agendaVisibility: 'private',
       organizer: {
         name: "Carlos Rodriguez",
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face"
+        avatar: "/placeholder.svg"
       },
-      extendedContent: [
-        {
-          id: '1',
-          type: 'text',
-          content: "Costa Rica offers the perfect setting for an adventure wellness retreat. From zip-lining through cloud forests to surfing pristine beaches, this retreat combines thrilling activities with restorative wellness practices.",
-          order: 0
-        }
-      ]
+      extendedContent: [],
+      ticketTiers: [],
+      applicationForm: []
     },
     {
       id: 3,
       image: retreatTulum,
-      location: "Tulum, Mexico",
-      date: "Mar 5–12",
-      title: "Yoga & Cenote Healing Retreat",
-      description: "Immerse yourself in the ancient wisdom of the Mayan culture while practicing yoga and swimming in sacred cenotes.",
-      capacity: 10,
-      spotsRemaining: 2,
-      price: 1480,
-      requiresApplication: true,
-      agendaVisibility: 'private',
+      location: "Tulum",
+      date: "Mar 10–17",
+      title: "Beachfront Yoga & Cenote Healing Experience",
+      description: "Combine ancient Mayan wisdom with modern wellness practices on the stunning Caribbean coast.",
+      capacity: 20,
+      spotsRemaining: 12,
+      price: 800,
+      requiresApplication: false,
+      agendaVisibility: 'public',
+      agenda: [
+        {
+          date: "March 10",
+          activities: [
+            { time: "08:00", title: "Beach Sunrise Yoga" },
+            { time: "10:00", title: "Cenote Swimming & Meditation" }
+          ]
+        }
+      ],
       organizer: {
-        name: "Maria Gonzalez",
-        avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face"
+        name: "Sofia Martinez",
+        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face"
       },
-      extendedContent: [
-        {
-          id: '1',
-          type: 'text',
-          content: "Discover the mystical energy of Tulum through yoga practices and cenote ceremonies. This retreat honors the ancient Mayan traditions while providing modern comfort and expert guidance.",
-          order: 0
-        }
-      ],
-      ticketTiers: [
-        {
-          id: '1',
-          name: 'Early Bird',
-          price: 1280,
-          quantity: 5,
-          description: 'Limited early bird pricing with shared room'
-        },
-        {
-          id: '2',
-          name: 'Regular',
-          price: 1480,
-          quantity: 5,
-          description: 'Standard pricing with shared accommodation'
-        }
-      ],
-      applicationForm: [
-        {
-          id: '1',
-          type: 'short_answer',
-          label: 'What draws you to Mayan culture and traditions?',
-          required: true
-        },
-        {
-          id: '2',
-          type: 'multiple_choice',
-          label: 'Swimming comfort level for cenote activities?',
-          required: true,
-          options: ['Not comfortable in water', 'Basic swimmer', 'Confident swimmer', 'Advanced swimmer']
-        }
-      ]
+      extendedContent: [],
+      ticketTiers: [],
+      applicationForm: []
     },
     {
       id: 4,
       image: retreatPortugal,
-      location: "Portugal", 
-      date: "Apr 8–15",
-      title: "Surf & Meditation Retreat in Ericeira",
-      description: "Combine the thrill of surfing with mindful meditation practices on Portugal's stunning coastline.",
-      capacity: 14,
-      spotsRemaining: 6,
-      price: 1380,
-      requiresApplication: false,
+      location: "Portugal",
+      date: "Apr 1–8",
+      title: "Creative Writing & Wine Retreat in Douro Valley",
+      description: "Unleash your creativity while enjoying world-class wines in one of Portugal's most beautiful regions.",
+      capacity: 10,
+      spotsRemaining: 2,
+      price: 1400,
+      requiresApplication: true,
       agendaVisibility: 'public',
-      organizer: {
-        name: "João Silva",
-        avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face"
-      },
-      extendedContent: [
-        {
-          id: '1',
-          type: 'text',
-          content: "Portugal's Atlantic coast provides the perfect backdrop for combining surfing and meditation. Whether you're a beginner or experienced surfer, this retreat offers something for everyone.",
-          order: 0
-        }
-      ]
+      extendedContent: [],
+      ticketTiers: [],
+      applicationForm: []
     },
     {
       id: 5,
       image: retreatSwitzerland,
-      location: "Swiss Alps",
-      date: "May 12–19",
-      title: "Mountain Meditation & Hiking Retreat",
-      description: "Find inner peace surrounded by the majestic Swiss Alps through guided meditation and mountain hiking.",
+      location: "Switzerland",
+      date: "Apr 3–10",
+      title: "Alpine Startup Founder Retreat",
+      description: "Network with fellow entrepreneurs while enjoying the stunning Swiss Alps and world-class business workshops.",
       capacity: 8,
-      spotsRemaining: 4,
+      spotsRemaining: 1,
       price: 2200,
       requiresApplication: true,
-      agendaVisibility: 'public',
-      organizer: {
-        name: "Hans Mueller",
-        avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face"
-      },
-      extendedContent: [
-        {
-          id: '1',
-          type: 'text',
-          content: "Experience the transformative power of mountain meditation in one of the world's most beautiful settings. This retreat combines gentle hiking with deep contemplative practices.",
-          order: 0
-        }
-      ]
+      agendaVisibility: 'private',
+      extendedContent: [],
+      ticketTiers: [],
+      applicationForm: []
     },
     {
       id: 6,
       image: retreatGreece,
-      location: "Santorini, Greece",
-      date: "Jun 3–10", 
-      title: "Mediterranean Wellness & Culture Retreat",
-      description: "Explore ancient Greek wisdom while enjoying the beauty of Santorini's volcanic landscape and azure waters.",
-      capacity: 12,
-      spotsRemaining: 1,
-      price: 1950,
+      location: "Greece",
+      date: "Apr 5–12",
+      title: "Digital Nomad Retreat in Mediterranean Paradise",
+      description: "Work remotely while enjoying the Greek islands, with coworking sessions and networking opportunities.",
+      capacity: 25,
+      spotsRemaining: 18,
+      price: 650,
       requiresApplication: false,
       agendaVisibility: 'public',
-      organizer: {
-        name: "Elena Papadopoulos",
-        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face"
-      },
-      extendedContent: [
-        {
-          id: '1',
-          type: 'text',
-          content: "Santorini's unique energy and stunning sunsets create the perfect environment for wellness and cultural exploration. This retreat honors the philosophical traditions of ancient Greece.",
-          order: 0
-        }
-      ]
+      extendedContent: [],
+      ticketTiers: [],
+      applicationForm: []
     }
   ];
   return retreatData;
@@ -285,7 +215,6 @@ export default function RetreatPage() {
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [savedRetreats, setSavedRetreats] = useState<number[]>([]);
   const [followedHosts, setFollowedHosts] = useState<string[]>([]);
-  const [userRetreats] = useState<Retreat[]>([]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -345,17 +274,14 @@ export default function RetreatPage() {
       alert('Please log in to apply');
       return;
     }
-    // Show preview modal first
     setIsPreviewModalOpen(true);
   };
 
   const handleContinueToApply = async () => {
     setIsPreviewModalOpen(false);
     setIsApplying(true);
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsApplying(false);
-    // Handle actual application logic here
     console.log('Applied to retreat:', retreat?.title);
   };
 
@@ -366,31 +292,25 @@ export default function RetreatPage() {
     }
   };
 
-  const handleCreateRetreat = () => {
-    // Placeholder for retreat creation
-  };
-
   const handleBackClick = () => {
-    // Check if there's actual history to go back to
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      // Fallback to homepage if no history (e.g., direct link)
       navigate('/');
     }
   };
 
   if (!retreat) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-[#0b0b12] text-white">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center py-12">
-            <h1 className="text-2xl font-bold mb-4">Retreat not found</h1>
-            <p className="text-muted-foreground">The retreat you're looking for doesn't exist or may have been removed.</p>
+            <h1 className="text-2xl font-bold mb-4 text-white">Retreat not found</h1>
+            <p className="text-gray-400">The retreat you're looking for doesn't exist or may have been removed.</p>
             <Button 
               variant="outline" 
               onClick={() => navigate('/')}
-              className="mt-4"
+              className="mt-4 border-white/20 text-white hover:bg-white/10"
             >
               Browse All Retreats
             </Button>
@@ -404,236 +324,248 @@ export default function RetreatPage() {
   const isFollowing = followedHosts.includes(retreat.organizer?.name || '');
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Back Button */}
-        <Button 
-          variant="ghost" 
-          onClick={handleBackClick}
-          className="mb-6 text-foreground hover:text-coral"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
+    <div className="min-h-screen bg-[#0b0b12] text-white">
+      {/* Navigation with Back Button */}
+      <nav className="sticky top-0 z-50 bg-black/40 border-b border-white/10 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <Button 
+            variant="ghost" 
+            onClick={handleBackClick}
+            className="text-white hover:bg-white/10 border-white/20 hover:border-white/30"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Experiences
+          </Button>
+          
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={handleSaveClick}
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/10"
+            >
+              <Heart 
+                className={`w-5 h-5 mr-2 ${
+                  isSaved ? 'fill-neon-pink text-neon-pink' : 'text-white'
+                }`}
+              />
+              {isSaved ? 'Saved' : 'Save'}
+            </Button>
+          </div>
+        </div>
+      </nav>
 
-        <div className="space-y-8">
-          {/* Hero Image */}
-          <div className="relative h-96 overflow-hidden rounded-xl">
-            <img
-              src={retreat.image}
-              alt={retreat.title}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent" />
-            <div className="absolute top-4 right-4">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Hero Section */}
+        <div className="relative h-96 overflow-hidden rounded-2xl mb-8">
+          <img
+            src={retreat.image}
+            alt={retreat.title}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+          
+          {/* Floating Info Cards */}
+          <div className="absolute bottom-6 left-6 right-6">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+              <div className="flex flex-wrap gap-4 text-sm text-white/80 mb-4">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  <span>{retreat.location}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  <span>{retreat.date}</span>
+                </div>
+                {retreat.capacity && (
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    <span>{retreat.capacity} spots total</span>
+                  </div>
+                )}
+              </div>
+              
               {retreat.spotsRemaining && retreat.spotsRemaining <= 5 && (
-                <Badge className="bg-destructive/90 text-white">
+                <Badge className="bg-neon-pink/20 text-neon-pink border border-neon-pink/30 mb-2">
                   Only {retreat.spotsRemaining} spots left
                 </Badge>
               )}
             </div>
           </div>
+        </div>
 
-          {/* Retreat Overview */}
+        {/* Main Content */}
+        <div className="space-y-8">
+          {/* Title and Organizer */}
           <div className="space-y-6">
-            <div className="space-y-4">
-              <h1 className="text-4xl font-bold leading-tight">
-                {retreat.title}
-              </h1>
-              
-              <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-5 h-5" />
-                  <span>{retreat.location}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-5 h-5" />
-                  <span>{retreat.date}</span>
-                </div>
-                {retreat.capacity && (
-                  <div className="flex items-center gap-1">
-                    <Users className="w-5 h-5" />
-                    <span>{retreat.capacity} spots total</span>
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent leading-tight">
+              {retreat.title}
+            </h1>
+            
+            {retreat.organizer && (
+              <div className="flex items-center gap-4">
+                <Avatar 
+                  className="w-16 h-16 border-2 border-neon-purple/30 cursor-pointer hover:border-neon-purple/60 transition-colors"
+                  onClick={handleHostClick}
+                >
+                  <AvatarImage src={retreat.organizer.avatar} alt={retreat.organizer.name} />
+                  <AvatarFallback className="bg-neon-purple/20 text-neon-purple">
+                    {retreat.organizer.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-gray-300">Hosted by</p>
+                  <button 
+                    onClick={handleHostClick}
+                    className="text-neon-pink hover:text-neon-purple font-semibold text-lg transition-colors"
+                  >
+                    {retreat.organizer.name}
+                  </button>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 fill-neon-yellow text-neon-yellow" />
+                      <span className="text-sm text-gray-400">4.9</span>
+                    </div>
+                    <span className="text-gray-500">•</span>
+                    <span className="text-sm text-gray-400">12 experiences</span>
                   </div>
-                )}
+                </div>
               </div>
+            )}
+          </div>
 
-              {/* Action Section */}
-              <div className="flex items-center justify-between pt-4 border-t">
-                <div className="flex flex-col">
+          {/* Description */}
+          {retreat.description && (
+            <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold text-neon-cyan mb-4">About This Experience</h2>
+                <p className="text-gray-300 leading-relaxed">{retreat.description}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Extended Content */}
+          {retreat.extendedContent && retreat.extendedContent.length > 0 && (
+            <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+              <CardContent className="p-6 space-y-4">
+                <h2 className="text-xl font-semibold text-neon-cyan mb-4">What to Expect</h2>
+                <RichContentDisplay blocks={retreat.extendedContent} />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Agenda */}
+          {retreat.agenda && retreat.agenda.length > 0 && retreat.agendaVisibility === 'public' && (
+            <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold text-neon-cyan mb-6">Daily Agenda</h2>
+                <div className="space-y-6">
+                  {retreat.agenda.map((day, dayIndex) => (
+                    <div key={dayIndex} className="border-l-2 border-neon-purple/30 pl-6">
+                      <h3 className="text-lg font-semibold text-neon-pink mb-4">{day.date}</h3>
+                      <div className="space-y-3">
+                        {day.activities.map((activity, actIndex) => (
+                          <div key={actIndex} className="flex items-start gap-4">
+                            <div className="text-sm text-neon-cyan bg-neon-cyan/10 px-3 py-1 rounded-full">
+                              {activity.time}
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-white">{activity.title}</h4>
+                              {activity.description && (
+                                <p className="text-sm text-gray-400 mt-1">{activity.description}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Ticket Tiers */}
+          {retreat.ticketTiers && retreat.ticketTiers.length > 0 && (
+            <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold text-neon-cyan mb-6">Pricing & Tickets</h2>
+                <div className="space-y-4">
+                  {retreat.ticketTiers.map((tier) => (
+                    <div key={tier.id} className="border border-white/10 rounded-xl p-4 bg-white/5">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-white">{tier.name}</h3>
+                        <span className="text-xl font-bold text-neon-pink">${tier.price}</span>
+                      </div>
+                      {tier.description && (
+                        <p className="text-sm text-gray-400 mb-3">{tier.description}</p>
+                      )}
+                      <p className="text-xs text-gray-500">{tier.quantity} spots available</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Action Section */}
+          <Card className="bg-gradient-to-r from-neon-pink/10 to-neon-purple/10 border-neon-pink/30 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
                   {retreat.price && (
-                    <span className="text-3xl font-bold text-primary">
+                    <span className="text-3xl font-bold text-neon-pink">
                       ${retreat.price}
                     </span>
                   )}
                   {retreat.spotsRemaining && (
-                    <span className="text-muted-foreground">
+                    <p className="text-gray-300 mt-1">
                       {retreat.spotsRemaining} spots remaining
-                    </span>
+                    </p>
                   )}
                 </div>
+                
                 <div className="flex gap-3">
+                  {retreat.organizer && (
+                    <Button
+                      onClick={handleFollowClick}
+                      variant={isFollowing ? "default" : "outline"}
+                      className={
+                        isFollowing 
+                          ? "bg-neon-purple hover:bg-neon-purple/80 text-white border-0" 
+                          : "border-white/20 text-white hover:bg-white/10 hover:border-white/30"
+                      }
+                    >
+                      {isFollowing ? <UserCheck className="w-4 h-4 mr-2" /> : <UserPlus className="w-4 h-4 mr-2" />}
+                      {isFollowing ? 'Following' : 'Follow Host'}
+                    </Button>
+                  )}
+                  
                   <Button
                     onClick={handleApply}
                     disabled={isApplying}
                     size="lg"
-                    className="bg-coral hover:bg-coral-dark text-white px-8"
+                    className="bg-gradient-to-r from-neon-pink to-neon-purple hover:from-neon-pink/80 hover:to-neon-purple/80 text-white font-bold px-8 border-0"
                   >
-                    {isApplying 
-                      ? "Processing..." 
-                      : retreat.requiresApplication 
-                        ? "Apply Now" 
-                        : "Purchase Ticket"
-                    }
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="lg"
-                    onClick={handleSaveClick}
-                    className="border-coral text-coral hover:bg-coral hover:text-white"
-                  >
-                    <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
+                    {isApplying ? 'Processing...' : retreat.requiresApplication ? 'Apply Now' : 'Reserve Spot'}
                   </Button>
                 </div>
               </div>
-            </div>
-
-            {/* Description */}
-            {retreat.description && (
-              <div className="prose prose-lg max-w-none">
-                <p className="text-foreground leading-relaxed text-lg">
-                  {retreat.description}
-                </p>
-              </div>
-            )}
-
-            {/* Meet Your Host */}
-            {retreat.organizer && (
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Meet Your Host</h2>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <Avatar className="w-16 h-16 cursor-pointer" onClick={handleHostClick}>
-                      <AvatarImage src={retreat.organizer.avatar} alt={retreat.organizer.name} />
-                      <AvatarFallback className="text-lg">
-                        {retreat.organizer.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <button 
-                        onClick={handleHostClick}
-                        className="text-xl font-medium text-coral hover:text-coral-dark transition-colors text-left"
-                      >
-                        {retreat.organizer.name}
-                      </button>
-                      <p className="text-muted-foreground">Retreat Organizer</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <Button 
-                      variant={isFollowing ? "default" : "outline"}
-                      onClick={handleFollowClick}
-                      className={isFollowing ? "bg-coral hover:bg-coral-dark text-white" : "border-coral text-coral hover:bg-coral hover:text-white"}
-                    >
-                      {isFollowing ? (
-                        <>
-                          <UserCheck className="w-4 h-4 mr-2" />
-                          Following
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="w-4 h-4 mr-2" />
-                          Follow
-                        </>
-                      )}
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={handleHostClick}
-                    >
-                      View Profile
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            )}
-
-            {/* Extended Content */}
-            {retreat.extendedContent && retreat.extendedContent.length > 0 && (
-              <Card className="p-6">
-                <h2 className="text-xl font-semibold mb-4">More About This Retreat</h2>
-                <div className="prose prose-lg max-w-none">
-                  <RichContentDisplay blocks={retreat.extendedContent} />
-                </div>
-              </Card>
-            )}
-
-            {/* Agenda */}
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-4">📅 Agenda</h2>
-              {retreat.agendaVisibility === 'private' ? (
-                <Card className="border-dashed">
-                  <CardContent className="p-6 text-center text-muted-foreground">
-                    <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p className="text-lg">Agenda available to confirmed guests</p>
-                  </CardContent>
-                </Card>
-              ) : retreat.agenda && retreat.agenda.length > 0 ? (
-                <Accordion type="multiple" className="w-full">
-                  {retreat.agenda.map((day, index) => (
-                    <AccordionItem key={index} value={`day-${index}`} className="border rounded-lg mb-3">
-                      <AccordionTrigger className="px-4 font-semibold text-foreground hover:no-underline">
-                        {day.date}
-                      </AccordionTrigger>
-                      <AccordionContent className="px-4 pb-4">
-                        <div className="space-y-4">
-                          {day.activities.map((activity, actIndex) => (
-                            <div key={actIndex} className="flex gap-4">
-                              <div className="flex-shrink-0">
-                                <Badge variant="outline" className="font-mono">
-                                  {activity.time}
-                                </Badge>
-                              </div>
-                              <div className="flex-1">
-                                <h4 className="font-medium text-foreground">
-                                  {activity.title}
-                                </h4>
-                                {activity.description && (
-                                  <p className="text-muted-foreground mt-1">
-                                    {activity.description}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              ) : (
-                <Card className="border-dashed">
-                  <CardContent className="p-6 text-center text-muted-foreground">
-                    <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p className="text-lg">Detailed agenda coming soon</p>
-                  </CardContent>
-                </Card>
-              )}
-            </Card>
-          </div>
+            </CardContent>
+          </Card>
         </div>
+      </div>
 
-        {/* Application Preview Modal */}
+      {/* Application Preview Modal */}
+      {isPreviewModalOpen && retreat && (
         <ApplicationPreviewModal
           isOpen={isPreviewModalOpen}
           onClose={() => setIsPreviewModalOpen(false)}
           onContinueToApply={handleContinueToApply}
-          retreatTitle={retreat?.title || ''}
-          selectedTicketTier={retreat?.ticketTiers?.[0]} // Use first tier as default, or implement tier selection
-          applicationFields={retreat?.applicationForm || []}
-          mode="apply" // Users are applying, not previewing
+          retreatTitle={retreat.title}
+          applicationFields={retreat.applicationForm || []}
         />
-      </div>
+      )}
     </div>
   );
 }
