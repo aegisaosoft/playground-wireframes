@@ -37,13 +37,23 @@ const PlaygroundHero = () => {
           </p>
         </div>
 
-        {/* CTA Button */}
-        <Button 
-          size="lg" 
-          className="bg-neon-pink hover:bg-neon-purple text-background font-bold text-lg px-12 py-6 rounded-full shadow-neon transition-all duration-300 hover:scale-105"
-        >
-          Join the Waitlist
-        </Button>
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <Button 
+            size="lg" 
+            className="bg-neon-pink hover:bg-neon-purple text-background font-bold text-lg px-12 py-6 rounded-full shadow-neon transition-all duration-300 hover:scale-105"
+          >
+            Join the Waitlist
+          </Button>
+          <Button 
+            size="lg" 
+            variant="outline"
+            className="bg-transparent border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-background font-bold text-lg px-12 py-6 rounded-full border-2 transition-all duration-300 hover:scale-105"
+            onClick={() => window.location.href = '/create'}
+          >
+            Create Experience
+          </Button>
+        </div>
 
         {/* Stats */}
         <div className="flex justify-center items-center space-x-16 mt-20">

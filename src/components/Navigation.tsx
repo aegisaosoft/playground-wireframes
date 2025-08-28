@@ -102,6 +102,16 @@ export const Navigation = ({ onCreateRetreat, userRetreats, currentView, onViewC
             About
           </Link>
           
+          {/* Create Experience Button */}
+          <Link to="/create">
+            <Button 
+              variant="outline" 
+              className="bg-transparent border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-background transition-all font-semibold"
+            >
+              Create Experience
+            </Button>
+          </Link>
+          
           {/* Notification Bell - only show when user is logged in */}
           {user && <NotificationDropdown />}
           
