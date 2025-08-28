@@ -41,7 +41,7 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
           <p className="text-xs text-muted-foreground">
             {isPublic 
               ? 'Anyone can discover and view this experience'
-              : 'Only you can see this experience'
+              : 'Only you and people you share the link with can see this experience'
             }
           </p>
         </div>
