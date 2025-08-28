@@ -159,7 +159,7 @@ const HostProfile = ({ retreats, savedRetreats, onToggleSaveRetreat, followedHos
                   location={retreat.location}
                   date={retreat.date}
                   title={retreat.title}
-                  retreatId={retreat.id}
+                  onClick={() => handleRetreatClick(retreat)}
                   isSaved={savedRetreats.includes(retreat.id)}
                   onToggleSave={() => onToggleSaveRetreat(retreat.id)}
                 />
