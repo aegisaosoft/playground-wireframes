@@ -21,6 +21,10 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
   children,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
+  
+  // Core blocks that cannot be deleted
+  const coreBlocks = ['title-default', 'dates-default', 'location-default'];
+  const isDeletable = !coreBlocks.includes(block.id);
 
   const blockTypeLabels = {
     title: 'Title',
@@ -58,14 +62,16 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
           >
             <Copy className="w-3 h-3" />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onDelete}
-            className="h-7 w-7 p-0 hover:bg-destructive/20 hover:text-destructive"
-          >
-            <Trash2 className="w-3 h-3" />
-          </Button>
+          {isDeletable && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onDelete}
+              className="h-7 w-7 p-0 hover:bg-destructive/20 hover:text-destructive"
+            >
+              <Trash2 className="w-3 h-3" />
+            </Button>
+          )}
         </div>
       </div>
 

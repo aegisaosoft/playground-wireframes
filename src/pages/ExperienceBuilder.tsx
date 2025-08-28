@@ -6,7 +6,26 @@ import { SettingsSidebar } from '@/components/ExperienceBuilder/SettingsSidebar'
 import { Block, BlockType } from '@/types/experienceBuilder';
 
 const ExperienceBuilder = () => {
-  const [blocks, setBlocks] = useState<Block[]>([]);
+  const [blocks, setBlocks] = useState<Block[]>([
+    {
+      id: 'title-default',
+      type: 'title',
+      data: { text: 'Experience Title' },
+      order: 0,
+    },
+    {
+      id: 'dates-default', 
+      type: 'dates',
+      data: { startDate: null, endDate: null },
+      order: 1,
+    },
+    {
+      id: 'location-default',
+      type: 'location', 
+      data: { city: '', country: '' },
+      order: 2,
+    },
+  ]);
   const [isPublic, setIsPublic] = useState(false);
   const [title, setTitle] = useState('Untitled Experience');
 
@@ -27,6 +46,10 @@ const ExperienceBuilder = () => {
   }, []);
 
   const deleteBlock = useCallback((id: string) => {
+    // Prevent deletion of core blocks
+    const coreBlocks = ['title-default', 'dates-default', 'location-default'];
+    if (coreBlocks.includes(id)) return;
+    
     setBlocks(prev => prev.filter(block => block.id !== id));
   }, []);
 
