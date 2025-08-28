@@ -98,7 +98,7 @@ export const AccountModal = ({ isOpen, onClose, user, onLogout, onUpdateUser, us
       id: '4',
       name: user?.name || 'User',
       email: user?.email || 'user@example.com',
-      retreatId: retreats[1]?.id || 2,
+      retreatId: (retreats && retreats.length > 1) ? retreats[1].id : 2,
       status: 'approved',
       applicationAnswers: [],
       appliedAt: '2024-01-15T10:00:00Z',
@@ -108,7 +108,7 @@ export const AccountModal = ({ isOpen, onClose, user, onLogout, onUpdateUser, us
       id: '5',
       name: user?.name || 'User',
       email: user?.email || 'user@example.com',
-      retreatId: retreats[2]?.id || 3,
+      retreatId: (retreats && retreats.length > 2) ? retreats[2].id : 3,
       status: 'pending',
       applicationAnswers: [],
       appliedAt: '2024-01-18T14:30:00Z'
