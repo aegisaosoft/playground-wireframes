@@ -81,7 +81,6 @@ const ExperiencesSection = () => {
             <ExperienceCard
               key={experience.id}
               {...experience}
-              onClick={() => console.log('Experience clicked:', experience.id)}
             />
           ))}
         </div>

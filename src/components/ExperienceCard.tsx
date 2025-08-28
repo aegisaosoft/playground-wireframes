@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { MapPin, Calendar, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ExperienceCardProps {
   id: number;
@@ -26,6 +27,7 @@ const categoryColors = {
 };
 
 const ExperienceCard = ({ 
+  id,
   title, 
   location, 
   duration, 
@@ -35,10 +37,15 @@ const ExperienceCard = ({
   category,
   onClick 
 }: ExperienceCardProps) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/experience/${id}`);
+  };
   return (
     <div 
       className="group relative bg-card border border-gray-800 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-gray-700 hover:scale-105"
-      onClick={onClick}
+      onClick={handleClick}
     >
       {/* Image */}
       <div className="relative h-64 overflow-hidden">

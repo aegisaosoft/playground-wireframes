@@ -10,20 +10,32 @@ import { BrandData } from "@/components/BrandEditor";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
 
 interface NavigationProps {
-  onCreateRetreat: (retreat: Omit<Retreat, 'id'>) => void;
-  userRetreats: Retreat[];
-  currentView: 'home' | 'editor';
-  onViewChange: (view: 'home' | 'editor') => void;
+  onCreateRetreat?: (retreat: Omit<Retreat, 'id'>) => void;
+  userRetreats?: Retreat[];
+  currentView?: 'home' | 'editor';
+  onViewChange?: (view: 'home' | 'editor') => void;
   editingRetreat?: RetreatDetails | null;
   onEditRetreat?: (retreat: RetreatDetails) => void;
-  savedRetreats: number[];
-  followedHosts: string[];
-  retreats: Retreat[];
+  savedRetreats?: number[];
+  followedHosts?: string[];
+  retreats?: Retreat[];
   userBrandData?: BrandData;
   onSaveBrandData?: (brandData: BrandData) => void;
 }
 
-export const Navigation = ({ onCreateRetreat, userRetreats, currentView, onViewChange, editingRetreat, onEditRetreat, savedRetreats, followedHosts, retreats, userBrandData, onSaveBrandData }: NavigationProps) => {
+export const Navigation = ({ 
+  onCreateRetreat, 
+  userRetreats = [], 
+  currentView = 'home', 
+  onViewChange, 
+  editingRetreat, 
+  onEditRetreat, 
+  savedRetreats = [], 
+  followedHosts = [], 
+  retreats = [], 
+  userBrandData, 
+  onSaveBrandData 
+}: NavigationProps) => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isRetreatModalOpen, setIsRetreatModalOpen] = useState(false);
