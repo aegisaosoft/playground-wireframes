@@ -103,6 +103,13 @@ export const TicketsBlock: React.FC<TicketsBlockProps> = ({ data, onChange }) =>
           Add Tier
         </Button>
 
+        {/* Payments Hint */}
+        <div className="p-3 bg-neon-cyan/10 border border-neon-cyan/20 rounded-lg">
+          <p className="text-xs text-neon-cyan">
+            💡 Paid tiers require Stripe payouts to be enabled in Settings.
+          </p>
+        </div>
+
         {/* Summary */}
         <div className="p-4 bg-gradient-dark border border-white/10 rounded-lg">
           <div className="flex items-center justify-between mb-2">

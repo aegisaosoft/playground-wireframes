@@ -11,6 +11,7 @@ import { BrandPageWrapper } from "./components/BrandPageWrapper";
 import RetreatPage from "./pages/RetreatPage";
 import ExperienceBuilder from "./pages/ExperienceBuilder";
 import ExperienceDetail from "./pages/ExperienceDetail";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/host/:hostId" element={<Layout><HostProfileWrapper /></Layout>} />
           <Route path="/brand/:brandId" element={<Layout><BrandPageWrapper /></Layout>} />
           <Route path="/retreat/:retreatId" element={<Layout><RetreatPage /></Layout>} />
+          <Route path="/checkout/success" element={<CheckoutSuccess />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<Layout><NotFound /></Layout>} />
         </Routes>

@@ -2,6 +2,7 @@ import React from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Globe, Lock, Link2, Lightbulb } from 'lucide-react';
+import { PaymentsCard } from '@/components/PaymentsCard';
 
 interface SettingsSidebarProps {
   isPublic: boolean;
@@ -61,6 +62,11 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
             </Button>
           </div>
         )}
+      </div>
+
+      {/* Payments Section */}
+      <div className="mb-8">
+        <PaymentsCard variant="sidebar" />
       </div>
 
       {/* Tips Section */}

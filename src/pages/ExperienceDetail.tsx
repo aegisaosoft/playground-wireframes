@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Navigation } from "@/components/Navigation";
+import { TicketTierDisplay } from "@/components/TicketTierDisplay";
 import retreatBali from "@/assets/retreat-bali.jpg";
 import retreatCostaRica from "@/assets/retreat-costa-rica.jpg";
 import retreatTulum from "@/assets/retreat-tulum.jpg";
@@ -56,16 +57,25 @@ const experiences = [
     ],
     ticketTiers: [
       {
-        name: "Early Bird",
-        price: 899,
-        description: "Full experience access",
-        features: ["All meals included", "Shared accommodation", "Workshop materials", "Transport from LA"]
+        id: "free-intro", 
+        name: "Free Intro Session",
+        price_cents: 0,
+        quantity: 5,
+        description: "Experience the first day for free"
       },
       {
+        id: "early-bird",
+        name: "Early Bird",
+        price_cents: 89900,
+        quantity: 15,
+        description: "Full experience access"
+      },
+      {
+        id: "premium",
         name: "Premium",
-        price: 1299,
-        description: "Enhanced experience",
-        features: ["All Early Bird features", "Private tent", "1-on-1 mentorship session", "Exclusive gear package"]
+        price_cents: 129900,
+        quantity: 5,
+        description: "Enhanced experience"
       }
     ],
     faq: [
@@ -114,10 +124,11 @@ const experiences = [
     ],
     ticketTiers: [
       {
+        id: "explorer",
         name: "Explorer",
-        price: 1299,
-        description: "Core Tokyo experience",
-        features: ["All tours included", "Hotel accommodation", "Local guide", "Welcome dinner"]
+        price_cents: 129900,
+        quantity: 10,
+        description: "Core Tokyo experience"
       }
     ],
     faq: [
@@ -163,10 +174,11 @@ const experiences = [
     ],
     ticketTiers: [
       {
-        name: "Creator",
-        price: 1899,
-        description: "Full Bali experience",
-        features: ["Villa accommodation", "All meals", "Surf lessons", "Cultural excursions", "Coworking space"]
+        id: "creator",
+        name: "Creator", 
+        price_cents: 189900,
+        quantity: 8,
+        description: "Full Bali experience"
       }
     ],
     faq: [
@@ -373,29 +385,11 @@ const ExperienceDetail = () => {
 
             {/* Ticket Tiers */}
             <div className="bg-card border border-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4">Tickets</h3>
-              <div className="space-y-4">
-                {experience.ticketTiers.map((tier, index) => (
-                  <div key={index} className="border border-gray-700 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="font-medium text-foreground">{tier.name}</h4>
-                      <span className="text-xl font-bold text-neon-green">${tier.price}</span>
-                    </div>
-                    <p className="text-sm text-gray-400 mb-3">{tier.description}</p>
-                    <ul className="space-y-1">
-                      {tier.features.map((feature, fIndex) => (
-                        <li key={fIndex} className="text-xs text-gray-400 flex items-center gap-2">
-                          <div className="w-1 h-1 bg-neon-pink rounded-full" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                    <Button className="w-full mt-4 bg-neon-pink hover:bg-neon-pink/80 text-background font-bold">
-                      Select Ticket
-                    </Button>
-                  </div>
-                ))}
-              </div>
+              <TicketTierDisplay 
+                tiers={experience.ticketTiers}
+                experienceId={experience.id.toString()}
+                hostPayoutsEnabled={true} // Mock - in real app, get from organizer settings
+              />
             </div>
           </div>
         </div>
