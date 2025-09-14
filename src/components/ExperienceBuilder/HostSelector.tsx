@@ -117,9 +117,18 @@ export const HostSelector: React.FC<HostSelectorProps> = ({
                 <p className="font-medium text-foreground text-sm">{user.name}</p>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="w-3 h-3 text-muted-foreground hover:text-foreground cursor-help" />
+                    <button 
+                      type="button"
+                      className="flex items-center justify-center p-0.5 hover:bg-white/10 rounded transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Info className="w-3 h-3 text-muted-foreground hover:text-foreground cursor-help" />
+                    </button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent 
+                    side="top"
+                    className="bg-[#111] text-white border border-white/20 rounded-lg px-3 py-2 shadow-lg max-w-xs"
+                  >
                     <p className="text-xs">Host as yourself with your profile name</p>
                   </TooltipContent>
                 </Tooltip>
@@ -156,22 +165,32 @@ export const HostSelector: React.FC<HostSelectorProps> = ({
 
       {/* Create Brand Button or Form */}
       {!showBrandForm && selectedHost.type !== 'brand' ? (
-        <Button
-          variant="outline"
-          onClick={() => setShowBrandForm(true)}
-          className="w-full border-white/20 text-foreground hover:bg-white/10 justify-start"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Create a Host Brand
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowBrandForm(true)}
+            className="flex-1 border-white/20 text-foreground hover:bg-white/10 justify-start"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create a Host Brand
+          </Button>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Info className="w-3 h-3 text-muted-foreground hover:text-foreground cursor-help ml-2" />
+              <button 
+                type="button"
+                className="flex items-center justify-center p-2 hover:bg-white/10 rounded transition-colors"
+              >
+                <Info className="w-3 h-3 text-muted-foreground hover:text-foreground cursor-help" />
+              </button>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent 
+              side="top"
+              className="bg-[#111] text-white border border-white/20 rounded-lg px-3 py-2 shadow-lg max-w-xs"
+            >
               <p className="text-xs">Create a business profile for professional hosting</p>
             </TooltipContent>
           </Tooltip>
-        </Button>
+        </div>
       ) : null}
 
       {/* Brand Creation Form */}
