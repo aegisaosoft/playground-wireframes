@@ -107,6 +107,11 @@ export const Navigation = ({
           <Link to="/experiences" className="text-foreground hover:text-neon-cyan transition-colors font-medium">
             Experiences
           </Link>
+          {user && (
+            <Link to="/organizer/dashboard" className="text-foreground hover:text-neon-cyan transition-colors font-medium">
+              Dashboard
+            </Link>
+          )}
           <Link to="#" className="text-foreground hover:text-neon-cyan transition-colors font-medium">
             Community
           </Link>
