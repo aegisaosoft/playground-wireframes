@@ -104,7 +104,7 @@ export const Navigation = ({
 
         {/* Navigation Buttons */}
         <div className="flex items-center space-x-6">
-          <Link to="#" className="text-foreground hover:text-neon-cyan transition-colors font-medium">
+          <Link to="/experiences" className="text-foreground hover:text-neon-cyan transition-colors font-medium">
             Experiences
           </Link>
           <Link to="#" className="text-foreground hover:text-neon-cyan transition-colors font-medium">

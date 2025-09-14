@@ -11,6 +11,8 @@ import { BrandPageWrapper } from "./components/BrandPageWrapper";
 import RetreatPage from "./pages/RetreatPage";
 import ExperienceBuilder from "./pages/ExperienceBuilder";
 import ExperienceDetail from "./pages/ExperienceDetail";
+import Experiences from "./pages/Experiences";
+import BrandProfile from "./pages/BrandProfile";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import NotFound from "./pages/NotFound";
 
@@ -25,8 +27,9 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/create" element={<ExperienceBuilder />} />
+          <Route path="/experiences" element={<Layout><Experiences /></Layout>} />
           <Route path="/experience/:experienceId" element={<ExperienceDetail />} />
-          <Route path="/host/:hostId" element={<Layout><HostProfileWrapper /></Layout>} />
+          <Route path="/host/:hostId" element={<Layout><BrandProfile /></Layout>} />
           <Route path="/brand/:brandId" element={<Layout><BrandPageWrapper /></Layout>} />
           <Route path="/retreat/:retreatId" element={<Layout><RetreatPage /></Layout>} />
           <Route path="/checkout/success" element={<CheckoutSuccess />} />
