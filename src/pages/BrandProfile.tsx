@@ -5,8 +5,36 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Calendar, Star, Globe, Instagram, Twitter, Heart, ArrowLeft } from "lucide-react";
+import { MapPin, Calendar, Globe, Instagram, Twitter, Heart, ArrowLeft, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+
+// Mock AI review summary data
+const mockAISummary = {
+  "techcorp": {
+    summary: "Participants consistently praise TechCorp's hands-on approach to learning and the high-quality mentorship provided. The combination of intensive coding sessions with beautiful locations creates an inspiring environment that enhances both productivity and networking opportunities.",
+    keywords: ["hands-on learning", "great mentorship", "inspiring environment", "strong community", "practical skills", "excellent networking"]
+  },
+  "mindful": {
+    summary: "Reviews highlight the authentic and transformative nature of Mindful Journey's experiences. Participants appreciate the genuine spiritual guidance, peaceful settings, and the lasting impact on their meditation practice and overall well-being.",
+    keywords: ["transformative", "authentic guidance", "peaceful settings", "spiritual growth", "lasting impact", "genuine teaching"]
+  },
+  "remote-collective": {
+    summary: "The Remote Collective excels at creating valuable connections between digital nomads and remote professionals. Participants value the business insights, cultural immersion, and the supportive community that continues beyond the experience.",
+    keywords: ["valuable connections", "business insights", "cultural immersion", "supportive community", "professional growth", "ongoing relationships"]
+  },
+  "mountain-guides": {
+    summary: "Mountain Guides consistently receives praise for their safety standards, expert knowledge, and ability to create confidence-building experiences. Participants highlight the professional guidance and the personal growth achieved through challenging adventures.",
+    keywords: ["excellent safety", "expert knowledge", "confidence building", "professional guidance", "personal growth", "challenging adventures"]
+  },
+  "sacred-spaces": {
+    summary: "Participants describe Sacred Spaces experiences as deeply meaningful and consciousness-expanding. The authentic shamanic practices, healing environments, and personal transformation aspects are frequently highlighted in reviews.",
+    keywords: ["deeply meaningful", "consciousness expanding", "authentic practices", "healing environment", "personal transformation", "spiritual connection"]
+  },
+  "chef-masters": {
+    summary: "Chef Masters delivers exceptional culinary education with authentic local ingredients and traditional techniques. Participants appreciate the cultural immersion, hands-on cooking, and the lasting culinary skills gained.",
+    keywords: ["exceptional education", "authentic ingredients", "traditional techniques", "cultural immersion", "hands-on learning", "lasting skills"]
+  }
+};
 
 // Mock host data
 const mockHosts = {
@@ -148,9 +176,7 @@ const getExperiencesForHost = (hostId: string) => {
           dates: "Jan 8-15, 2024",
           image: "/src/assets/retreat-costa-rica.jpg", 
           category: "Tech",
-          price: "$799",
-          rating: 4.8,
-          reviews: 23
+          price: "$799"
         },
         {
           id: "9", 
@@ -159,9 +185,7 @@ const getExperiencesForHost = (hostId: string) => {
           dates: "Nov 12-19, 2023",
           image: "/src/assets/retreat-switzerland.jpg",
           category: "Tech", 
-          price: "$699",
-          rating: 4.9,
-          reviews: 31
+          price: "$699"
         }
       ]
     },
@@ -186,9 +210,7 @@ const getExperiencesForHost = (hostId: string) => {
           dates: "Feb 5-12, 2024",
           image: "/src/assets/retreat-bali.jpg",
           category: "Wellness",
-          price: "$649",
-          rating: 5.0,
-          reviews: 18
+          price: "$649"
         }
       ]
     },
@@ -213,9 +235,7 @@ const getExperiencesForHost = (hostId: string) => {
           dates: "Jan 15-22, 2024",
           image: "/src/assets/retreat-greece.jpg",
           category: "Business",
-          price: "$699",
-          rating: 4.7,
-          reviews: 42
+          price: "$699"
         }
       ]
     },
@@ -240,9 +260,7 @@ const getExperiencesForHost = (hostId: string) => {
           dates: "Aug 5-12, 2023",
           image: "/src/assets/retreat-costa-rica.jpg",
           category: "Adventure",
-          price: "$1099",
-          rating: 4.9,
-          reviews: 27
+          price: "$1099"
         }
       ]
     },
@@ -267,9 +285,7 @@ const getExperiencesForHost = (hostId: string) => {
           dates: "Dec 10-17, 2023",
           image: "/src/assets/retreat-greece.jpg",
           category: "Wellness",
-          price: "$799",
-          rating: 4.6,
-          reviews: 15
+          price: "$799"
         }
       ]
     },
@@ -294,9 +310,7 @@ const getExperiencesForHost = (hostId: string) => {
           dates: "Oct 8-15, 2023",
           image: "/src/assets/retreat-portugal.jpg",
           category: "Culinary",
-          price: "$899",
-          rating: 4.8,
-          reviews: 21
+          price: "$899"
         }
       ]
     }
@@ -310,7 +324,6 @@ const mockReviews = [
     id: "1",
     author: "Sarah Chen",
     avatar: "/placeholder.svg",
-    rating: 5,
     date: "2 weeks ago",
     experience: "Hacker House Bali",
     content: "Absolutely incredible experience! The combination of focused coding time and the beautiful Bali setting created the perfect environment for productivity and inspiration. Made lifelong connections with fellow developers."
@@ -319,7 +332,6 @@ const mockReviews = [
     id: "2", 
     author: "Marcus Rodriguez",
     avatar: "/placeholder.svg",
-    rating: 5,
     date: "1 month ago", 
     experience: "Blockchain Developer Workshop",
     content: "TechCorp's approach to hands-on learning is unmatched. Walked away with real skills and a deployed DApp. The mentorship was top-notch and the community aspect made it even better."
@@ -328,7 +340,6 @@ const mockReviews = [
     id: "3",
     author: "Emily Foster", 
     avatar: "/placeholder.svg",
-    rating: 4,
     date: "2 months ago",
     experience: "React Native Intensive", 
     content: "Great content and excellent instructors. The pace was challenging but manageable. Austin was a fantastic location and the networking opportunities were valuable."
@@ -406,11 +417,7 @@ export default function BrandProfile() {
                 
                 <CardTitle className="text-2xl">{host.name}</CardTitle>
                 
-                <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground mt-2">
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 text-neon-yellow mr-1" />
-                    {host.rating} ({host.totalReviews} reviews)
-                  </div>
+                <div className="flex items-center justify-center text-sm text-muted-foreground mt-2">
                   <div className="flex items-center">
                     <Heart className="h-4 w-4 text-neon-pink mr-1" />
                     {host.followers} followers
@@ -486,6 +493,26 @@ export default function BrandProfile() {
 
           {/* Right Column - Content */}
           <div className="lg:w-2/3">
+            {/* AI Review Summary */}
+            <Card className="bg-card/50 border-gray-800 mb-8">
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="h-5 w-5 text-neon-purple" />
+                  <CardTitle className="text-xl">What people are saying</CardTitle>
+                </div>
+                <CardDescription className="text-foreground leading-relaxed">
+                  {mockAISummary[hostId as keyof typeof mockAISummary]?.summary || "Great experiences with positive feedback from participants."}
+                </CardDescription>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {mockAISummary[hostId as keyof typeof mockAISummary]?.keywords.map((keyword, index) => (
+                    <Badge key={index} variant="secondary" className="bg-gray-800 text-neon-cyan border-gray-700">
+                      {keyword}
+                    </Badge>
+                  )) || []}
+                </div>
+              </CardHeader>
+            </Card>
+
             {/* Upcoming Experiences */}
             <div className="mb-12">
               <h2 className="text-3xl font-bold mb-6">Upcoming Experiences</h2>
@@ -496,29 +523,26 @@ export default function BrandProfile() {
                       <img 
                         src={experience.image}
                         alt={experience.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                       />
-                      <div className="absolute top-4 left-4">
-                        <Badge className={categoryColors[experience.category as keyof typeof categoryColors]}>
+                      <div className="absolute top-4 right-4">
+                        <Badge className={`${categoryColors[experience.category as keyof typeof categoryColors]} text-xs`}>
                           {experience.category}
                         </Badge>
                       </div>
-                      <div className="absolute top-4 right-4">
-                        <Badge variant="secondary" className="bg-black/70 text-white border-0">
+                      <div className="absolute bottom-4 right-4">
+                        <Badge className="bg-background/80 text-neon-pink text-xs">
                           {experience.price}
                         </Badge>
                       </div>
                     </div>
-                    
-                    <CardHeader className="pb-4">
-                      <CardTitle className="text-lg group-hover:text-neon-cyan transition-colors">
-                        <Link to={`/experience/${experience.id}`}>
-                          {experience.title}
-                        </Link>
-                      </CardTitle>
+                    <CardHeader className="pb-2">
                       <div className="space-y-2">
+                        <h3 className="font-semibold text-lg group-hover:text-neon-cyan transition-colors">
+                          {experience.title}
+                        </h3>
                         <div className="flex items-center text-sm text-muted-foreground">
-                          <MapPin className="h-4 w-4 mr-2 text-neon-cyan" />
+                          <MapPin className="h-4 w-4 mr-2 text-neon-pink" />
                           {experience.location}
                         </div>
                         <div className="flex items-center text-sm text-muted-foreground">
@@ -527,17 +551,6 @@ export default function BrandProfile() {
                         </div>
                       </div>
                     </CardHeader>
-
-                    <CardContent className="pt-0">
-                      <Link to={`/experience/${experience.id}`}>
-                        <Button 
-                          className="w-full bg-transparent border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-background transition-all"
-                          variant="outline"
-                        >
-                          View Details
-                        </Button>
-                      </Link>
-                    </CardContent>
                   </Card>
                 ))}
               </div>
@@ -548,35 +561,27 @@ export default function BrandProfile() {
               <h2 className="text-3xl font-bold mb-6">Past Experiences</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {hostExperiences.past.map((experience) => (
-                  <Card key={experience.id} className="bg-card border-gray-800">
-                    <div className="relative h-48 overflow-hidden rounded-t-lg">
+                  <Card key={experience.id} className="bg-card border-gray-800 hover:border-gray-700 transition-all group">
+                    <CardHeader className="flex-row items-start gap-4 pb-4">
                       <img 
                         src={experience.image}
                         alt={experience.title}
-                        className="w-full h-full object-cover opacity-80"
+                        className="w-20 h-20 rounded-lg object-cover"
                       />
-                      <div className="absolute top-4 left-4">
-                        <Badge className={categoryColors[experience.category as keyof typeof categoryColors]}>
+                      <div className="space-y-2">
+                        <Badge className={`${categoryColors[experience.category as keyof typeof categoryColors]} text-xs`}>
                           {experience.category}
                         </Badge>
-                      </div>
-                    </div>
-                    
-                    <CardHeader className="pb-4">
-                      <CardTitle className="text-lg">{experience.title}</CardTitle>
-                      <div className="space-y-2">
+                        <h3 className="font-semibold group-hover:text-neon-cyan transition-colors">
+                          {experience.title}
+                        </h3>
                         <div className="flex items-center text-sm text-muted-foreground">
-                          <MapPin className="h-4 w-4 mr-2 text-neon-cyan" />
+                          <MapPin className="h-4 w-4 mr-2 text-neon-pink" />
                           {experience.location}
                         </div>
                         <div className="flex items-center text-sm text-muted-foreground">
                           <Calendar className="h-4 w-4 mr-2 text-neon-purple" />
                           {experience.dates}
-                        </div>
-                        <div className="flex items-center text-sm">
-                          <Star className="h-4 w-4 mr-1 text-neon-yellow" />
-                          <span className="font-medium">{experience.rating}</span>
-                          <span className="text-muted-foreground ml-1">({experience.reviews} reviews)</span>
                         </div>
                       </div>
                     </CardHeader>
@@ -591,35 +596,29 @@ export default function BrandProfile() {
               <div className="space-y-6">
                 {mockReviews.map((review) => (
                   <Card key={review.id} className="bg-card border-gray-800">
-                    <CardHeader className="pb-4">
+                    <CardContent className="pt-6">
                       <div className="flex items-start gap-4">
-                        <Avatar className="w-12 h-12">
+                        <Avatar className="w-10 h-10">
                           <AvatarImage src={review.avatar} alt={review.author} />
-                          <AvatarFallback className="bg-neon-purple text-background">
-                            {review.author.charAt(0)}
-                          </AvatarFallback>
+                          <AvatarFallback>{review.author.charAt(0)}</AvatarFallback>
                         </Avatar>
+                        
                         <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-semibold">{review.author}</h4>
-                            <span className="text-sm text-muted-foreground">{review.date}</span>
-                          </div>
                           <div className="flex items-center gap-2 mb-2">
-                            <div className="flex">
-                              {[...Array(5)].map((_, i) => (
-                                <Star 
-                                  key={i} 
-                                  className={`h-4 w-4 ${i < review.rating ? 'text-neon-yellow fill-current' : 'text-gray-600'}`} 
-                                />
-                              ))}
-                            </div>
-                            <span className="text-sm text-muted-foreground">• {review.experience}</span>
+                            <h4 className="font-semibold">{review.author}</h4>
                           </div>
+                          
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                            <span>{review.experience}</span>
+                            <span>•</span>
+                            <span>{review.date}</span>
+                          </div>
+                          
+                          <p className="text-muted-foreground leading-relaxed">
+                            {review.content}
+                          </p>
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-muted-foreground">{review.content}</p>
                     </CardContent>
                   </Card>
                 ))}
