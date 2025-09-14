@@ -133,13 +133,14 @@ export const Navigation = ({
           {user && <NotificationDropdown />}
           
           {user ? (
-            <Button 
-              variant="default" 
-              className="bg-neon-pink text-background hover:bg-neon-purple shadow-neon"
-              onClick={() => setIsAccountModalOpen(true)}
-            >
-              My Account
-            </Button>
+            <Link to="/account">
+              <Button 
+                variant="default" 
+                className="bg-neon-pink text-background hover:bg-neon-purple shadow-neon"
+              >
+                My Account
+              </Button>
+            </Link>
           ) : (
             <Button 
               variant="default" 

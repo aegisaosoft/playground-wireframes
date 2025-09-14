@@ -16,6 +16,7 @@ import BrandProfile from "./pages/BrandProfile";
 import OrganizerDashboard from "./pages/OrganizerDashboard";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
 import NotFound from "./pages/NotFound";
+import MyAccount from "./pages/MyAccount";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/experience/:experienceId" element={<ExperienceDetail />} />
           <Route path="/host/:hostId" element={<Layout><BrandProfile /></Layout>} />
           <Route path="/organizer/dashboard" element={<Layout><OrganizerDashboard /></Layout>} />
+          <Route path="/account" element={<MyAccount />} />
           <Route path="/brand/:brandId" element={<Layout><BrandPageWrapper /></Layout>} />
           <Route path="/retreat/:retreatId" element={<Layout><RetreatPage /></Layout>} />
           <Route path="/checkout/success" element={<CheckoutSuccess />} />
