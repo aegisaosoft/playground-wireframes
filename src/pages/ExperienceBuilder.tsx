@@ -3,6 +3,7 @@ import { TopBar } from '@/components/ExperienceBuilder/TopBar';
 import { BlockPalette } from '@/components/ExperienceBuilder/BlockPalette';
 import { Canvas } from '@/components/ExperienceBuilder/Canvas';
 import { SettingsSidebar } from '@/components/ExperienceBuilder/SettingsSidebar';
+import { HostData } from '@/components/ExperienceBuilder/HostSelector';
 import { Block, BlockType } from '@/types/experienceBuilder';
 
 const ExperienceBuilder = () => {
@@ -28,6 +29,21 @@ const ExperienceBuilder = () => {
   ]);
   const [isPublic, setIsPublic] = useState(false);
   const [title, setTitle] = useState('Untitled Experience');
+  const [selectedHost, setSelectedHost] = useState<HostData>(() => {
+    // Initialize with user's personal profile
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      return {
+        type: 'personal',
+        name: user.name,
+      };
+    }
+    return {
+      type: 'personal',
+      name: 'User',
+    };
+  });
 
   const addBlock = useCallback((type: BlockType) => {
     const newBlock: Block = {
@@ -76,14 +92,16 @@ const ExperienceBuilder = () => {
   }, []);
 
   const handleSaveDraft = useCallback(() => {
-    console.log('Saving draft...', { title, blocks, isPublic: false });
+    console.log('Saving draft...', { title, blocks, isPublic: false, host: selectedHost });
     // Future: API integration
-  }, [title, blocks]);
+    // If selectedHost.type === 'brand' and selectedHost.brandId, create/update brand page
+  }, [title, blocks, selectedHost]);
 
   const handlePublish = useCallback(() => {
-    console.log('Publishing experience...', { title, blocks, isPublic });
+    console.log('Publishing experience...', { title, blocks, isPublic, host: selectedHost });
     // Future: API integration
-  }, [title, blocks, isPublic]);
+    // If selectedHost.type === 'brand' and selectedHost.brandId, create/update brand page
+  }, [title, blocks, isPublic, selectedHost]);
 
   return (
     <div className="min-h-screen bg-[#0b0b12] flex flex-col">
@@ -108,6 +126,8 @@ const ExperienceBuilder = () => {
         <SettingsSidebar
           isPublic={isPublic}
           onToggleVisibility={setIsPublic}
+          selectedHost={selectedHost}
+          onHostChange={setSelectedHost}
         />
       </div>
     </div>

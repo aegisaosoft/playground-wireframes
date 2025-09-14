@@ -3,15 +3,20 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Globe, Lock, Link2, Lightbulb } from 'lucide-react';
 import { PaymentsCard } from '@/components/PaymentsCard';
+import { HostSelector, HostData } from './HostSelector';
 
 interface SettingsSidebarProps {
   isPublic: boolean;
   onToggleVisibility: (isPublic: boolean) => void;
+  selectedHost: HostData;
+  onHostChange: (host: HostData) => void;
 }
 
 export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   isPublic,
   onToggleVisibility,
+  selectedHost,
+  onHostChange,
 }) => {
   return (
     <div className="w-80 bg-black/20 border-l border-white/10 p-6">
@@ -19,6 +24,14 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
         <div className="w-2 h-2 bg-neon-yellow rounded-full animate-pulse" />
         Settings & Tips
       </h2>
+
+      {/* Host Selection */}
+      <div className="mb-8">
+        <HostSelector 
+          selectedHost={selectedHost}
+          onHostChange={onHostChange}
+        />
+      </div>
 
       {/* Visibility Toggle */}
       <div className="space-y-4 mb-8">
