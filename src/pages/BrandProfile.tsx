@@ -43,56 +43,266 @@ const mockHosts = {
     followers: 1560,
     rating: 5.0,
     totalReviews: 89
+  },
+  "remote-collective": {
+    id: "remote-collective",
+    name: "Remote Collective",
+    type: "company",
+    avatar: "/placeholder.svg",
+    coverImage: "/src/assets/retreat-portugal.jpg",
+    bio: "A global community of digital nomads, entrepreneurs, and remote workers building the future of location-independent work.",
+    mission: "Connecting remote professionals worldwide through immersive experiences that combine business growth with cultural exploration.",
+    website: "https://remotecollective.co",
+    social: {
+      instagram: "@remote_collective",
+      twitter: "@remotecollective"
+    },
+    followers: 3200,
+    rating: 4.8,
+    totalReviews: 156
+  },
+  "mountain-guides": {
+    id: "mountain-guides",
+    name: "Mountain Guides",
+    type: "company",
+    avatar: "/placeholder.svg",
+    coverImage: "/src/assets/retreat-switzerland.jpg",
+    bio: "Professional mountain guides with over 20 years of experience leading expeditions in the world's most stunning alpine environments.",
+    mission: "Sharing the transformative power of mountains through safe, inspiring, and unforgettable outdoor adventures.",
+    website: "https://mountainguides.ch",
+    social: {
+      instagram: "@mountain_guides_swiss",
+      twitter: "@mountainguides"
+    },
+    followers: 1890,
+    rating: 4.9,
+    totalReviews: 203
+  },
+  "sacred-spaces": {
+    id: "sacred-spaces",
+    name: "Sacred Spaces",
+    type: "individual",
+    avatar: "/placeholder.svg",
+    coverImage: "/src/assets/retreat-tulum.jpg",
+    bio: "Shamanic practitioner and consciousness facilitator creating healing experiences in sacred locations around the world.",
+    mission: "Awakening human potential through ancient wisdom practices, sound healing, and connection with sacred geometry.",
+    website: "https://sacredspaces.mx",
+    social: {
+      instagram: "@sacred_spaces_tulum",
+      twitter: "@sacredspaces"
+    },
+    followers: 2100,
+    rating: 4.7,
+    totalReviews: 98
+  },
+  "chef-masters": {
+    id: "chef-masters",
+    name: "Chef Masters",
+    type: "company",
+    avatar: "/placeholder.svg",
+    coverImage: "/src/assets/retreat-costa-rica.jpg",
+    bio: "Award-winning culinary experts offering immersive cooking experiences in the world's most beautiful destinations.",
+    mission: "Celebrating cultural heritage through authentic cuisine while creating unforgettable culinary journeys.",
+    website: "https://chefmasters.gr",
+    social: {
+      instagram: "@chef_masters_greece",
+      twitter: "@chefmasters"
+    },
+    followers: 2650,
+    rating: 4.8,
+    totalReviews: 134
   }
 };
 
-const mockExperiences = {
-  upcoming: [
-    {
-      id: "1",
-      title: "Hacker House Bali", 
-      location: "Ubud, Bali",
-      dates: "Mar 15-22, 2024",
-      image: "/src/assets/retreat-bali.jpg",
-      category: "Tech",
-      price: "$899",
-      status: "Available"
+// Dynamic experiences based on host
+const getExperiencesForHost = (hostId: string) => {
+  const experiencesByHost = {
+    "techcorp": {
+      upcoming: [
+        {
+          id: "1",
+          title: "Hacker House Bali", 
+          location: "Ubud, Bali",
+          dates: "Mar 15-22, 2024",
+          image: "/src/assets/retreat-bali.jpg",
+          category: "Tech",
+          price: "$899",
+          status: "Available"
+        },
+        {
+          id: "7",
+          title: "AI & Machine Learning Bootcamp",
+          location: "San Francisco, CA", 
+          dates: "Sep 10-17, 2024",
+          image: "/src/assets/retreat-portugal.jpg",
+          category: "Tech",
+          price: "$1299",
+          status: "Early Bird"
+        }
+      ],
+      past: [
+        {
+          id: "8",
+          title: "Blockchain Developer Workshop",
+          location: "Miami, FL",
+          dates: "Jan 8-15, 2024",
+          image: "/src/assets/retreat-costa-rica.jpg", 
+          category: "Tech",
+          price: "$799",
+          rating: 4.8,
+          reviews: 23
+        },
+        {
+          id: "9", 
+          title: "React Native Intensive",
+          location: "Austin, TX",
+          dates: "Nov 12-19, 2023",
+          image: "/src/assets/retreat-switzerland.jpg",
+          category: "Tech", 
+          price: "$699",
+          rating: 4.9,
+          reviews: 31
+        }
+      ]
     },
-    {
-      id: "7",
-      title: "AI & Machine Learning Bootcamp",
-      location: "San Francisco, CA", 
-      dates: "Sep 10-17, 2024",
-      image: "/src/assets/retreat-portugal.jpg",
-      category: "Tech",
-      price: "$1299",
-      status: "Early Bird"
-    }
-  ],
-  past: [
-    {
-      id: "8",
-      title: "Blockchain Developer Workshop",
-      location: "Miami, FL",
-      dates: "Jan 8-15, 2024",
-      image: "/src/assets/retreat-costa-rica.jpg", 
-      category: "Tech",
-      price: "$799",
-      rating: 4.8,
-      reviews: 23
+    "mindful": {
+      upcoming: [
+        {
+          id: "2",
+          title: "Yoga & Meditation Retreat",
+          location: "Rishikesh, India",
+          dates: "Apr 10-17, 2024",
+          image: "/src/assets/retreat-greece.jpg",
+          category: "Wellness",
+          price: "$599",
+          status: "Available"
+        }
+      ],
+      past: [
+        {
+          id: "10",
+          title: "Mindfulness & Breathwork",
+          location: "Bali, Indonesia",
+          dates: "Feb 5-12, 2024",
+          image: "/src/assets/retreat-bali.jpg",
+          category: "Wellness",
+          price: "$649",
+          rating: 5.0,
+          reviews: 18
+        }
+      ]
     },
-    {
-      id: "9", 
-      title: "React Native Intensive",
-      location: "Austin, TX",
-      dates: "Nov 12-19, 2023",
-      image: "/src/assets/retreat-switzerland.jpg",
-      category: "Tech", 
-      price: "$699",
-      rating: 4.9,
-      reviews: 31
+    "remote-collective": {
+      upcoming: [
+        {
+          id: "3",
+          title: "Digital Nomad Mastermind",
+          location: "Lisbon, Portugal", 
+          dates: "May 5-12, 2024",
+          image: "/src/assets/retreat-portugal.jpg",
+          category: "Business",
+          price: "$750",
+          status: "Available"
+        }
+      ],
+      past: [
+        {
+          id: "11",
+          title: "Remote Work Summit",
+          location: "Barcelona, Spain",
+          dates: "Jan 15-22, 2024",
+          image: "/src/assets/retreat-greece.jpg",
+          category: "Business",
+          price: "$699",
+          rating: 4.7,
+          reviews: 42
+        }
+      ]
+    },
+    "mountain-guides": {
+      upcoming: [
+        {
+          id: "4",
+          title: "Alpine Adventure Camp",
+          location: "Zermatt, Switzerland",
+          dates: "Jun 20-27, 2024", 
+          image: "/src/assets/retreat-switzerland.jpg",
+          category: "Adventure",
+          price: "$1200",
+          status: "Available"
+        }
+      ],
+      past: [
+        {
+          id: "12",
+          title: "Mont Blanc Expedition",
+          location: "Chamonix, France",
+          dates: "Aug 5-12, 2023",
+          image: "/src/assets/retreat-costa-rica.jpg",
+          category: "Adventure",
+          price: "$1099",
+          rating: 4.9,
+          reviews: 27
+        }
+      ]
+    },
+    "sacred-spaces": {
+      upcoming: [
+        {
+          id: "5",
+          title: "Wellness & Sacred Geometry",
+          location: "Tulum, Mexico",
+          dates: "Jul 8-15, 2024",
+          image: "/src/assets/retreat-tulum.jpg", 
+          category: "Wellness",
+          price: "$850",
+          status: "Available"
+        }
+      ],
+      past: [
+        {
+          id: "13",
+          title: "Shamanic Journey Intensive",
+          location: "Sedona, Arizona",
+          dates: "Dec 10-17, 2023",
+          image: "/src/assets/retreat-greece.jpg",
+          category: "Wellness",
+          price: "$799",
+          rating: 4.6,
+          reviews: 15
+        }
+      ]
+    },
+    "chef-masters": {
+      upcoming: [
+        {
+          id: "6",
+          title: "Mediterranean Culinary Journey",
+          location: "Santorini, Greece",
+          dates: "Aug 12-19, 2024",
+          image: "/src/assets/retreat-costa-rica.jpg",
+          category: "Culinary", 
+          price: "$950",
+          status: "Available"
+        }
+      ],
+      past: [
+        {
+          id: "14",
+          title: "Italian Cooking Masterclass",
+          location: "Tuscany, Italy",
+          dates: "Oct 8-15, 2023",
+          image: "/src/assets/retreat-portugal.jpg",
+          category: "Culinary",
+          price: "$899",
+          rating: 4.8,
+          reviews: 21
+        }
+      ]
     }
-  ]
+  };
+
+  return experiencesByHost[hostId as keyof typeof experiencesByHost] || { upcoming: [], past: [] };
 };
 
 const mockReviews = [
@@ -138,6 +348,7 @@ export default function BrandProfile() {
   const [isFollowing, setIsFollowing] = useState(false);
   
   const host = hostId ? mockHosts[hostId as keyof typeof mockHosts] : null;
+  const hostExperiences = hostId ? getExperiencesForHost(hostId) : { upcoming: [], past: [] };
 
   if (!host) {
     return (
@@ -279,7 +490,7 @@ export default function BrandProfile() {
             <div className="mb-12">
               <h2 className="text-3xl font-bold mb-6">Upcoming Experiences</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {mockExperiences.upcoming.map((experience) => (
+                {hostExperiences.upcoming.map((experience) => (
                   <Card key={experience.id} className="bg-card border-gray-800 hover:border-neon-cyan/50 transition-all group">
                     <div className="relative h-48 overflow-hidden rounded-t-lg">
                       <img 
@@ -336,7 +547,7 @@ export default function BrandProfile() {
             <div className="mb-12">
               <h2 className="text-3xl font-bold mb-6">Past Experiences</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {mockExperiences.past.map((experience) => (
+                {hostExperiences.past.map((experience) => (
                   <Card key={experience.id} className="bg-card border-gray-800">
                     <div className="relative h-48 overflow-hidden rounded-t-lg">
                       <img 
