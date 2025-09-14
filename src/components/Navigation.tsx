@@ -1,13 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
 import { AuthModal } from "@/components/AuthModal";
 import { AccountModal } from "@/components/AccountModal";
 import { RetreatCreationModal } from "@/components/RetreatCreationModal";
@@ -15,7 +8,6 @@ import { Retreat } from "@/components/RetreatGrid";
 import { RetreatEditor, RetreatDetails } from "@/components/RetreatEditor";
 import { BrandData } from "@/components/BrandEditor";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
-import { User, Settings, BarChart3, LogOut, ChevronDown } from "lucide-react";
 
 interface NavigationProps {
   onCreateRetreat?: (retreat: Omit<Retreat, 'id'>) => void;
@@ -139,48 +131,14 @@ export const Navigation = ({
           {user && <NotificationDropdown />}
           
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="default" 
-                  className="bg-neon-pink text-background hover:bg-neon-purple shadow-neon"
-                >
-                  My Account
-                  <ChevronDown className="w-4 h-4 ml-2" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="end" 
-                className="w-56 bg-[#111] border border-white/20 shadow-lg"
+            <Link to="/account">
+              <Button 
+                variant="default" 
+                className="bg-neon-pink text-background hover:bg-neon-purple shadow-neon"
               >
-                <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link to="/account" className="flex items-center">
-                    <User className="w-4 h-4 mr-2" />
-                    Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link to="/account" className="flex items-center">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Brand Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="cursor-pointer">
-                  <Link to="/organizer/dashboard" className="flex items-center">
-                    <BarChart3 className="w-4 h-4 mr-2" />
-                    Dashboard
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-white/10" />
-                <DropdownMenuItem 
-                  onClick={handleLogout}
-                  className="cursor-pointer text-red-400 focus:text-red-300 focus:bg-red-400/10"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                My Account
+              </Button>
+            </Link>
           ) : (
             <Button 
               variant="default" 

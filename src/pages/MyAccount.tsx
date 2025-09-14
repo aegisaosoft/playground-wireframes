@@ -26,7 +26,8 @@ import {
   TrendingUp,
   BarChart3,
   Copy,
-  Link2
+  Link2,
+  Building
 } from 'lucide-react';
 
 // Mock data
@@ -110,7 +111,7 @@ const mockFollowedHosts = [
   }
 ];
 
-type SidebarItem = 'profile' | 'applications' | 'hosting' | 'saved' | 'following' | 'settings';
+type SidebarItem = 'profile' | 'applications' | 'hosting' | 'saved' | 'following' | 'brand' | 'dashboard' | 'settings';
 
 export default function MyAccount() {
   const [activeTab, setActiveTab] = useState<SidebarItem>('profile');
@@ -192,12 +193,18 @@ export default function MyAccount() {
     });
   };
 
+  // Check if user has hosted experiences or created brands (mock data for now)
+  const hasHostedExperiences = mockHostedExperiences.length > 0;
+  const hasCreatedBrands = true; // Mock - would check if user has created any brands
+  
   const sidebarItems = [
     { id: 'profile' as SidebarItem, label: 'Profile', icon: User },
     { id: 'applications' as SidebarItem, label: 'My Applications', icon: FileText },
     { id: 'hosting' as SidebarItem, label: 'Hosting', icon: Home },
     { id: 'saved' as SidebarItem, label: 'Saved Experiences', icon: Bookmark },
     { id: 'following' as SidebarItem, label: 'Following Hosts', icon: Users },
+    ...(hasCreatedBrands ? [{ id: 'brand' as SidebarItem, label: 'Brand Page', icon: Building }] : []),
+    ...(hasHostedExperiences ? [{ id: 'dashboard' as SidebarItem, label: 'Dashboard', icon: BarChart3 }] : []),
     { id: 'settings' as SidebarItem, label: 'Settings', icon: Settings },
   ];
 
@@ -709,6 +716,126 @@ export default function MyAccount() {
                   >
                     Logout
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case 'brand':
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-bold text-foreground">Brand Page</h1>
+              <Button 
+                variant="outline" 
+                className="border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Brand Page
+              </Button>
+            </div>
+            
+            <Card className="bg-white/5 border-white/10 rounded-2xl">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-6 mb-6">
+                  <div className="w-20 h-20 bg-gradient-neon rounded-full flex items-center justify-center font-bold text-2xl text-background">
+                    {(user?.name || 'B').charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-foreground">{user?.name || 'Brand Name'}</h3>
+                    <p className="text-muted-foreground">Professional Host</p>
+                    <div className="flex items-center gap-4 mt-2">
+                      <Badge variant="secondary" className="bg-neon-cyan/20 text-neon-cyan">
+                        <Users className="w-3 h-3 mr-1" />
+                        124 followers
+                      </Badge>
+                      <Badge variant="secondary" className="bg-neon-purple/20 text-neon-purple">
+                        <Star className="w-3 h-3 mr-1" />
+                        4.9 rating
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-2">About</h4>
+                    <p className="text-muted-foreground">
+                      We create transformative experiences that combine wellness, adventure, and personal growth. 
+                      Our retreats are designed to help you disconnect from the everyday and reconnect with yourself.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-2">Experiences Hosted</h4>
+                    <p className="text-muted-foreground">2 experiences • 45 total participants</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case 'dashboard':
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+              <Link to="/organizer/dashboard">
+                <Button 
+                  variant="outline" 
+                  className="border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10"
+                >
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Full Dashboard
+                </Button>
+              </Link>
+            </div>
+            
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="bg-white/5 border-white/10 rounded-2xl">
+                <CardContent className="p-6 text-center">
+                  <div className="text-3xl font-bold text-neon-cyan mb-2">2</div>
+                  <p className="text-muted-foreground">Experiences Hosted</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/5 border-white/10 rounded-2xl">
+                <CardContent className="p-6 text-center">
+                  <div className="text-3xl font-bold text-neon-purple mb-2">45</div>
+                  <p className="text-muted-foreground">Total Participants</p>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/5 border-white/10 rounded-2xl">
+                <CardContent className="p-6 text-center">
+                  <div className="text-3xl font-bold text-neon-pink mb-2">124</div>
+                  <p className="text-muted-foreground">Followers</p>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Recent Activity */}
+            <Card className="bg-white/5 border-white/10 rounded-2xl">
+              <CardHeader>
+                <CardTitle className="text-foreground">Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-3 bg-white/3 rounded-lg">
+                    <TrendingUp className="w-5 h-5 text-neon-cyan" />
+                    <div>
+                      <p className="text-foreground font-medium">New application received</p>
+                      <p className="text-sm text-muted-foreground">Digital Nomad Bootcamp • 2 hours ago</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-white/3 rounded-lg">
+                    <Users className="w-5 h-5 text-neon-purple" />
+                    <div>
+                      <p className="text-foreground font-medium">5 new followers</p>
+                      <p className="text-sm text-muted-foreground">Your brand page • 1 day ago</p>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
