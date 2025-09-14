@@ -24,7 +24,9 @@ import {
   UserMinus,
   Star,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  Copy,
+  Link2
 } from 'lucide-react';
 
 // Mock data
@@ -57,16 +59,18 @@ const mockHostedExperiences = [
     status: 'published',
     visibility: 'public',
     applicants: 12,
-    rating: 4.8
+    rating: 4.8,
+    privateSlug: null
   },
   {
     id: '2',
     title: 'Photography Masterclass',
     dates: 'June 15-22, 2024',
-    status: 'draft',
+    status: 'published',
     visibility: 'private',
     applicants: 3,
-    rating: null
+    rating: null,
+    privateSlug: 'private-1703847362-k9n2m8x4p'
   }
 ];
 
@@ -170,6 +174,22 @@ export default function MyAccount() {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const copyPrivateLink = (privateSlug: string) => {
+    const privateUrl = `${window.location.origin}/experience/private/${privateSlug}`;
+    navigator.clipboard.writeText(privateUrl).then(() => {
+      toast({
+        title: "Link copied!",
+        description: "Private experience link has been copied to clipboard.",
+      });
+    }).catch(() => {
+      toast({
+        title: "Copy failed",
+        description: "Could not copy link to clipboard. Please try again.",
+        variant: "destructive",
+      });
+    });
   };
 
   const sidebarItems = [
@@ -505,17 +525,34 @@ export default function MyAccount() {
                               </span>
                             )}
                           </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button variant="outline" size="sm" className="border-white/20 text-foreground hover:bg-white/10">
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit
-                          </Button>
-                          <Button variant="outline" size="sm" className="border-white/20 text-foreground hover:bg-white/10">
-                            <Eye className="w-4 h-4 mr-2" />
-                            View
-                          </Button>
-                        </div>
+                         </div>
+                         <div className="flex items-center space-x-2">
+                           <Button variant="outline" size="sm" className="border-white/20 text-foreground hover:bg-white/10">
+                             <Edit className="w-4 h-4 mr-2" />
+                             Edit
+                           </Button>
+                            {experience.visibility === 'private' && experience.privateSlug ? (
+                              <div className="flex flex-col items-end space-y-1">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10"
+                                  onClick={() => copyPrivateLink(experience.privateSlug!)}
+                                >
+                                  <Copy className="w-4 h-4 mr-2" />
+                                  Copy Link
+                                </Button>
+                                <span className="text-xs text-neon-cyan/70">
+                                  Private link — only people with this link can access
+                                </span>
+                              </div>
+                            ) : (
+                             <Button variant="outline" size="sm" className="border-white/20 text-foreground hover:bg-white/10">
+                               <Eye className="w-4 h-4 mr-2" />
+                               View
+                             </Button>
+                           )}
+                         </div>
                       </div>
                     </CardContent>
                   </Card>

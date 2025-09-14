@@ -98,7 +98,24 @@ const ExperienceBuilder = () => {
   }, [title, blocks, selectedHost]);
 
   const handlePublish = useCallback(() => {
-    console.log('Publishing experience...', { title, blocks, isPublic, host: selectedHost });
+    // Generate unique slug for private experiences
+    const uniqueSlug = isPublic ? null : `private-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const experienceData = { 
+      title, 
+      blocks, 
+      isPublic, 
+      host: selectedHost,
+      privateSlug: uniqueSlug
+    };
+    
+    console.log('Publishing experience...', experienceData);
+    
+    // For private experiences, show the generated link
+    if (!isPublic && uniqueSlug) {
+      const privateUrl = `${window.location.origin}/experience/private/${uniqueSlug}`;
+      console.log('Private experience URL:', privateUrl);
+    }
+    
     // Future: API integration
     // If selectedHost.type === 'brand' and selectedHost.brandId, create/update brand page
   }, [title, blocks, isPublic, selectedHost]);

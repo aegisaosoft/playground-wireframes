@@ -71,7 +71,31 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
               size="sm"
               className="w-full bg-white/5 border-white/10 text-foreground hover:bg-white/10 text-xs"
             >
-              Copy Link
+              Copy Public Link
+            </Button>
+          </div>
+        )}
+
+        {!isPublic && (
+          <div className="p-4 bg-neon-cyan/10 border border-neon-cyan/20 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Link2 className="w-4 h-4 text-neon-cyan" />
+              <span className="font-medium text-neon-cyan text-sm">Private Link</span>
+            </div>
+            <p className="text-xs text-neon-cyan/70 mb-3">
+              Only people with this link can access your experience
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full bg-white/5 border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10 text-xs"
+              onClick={() => {
+                const privateSlug = `private-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                const privateUrl = `${window.location.origin}/experience/private/${privateSlug}`;
+                navigator.clipboard.writeText(privateUrl);
+              }}
+            >
+              Copy Private Link
             </Button>
           </div>
         )}
