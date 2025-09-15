@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { AnimatedTypingText } from "@/components/AnimatedTypingText";
 
 const PlaygroundHero = () => {
   return (
@@ -23,7 +24,7 @@ const PlaygroundHero = () => {
         {/* Main headline */}
         <div className="space-y-6 mb-12">
           <h1 className="text-6xl md:text-8xl font-bold leading-tight">
-            <span className="text-neon-pink">Your wild</span>
+            <span className="text-neon-pink">Your <AnimatedTypingText words={['wild', 'weird', 'new']} className="text-neon-pink" /></span>
             <br />
             <span className="bg-gradient-to-r from-neon-yellow to-neon-orange bg-clip-text text-transparent">
               experience
