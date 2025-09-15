@@ -16,12 +16,12 @@ interface BlockPaletteProps {
 
 const blockItems = [
   { type: 'image' as BlockType, label: 'Image', icon: Image, description: 'Hero image with preview' },
-  { type: 'richText' as BlockType, label: 'Rich Text', icon: FileText, description: 'Multi-line storytelling' },
-  { type: 'agendaDay' as BlockType, label: 'Agenda Day', icon: Clock, description: 'Daily schedule items' },
-  { type: 'tickets' as BlockType, label: 'Ticket Tiers', icon: Ticket, description: 'Pricing & capacity' },
-  { type: 'gallery' as BlockType, label: 'Gallery', icon: Grid3X3, description: 'Multiple images' },
-  { type: 'faq' as BlockType, label: 'FAQ', icon: HelpCircle, description: 'Questions & answers' },
-  { type: 'cta' as BlockType, label: 'Call to Action', icon: MousePointer, description: 'Action button' },
+  { type: 'richText' as BlockType, label: 'Description', icon: FileText, description: '' },
+  { type: 'agendaDay' as BlockType, label: 'Agenda', icon: Clock, description: '' },
+  { type: 'tickets' as BlockType, label: 'Tickets', icon: Ticket, description: '' },
+  { type: 'gallery' as BlockType, label: 'Gallery', icon: Grid3X3, description: '' },
+  { type: 'faq' as BlockType, label: 'FAQ', icon: HelpCircle, description: '' },
+  { type: 'cta' as BlockType, label: 'Call to Action', icon: MousePointer, description: '' },
 ];
 
 export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock }) => {
@@ -45,14 +45,16 @@ export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock }) => {
                 <div className="w-8 h-8 bg-gradient-neon rounded-md flex items-center justify-center group-hover:shadow-neon/40">
                   <IconComponent className="w-4 h-4 text-black" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-foreground font-medium group-hover:text-neon-pink transition-colors">
-                    {item.label}
-                  </div>
-                  <div className="text-muted-foreground text-sm mt-1">
-                    {item.description}
-                  </div>
-                </div>
+                 <div className="flex-1 min-w-0">
+                   <div className="text-foreground font-medium group-hover:text-neon-pink transition-colors">
+                     {item.label}
+                   </div>
+                   {item.description && (
+                     <div className="text-muted-foreground text-sm mt-1">
+                       {item.description}
+                     </div>
+                   )}
+                 </div>
               </div>
             </button>
           );
