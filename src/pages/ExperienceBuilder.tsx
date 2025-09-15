@@ -122,12 +122,10 @@ const ExperienceBuilder = () => {
 
   return (
     <div className="min-h-screen bg-[#0b0b12] flex flex-col">
-      <TopBar 
-        title={title}
-        onTitleChange={setTitle}
-        onSaveDraft={handleSaveDraft}
-        onPublish={handlePublish}
-      />
+        <TopBar
+          onSaveDraft={handleSaveDraft}
+          onPublish={handlePublish}
+        />
       
       <div className="flex-1 flex overflow-hidden">
         <BlockPalette onAddBlock={addBlock} />
