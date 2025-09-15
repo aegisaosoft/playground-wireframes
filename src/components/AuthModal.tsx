@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (user: { name: string; email: string }) => void;
+  onLogin: (user: { name: string; email: string }, isFirstSignIn?: boolean) => void;
 }
 
 export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
@@ -34,13 +34,19 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Mock successful response
-      const user = { name: name || email.split('@')[0], email };
+      // Mock successful response - check if user exists
+      const existingUser = localStorage.getItem('user');
+      const isFirstSignIn = isSignUp || !existingUser;
+      const user = { 
+        name: name || email.split('@')[0], 
+        email,
+        profile: existingUser ? JSON.parse(existingUser).profile : undefined
+      };
       
       // Store user in localStorage
       localStorage.setItem('user', JSON.stringify(user));
       
-      onLogin(user);
+      onLogin(user, isFirstSignIn);
       onClose();
       
       toast({
@@ -70,10 +76,16 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       // Simulate Google login
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const user = { name: "Google User", email: "user@gmail.com" };
+      const existingUser = localStorage.getItem('user');
+      const isFirstSignIn = !existingUser;
+      const user = { 
+        name: "Google User", 
+        email: "user@gmail.com",
+        profile: existingUser ? JSON.parse(existingUser).profile : undefined
+      };
       localStorage.setItem('user', JSON.stringify(user));
       
-      onLogin(user);
+      onLogin(user, isFirstSignIn);
       onClose();
       
       toast({

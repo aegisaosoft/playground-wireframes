@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { AuthModal } from "@/components/AuthModal";
 import { AccountModal } from "@/components/AccountModal";
 import { RetreatCreationModal } from "@/components/RetreatCreationModal";
+import { VoiceOnboardingModal } from "@/components/VoiceOnboarding";
 import { Retreat } from "@/components/RetreatGrid";
 import { RetreatEditor, RetreatDetails } from "@/components/RetreatEditor";
 import { BrandData } from "@/components/BrandEditor";
@@ -40,7 +41,8 @@ export const Navigation = ({
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isRetreatModalOpen, setIsRetreatModalOpen] = useState(false);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [isVoiceOnboardingOpen, setIsVoiceOnboardingOpen] = useState(false);
+  const [user, setUser] = useState<{ name: string; email: string; profile?: any } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,8 +52,13 @@ export const Navigation = ({
     }
   }, []);
 
-  const handleLogin = (userData: { name: string; email: string }) => {
+  const handleLogin = (userData: { name: string; email: string; profile?: any }, isFirstSignIn = false) => {
     setUser(userData);
+    
+    // Show voice onboarding for first-time sign-ins if no profile exists
+    if (isFirstSignIn && !userData.profile?.onboardingCompleted) {
+      setIsVoiceOnboardingOpen(true);
+    }
   };
 
   const handleLogout = () => {
@@ -155,6 +162,14 @@ export const Navigation = ({
         onClose={() => setIsAuthModalOpen(false)} 
         onLogin={handleLogin}
       />
+      
+      <VoiceOnboardingModal
+        isOpen={isVoiceOnboardingOpen}
+        onClose={() => setIsVoiceOnboardingOpen(false)}
+        onComplete={() => setIsVoiceOnboardingOpen(false)}
+        isFirstSignIn={true}
+      />
+
       <AccountModal 
         isOpen={isAccountModalOpen} 
         onClose={() => setIsAccountModalOpen(false)} 
@@ -169,6 +184,7 @@ export const Navigation = ({
         userBrandData={userBrandData}
         onSaveBrandData={onSaveBrandData}
       />
+      
       <RetreatCreationModal 
         isOpen={isRetreatModalOpen} 
         onClose={() => setIsRetreatModalOpen(false)} 

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { VoiceProfileSection } from '@/components/VoiceProfile';
 import { 
   User, 
   FileText, 
@@ -115,7 +116,7 @@ type SidebarItem = 'profile' | 'applications' | 'hosting' | 'saved' | 'following
 
 export default function MyAccount() {
   const [activeTab, setActiveTab] = useState<SidebarItem>('profile');
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string; profile?: any } | null>(null);
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -275,16 +276,28 @@ export default function MyAccount() {
                   </div>
                 </div>
 
-                {/* Bio Section */}
-                <div className="space-y-2">
-                  <Label htmlFor="bio" className="text-foreground">Bio</Label>
-                  <textarea
-                    id="bio"
-                    rows={3}
-                    placeholder="Tell us about yourself..."
-                    className="w-full p-3 bg-white/5 border border-white/20 rounded-lg text-foreground placeholder:text-muted-foreground resize-none"
-                  />
-                </div>
+                {/* Bio Section (Replace with VoiceProfileSection) */}
+                <VoiceProfileSection 
+                  profileData={user?.profile}
+                  onUpdateProfile={(profileData) => {
+                    if (user) {
+                      const updatedUser = {
+                        ...user,
+                        profile: {
+                          ...user.profile,
+                          ...profileData,
+                          onboardingCompleted: true
+                        }
+                      };
+                      localStorage.setItem('user', JSON.stringify(updatedUser));
+                      setUser(updatedUser);
+                      toast({
+                        title: "Profile updated!",
+                        description: "Your voice profile has been saved successfully.",
+                      });
+                    }
+                  }}
+                />
 
                 {/* Brand Info */}
                 <Card className="bg-white/3 border-white/10 rounded-xl">
