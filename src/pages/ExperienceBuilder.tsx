@@ -126,7 +126,7 @@ const ExperienceBuilder = () => {
         id: `agendaDay-${Date.now()}-${index}`,
         type: 'agendaDay',
         data: {
-          date: day.title || `Day ${day.day}`,
+          date: null, // Let user select the actual date
           items: day.items
         },
         order: blockOrder++,

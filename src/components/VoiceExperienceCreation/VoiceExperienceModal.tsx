@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Mic, X, Sparkles } from 'lucide-react';
 import { VoiceExperienceCapture } from './VoiceExperienceCapture';
@@ -275,6 +275,7 @@ export const VoiceExperienceModal: React.FC<VoiceExperienceModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-lg border-white/10">
+        <DialogTitle className="sr-only">Create Experience with Voice</DialogTitle>
         <Button
           variant="ghost"
           size="sm"
