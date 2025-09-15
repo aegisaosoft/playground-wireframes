@@ -12,7 +12,7 @@ export const AnimatedTypingText = ({
   words, 
   className = "", 
   typingSpeed = 120, 
-  deletingSpeed = 30, 
+  deletingSpeed = 70, 
   pauseDuration = 1000 
 }: AnimatedTypingTextProps) => {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
