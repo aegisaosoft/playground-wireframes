@@ -29,6 +29,7 @@ export const HostSelector: React.FC<HostSelectorProps> = ({
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   
   // Authentication state
+  const [showAuthForm, setShowAuthForm] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -126,106 +127,134 @@ export const HostSelector: React.FC<HostSelectorProps> = ({
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-4">
             <User className="w-4 h-4 text-neon-cyan" />
-            <h3 className="font-medium text-foreground">Authentication Required</h3>
+            <h3 className="font-medium text-foreground">Who is hosting this experience?</h3>
           </div>
 
-          <Card className="bg-white/5 border-white/10">
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="text-center mb-6">
-                  <h4 className="text-lg font-semibold text-foreground mb-2">
-                    {authMode === 'login' ? 'Sign In' : 'Create Account'}
-                  </h4>
-                  <p className="text-sm text-muted-foreground">
-                    {authMode === 'login' 
-                      ? 'Welcome back! Sign in to select a host'
-                      : 'Create an account to start hosting experiences'
-                    }
-                  </p>
+          {!showAuthForm ? (
+            // Simple Sign In Button
+            <Card className="bg-white/5 border-white/10">
+              <CardContent className="p-4">
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-4">Please log in to select a host</p>
+                  <Button
+                    onClick={() => setShowAuthForm(true)}
+                    className="w-full bg-gradient-neon text-background hover:opacity-90 font-semibold"
+                  >
+                    Sign In
+                  </Button>
                 </div>
+              </CardContent>
+            </Card>
+          ) : (
+            // Full Authentication Form
+            <Card className="bg-white/5 border-white/10">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="text-center mb-6">
+                    <h4 className="text-lg font-semibold text-foreground mb-2">
+                      {authMode === 'login' ? 'Sign In' : 'Create Account'}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {authMode === 'login' 
+                        ? 'Welcome back! Sign in to select a host'
+                        : 'Create an account to start hosting experiences'
+                      }
+                    </p>
+                  </div>
 
-                <form onSubmit={handleAuth} className="space-y-4">
-                  {authMode === 'signup' && (
+                  <form onSubmit={handleAuth} className="space-y-4">
+                    {authMode === 'signup' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="name" className="text-sm text-foreground">Full Name</Label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="name"
+                            type="text"
+                            placeholder="Enter your full name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="bg-white/5 border-white/10 text-foreground pl-10 focus:ring-neon-cyan/50"
+                            required
+                          />
+                        </div>
+                      </div>
+                    )}
+
                     <div className="space-y-2">
-                      <Label htmlFor="name" className="text-sm text-foreground">Full Name</Label>
+                      <Label htmlFor="email" className="text-sm text-foreground">Email</Label>
                       <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input
-                          id="name"
-                          type="text"
-                          placeholder="Enter your full name"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
+                          id="email"
+                          type="email"
+                          placeholder="Enter your email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
                           className="bg-white/5 border-white/10 text-foreground pl-10 focus:ring-neon-cyan/50"
                           required
                         />
                       </div>
                     </div>
-                  )}
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm text-foreground">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="bg-white/5 border-white/10 text-foreground pl-10 focus:ring-neon-cyan/50"
-                        required
-                      />
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className="text-sm text-foreground">Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="bg-white/5 border-white/10 text-foreground pl-10 pr-10 focus:ring-neon-cyan/50"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm text-foreground">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="bg-white/5 border-white/10 text-foreground pl-10 pr-10 focus:ring-neon-cyan/50"
-                        required
-                      />
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setShowAuthForm(false)}
+                        className="flex-1 text-muted-foreground hover:text-foreground hover:bg-white/10"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        className="flex-1 bg-gradient-neon text-background hover:opacity-90 font-semibold"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Please wait...' : (authMode === 'login' ? 'Sign In' : 'Create Account')}
+                      </Button>
+                    </div>
+                  </form>
+
+                  <div className="text-center pt-4 border-t border-white/10">
+                    <p className="text-sm text-muted-foreground">
+                      {authMode === 'login' ? "Don't have an account?" : "Already have an account?"}
                       <button
                         type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                        className="ml-2 text-neon-cyan hover:text-neon-pink transition-colors font-medium"
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {authMode === 'login' ? 'Sign Up' : 'Sign In'}
                       </button>
-                    </div>
+                    </p>
                   </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-neon text-background hover:opacity-90 font-semibold"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Please wait...' : (authMode === 'login' ? 'Sign In' : 'Create Account')}
-                  </Button>
-                </form>
-
-                <div className="text-center pt-4 border-t border-white/10">
-                  <p className="text-sm text-muted-foreground">
-                    {authMode === 'login' ? "Don't have an account?" : "Already have an account?"}
-                    <button
-                      type="button"
-                      onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-                      className="ml-2 text-neon-cyan hover:text-neon-pink transition-colors font-medium"
-                    >
-                      {authMode === 'login' ? 'Sign Up' : 'Sign In'}
-                    </button>
-                  </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </TooltipProvider>
     );
