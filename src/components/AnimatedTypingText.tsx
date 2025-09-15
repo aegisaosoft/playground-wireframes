@@ -11,9 +11,9 @@ interface AnimatedTypingTextProps {
 export const AnimatedTypingText = ({ 
   words, 
   className = "", 
-  typingSpeed = 150, 
-  deletingSpeed = 75, 
-  pauseDuration = 2000 
+  typingSpeed = 80, 
+  deletingSpeed = 40, 
+  pauseDuration = 1000 
 }: AnimatedTypingTextProps) => {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [currentText, setCurrentText] = useState('');
