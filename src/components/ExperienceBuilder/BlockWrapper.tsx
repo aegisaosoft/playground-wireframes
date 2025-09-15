@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Block } from '@/types/experienceBuilder';
 import { Button } from '@/components/ui/button';
 import { GripVertical, Copy, Trash2, MapPin } from 'lucide-react';
@@ -21,6 +21,8 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
   children,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOver, setDragOver] = useState<'top' | 'bottom' | null>(null);
   
   // Core blocks that cannot be deleted
   const coreBlocks = ['title-default', 'dates-default', 'location-default'];
@@ -42,16 +44,77 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
   const isLastCoreBlock = ['title-default', 'dates-default', 'location-default'].includes(block.id) && 
     block.id === 'location-default';
 
+  const handleDragStart = (e: React.DragEvent) => {
+    setIsDragging(true);
+    e.dataTransfer.setData('text/plain', index.toString());
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    setDragOver(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    const rect = ref.current?.getBoundingClientRect();
+    if (rect) {
+      const midpoint = rect.top + rect.height / 2;
+      setDragOver(e.clientY < midpoint ? 'top' : 'bottom');
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // Only clear dragOver if we're leaving the block entirely
+    if (!ref.current?.contains(e.relatedTarget as Node)) {
+      setDragOver(null);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+    const hoverIndex = dragOver === 'top' ? index : index + 1;
+    
+    if (dragIndex !== hoverIndex && dragIndex !== hoverIndex - 1) {
+      onReorder(dragIndex, hoverIndex > dragIndex ? hoverIndex - 1 : hoverIndex);
+    }
+    
+    setDragOver(null);
+  };
+
   return (
     <div
       ref={ref}
-      className="group relative"
+      className={`group relative transition-all duration-200 ${
+        isDragging ? 'opacity-50' : ''
+      } ${dragOver ? 'scale-105' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
+      {/* Drop indicator */}
+      {dragOver === 'top' && (
+        <div className="absolute -top-1 left-0 right-0 h-0.5 bg-neon-purple rounded-full z-10" />
+      )}
+      {dragOver === 'bottom' && (
+        <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-neon-purple rounded-full z-10" />
+      )}
+
       {/* Block Header - Only show for non-core blocks */}
       {!coreBlocks.includes(block.id) && (
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab hover:text-neon-pink transition-colors" />
+            <div 
+              className="w-4 h-4 text-muted-foreground cursor-grab hover:text-neon-pink transition-colors active:cursor-grabbing"
+              draggable
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <GripVertical className="w-4 h-4" />
+            </div>
             <div className="flex items-center gap-1">
               <span className="text-sm font-medium text-foreground">
                 {blockTypeLabels[block.type]}
