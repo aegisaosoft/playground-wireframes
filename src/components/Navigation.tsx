@@ -8,6 +8,7 @@ import { Retreat } from "@/components/RetreatGrid";
 import { RetreatEditor, RetreatDetails } from "@/components/RetreatEditor";
 import { BrandData } from "@/components/BrandEditor";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
+import { BrandLogo } from "@/components/BrandLogo";
 
 interface NavigationProps {
   onCreateRetreat?: (retreat: Omit<Retreat, 'id'>) => void;
@@ -100,9 +101,7 @@ export const Navigation = ({
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
-          <Link to="/" className="text-2xl font-bold text-foreground hover:text-neon-pink transition-colors">
-            <span className="text-neon-pink">Play</span>ground
-          </Link>
+          <BrandLogo />
         </div>
 
         {/* Navigation Buttons */}

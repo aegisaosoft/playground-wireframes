@@ -1,8 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Save, Eye } from 'lucide-react';
+import { BrandLogo } from '@/components/BrandLogo';
 
 interface TopBarProps {
   title: string;
@@ -20,9 +20,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   return (
     <div className="h-16 bg-black/40 border-b border-white/10 flex items-center justify-between px-6 backdrop-blur-sm">
       <div className="flex items-center gap-4">
-        <Link to="/" className="text-2xl font-bold bg-gradient-neon bg-clip-text text-transparent hover:opacity-80 transition-opacity cursor-pointer">
-          Playground
-        </Link>
+        <BrandLogo />
         <div className="w-px h-8 bg-white/20" />
         <Input
           value={title}
