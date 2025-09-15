@@ -75,7 +75,7 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <ImageIcon className="w-5 h-5 text-neon-purple" />
-        <h3 className="text-xl font-semibold text-foreground">Hero Image</h3>
+        <h3 className="text-xl font-semibold text-foreground">Cover Image</h3>
       </div>
 
       <div className="space-y-4">
