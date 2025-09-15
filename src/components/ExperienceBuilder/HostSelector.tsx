@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { User, Plus, Upload, X, Building2, Info } from 'lucide-react';
+import { User, Plus, Upload, X, Building2, Info, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 export interface HostData {
   type: 'personal' | 'brand';
@@ -27,6 +27,14 @@ export const HostSelector: React.FC<HostSelectorProps> = ({
   const [brandName, setBrandName] = useState('');
   const [brandLogo, setBrandLogo] = useState<string | null>(null);
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  
+  // Authentication state
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -34,6 +42,38 @@ export const HostSelector: React.FC<HostSelectorProps> = ({
       setUser(JSON.parse(storedUser));
     }
   }, []);
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    if (authMode === 'signup') {
+      // Mock signup
+      const newUser = {
+        name: name,
+        email: email,
+      };
+      localStorage.setItem('user', JSON.stringify(newUser));
+      setUser(newUser);
+    } else {
+      // Mock login
+      const mockUser = {
+        name: name || 'John Doe',
+        email: email,
+      };
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      setUser(mockUser);
+    }
+    
+    setIsLoading(false);
+    // Reset form
+    setEmail('');
+    setPassword('');
+    setName('');
+  };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -82,9 +122,112 @@ export const HostSelector: React.FC<HostSelectorProps> = ({
 
   if (!user) {
     return (
-      <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
-        <p className="text-sm text-muted-foreground">Please log in to select a host</p>
-      </div>
+      <TooltipProvider>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <User className="w-4 h-4 text-neon-cyan" />
+            <h3 className="font-medium text-foreground">Authentication Required</h3>
+          </div>
+
+          <Card className="bg-white/5 border-white/10">
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="text-center mb-6">
+                  <h4 className="text-lg font-semibold text-foreground mb-2">
+                    {authMode === 'login' ? 'Sign In' : 'Create Account'}
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    {authMode === 'login' 
+                      ? 'Welcome back! Sign in to select a host'
+                      : 'Create an account to start hosting experiences'
+                    }
+                  </p>
+                </div>
+
+                <form onSubmit={handleAuth} className="space-y-4">
+                  {authMode === 'signup' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-sm text-foreground">Full Name</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="name"
+                          type="text"
+                          placeholder="Enter your full name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className="bg-white/5 border-white/10 text-foreground pl-10 focus:ring-neon-cyan/50"
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm text-foreground">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="Enter your email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="bg-white/5 border-white/10 text-foreground pl-10 focus:ring-neon-cyan/50"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm text-foreground">Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="bg-white/5 border-white/10 text-foreground pl-10 pr-10 focus:ring-neon-cyan/50"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-gradient-neon text-background hover:opacity-90 font-semibold"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Please wait...' : (authMode === 'login' ? 'Sign In' : 'Create Account')}
+                  </Button>
+                </form>
+
+                <div className="text-center pt-4 border-t border-white/10">
+                  <p className="text-sm text-muted-foreground">
+                    {authMode === 'login' ? "Don't have an account?" : "Already have an account?"}
+                    <button
+                      type="button"
+                      onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                      className="ml-2 text-neon-cyan hover:text-neon-pink transition-colors font-medium"
+                    >
+                      {authMode === 'login' ? 'Sign Up' : 'Sign In'}
+                    </button>
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </TooltipProvider>
     );
   }
 
