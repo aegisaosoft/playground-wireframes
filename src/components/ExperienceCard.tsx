@@ -44,7 +44,7 @@ const ExperienceCard = ({
   };
   return (
     <div 
-      className="group relative bg-card border border-gray-800 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-gray-700 hover:scale-105"
+      className="group relative bg-card border border-border rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-neon-pink/50 hover:scale-105 hover:shadow-neon"
       onClick={handleClick}
     >
       {/* Image */}
@@ -73,7 +73,7 @@ const ExperienceCard = ({
       {/* Content */}
       <div className="p-6">
         {/* Location */}
-        <div className="flex items-center text-gray-400 text-sm mb-2">
+        <div className="flex items-center text-muted-foreground text-sm mb-2">
           <MapPin className="w-4 h-4 mr-1" />
           {location}
         </div>
@@ -84,7 +84,7 @@ const ExperienceCard = ({
         </h3>
 
         {/* Description */}
-        <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
           {description}
         </p>
 
@@ -93,7 +93,7 @@ const ExperienceCard = ({
           <div className="text-sm font-medium text-foreground mb-2">Highlights:</div>
           <ul className="space-y-1">
             {highlights.slice(0, 3).map((highlight, index) => (
-              <li key={index} className="flex items-center text-xs text-gray-400">
+              <li key={index} className="flex items-center text-xs text-muted-foreground">
                 <div className="w-1 h-1 bg-neon-pink rounded-full mr-2"></div>
                 {highlight}
               </li>

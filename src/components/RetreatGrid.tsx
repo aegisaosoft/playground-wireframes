@@ -41,13 +41,20 @@ interface RetreatGridProps {
 
 export const RetreatGrid = ({ retreats, onRetreatClick, savedRetreats, onToggleSaveRetreat }: RetreatGridProps) => {
   return (
-    <section className="py-16 px-4 sm:px-6 lg:px-8">
+    <section className="py-20 px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-5xl font-bold mb-4" style={{ color: '#1A1A1A' }}>
-            Retreat Yourself
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-neon-cyan/20 to-neon-purple/20 border border-neon-cyan/30 mb-8">
+            <span className="text-neon-cyan text-sm font-medium">
+              Featured Retreats
+            </span>
+          </div>
+          
+          <h2 className="text-5xl md:text-6xl font-bold mb-6">
+            <span className="text-neon-cyan">Retreat</span>{" "}
+            <span className="text-neon-pink">Yourself</span>
           </h2>
-          <p className="text-xl max-w-2xl mx-auto" style={{ color: '#1A1A1A' }}>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Discover curated retreats around the world. Connect, grow, and transform with like-minded adventurers.
           </p>
         </div>
@@ -67,10 +74,13 @@ export const RetreatGrid = ({ retreats, onRetreatClick, savedRetreats, onToggleS
           ))}
         </div>
         
-        <div className="text-center mt-12">
+        <div className="text-center mt-16">
+          <p className="text-muted-foreground mb-6">
+            Ready to find your perfect retreat experience?
+          </p>
           <Button 
             variant="outline" 
-            className="border-primary text-primary hover:bg-primary hover:text-primary-foreground px-8 py-2 rounded-full"
+            className="border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-background font-bold px-8 py-3 rounded-full transition-all duration-300"
           >
             See more retreats
           </Button>

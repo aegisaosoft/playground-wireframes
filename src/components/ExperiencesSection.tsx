@@ -70,7 +70,7 @@ const ExperiencesSection = () => {
             <span className="text-neon-yellow">Go IRL</span>
           </h2>
           
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Carefully curated experiences for people who think different.
           </p>
         </div>
@@ -87,7 +87,7 @@ const ExperiencesSection = () => {
 
         {/* Bottom CTA */}
         <div className="text-center">
-          <p className="text-gray-400 mb-6">
+          <p className="text-muted-foreground mb-6">
             Can't find your vibe? We're always cooking up new experiences.
           </p>
           <Button 

@@ -34,41 +34,45 @@ export const RetreatCard = ({ image, location, date, title, onClick, isSaved, on
     }
     onToggleSave();
   };
+  
   return (
     <div 
-      className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group hover:scale-[1.02]"
+      className="group relative bg-card border border-border rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-neon-pink/50 hover:scale-105 hover:shadow-neon"
       onClick={onClick}
     >
       <div className="relative overflow-hidden">
         <img
           src={image}
           alt={title}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
         
         {/* Save Button */}
         <button
           onClick={handleSaveClick}
-          className="absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-colors z-10"
+          className="absolute top-3 right-3 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background/90 transition-colors z-10 border border-border"
         >
           <Heart 
             className={`w-5 h-5 transition-colors ${
               isSaved 
-                ? 'fill-coral text-coral' 
-                : 'text-gray-600 hover:text-coral'
+                ? 'fill-neon-pink text-neon-pink' 
+                : 'text-muted-foreground hover:text-neon-pink'
             }`}
           />
         </button>
       </div>
-      <div className="p-4">
-        <h3 className="font-semibold text-foreground mb-2 line-clamp-2">{title}</h3>
+      
+      <div className="p-6">
+        <h3 className="font-bold text-lg text-foreground mb-3 line-clamp-2 group-hover:text-neon-cyan transition-colors">
+          {title}
+        </h3>
         
         {organizer && (
-          <div className="text-sm text-muted-foreground mb-2">
+          <div className="text-sm text-muted-foreground mb-3">
             <span>Hosted by: </span>
             <button 
-              className="text-coral hover:underline font-medium"
+              className="text-neon-pink hover:text-neon-cyan hover:underline font-medium transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 // Navigate to host profile - would need router navigation in real app
@@ -80,13 +84,13 @@ export const RetreatCard = ({ image, location, date, title, onClick, isSaved, on
           </div>
         )}
         
-        <div className="space-y-1">
-          <div className="flex items-center text-sm text-gray-500">
-            <MapPin className="w-4 h-4 mr-1" />
+        <div className="space-y-2">
+          <div className="flex items-center text-sm text-muted-foreground">
+            <MapPin className="w-4 h-4 mr-2 text-neon-cyan" />
             {location}
           </div>
-          <div className="flex items-center text-sm text-gray-500">
-            <Calendar className="w-4 h-4 mr-1" />
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Calendar className="w-4 h-4 mr-2 text-neon-yellow" />
             {date}
           </div>
         </div>
