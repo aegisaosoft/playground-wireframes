@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { Block } from '@/types/experienceBuilder';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Copy, Trash2 } from 'lucide-react';
+import { GripVertical, Copy, Trash2, MapPin } from 'lucide-react';
 
 interface BlockWrapperProps {
   block: Block;
@@ -42,15 +42,18 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
   return (
     <div
       ref={ref}
-      className="group relative bg-white/5 border border-white/10 rounded-lg overflow-hidden hover:border-neon-pink/30 hover:shadow-neon/10 transition-all duration-200"
+      className="group relative bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-neon-pink/30 hover:shadow-neon/10 transition-all duration-200"
     >
       {/* Block Header */}
       <div className="flex items-center justify-between px-4 py-2 bg-black/20 border-b border-white/10">
         <div className="flex items-center gap-2">
           <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab hover:text-neon-pink transition-colors" />
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            {blockTypeLabels[block.type]}
-          </span>
+          <div className="flex items-center gap-1">
+            {block.type === 'location' && <MapPin className="w-3 h-3 text-muted-foreground" />}
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {blockTypeLabels[block.type]}
+            </span>
+          </div>
         </div>
         
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

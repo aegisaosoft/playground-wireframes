@@ -16,12 +16,10 @@ export const DatesBlock: React.FC<DatesBlockProps> = ({ data, onChange }) => {
   
   return (
     <div className="space-y-4">
-      <h3 className="text-xl font-semibold text-foreground">Experience Dates</h3>
-      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Start Date */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Start Date</label>
+          <label className="text-sm font-medium text-neutral-300">Start Date</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -50,7 +48,7 @@ export const DatesBlock: React.FC<DatesBlockProps> = ({ data, onChange }) => {
 
         {/* End Date */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">End Date</label>
+          <label className="text-sm font-medium text-neutral-300">End Date</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Input } from '@/components/ui/input';
 
 interface TitleBlockProps {
   data: { text: string };
@@ -8,16 +7,11 @@ interface TitleBlockProps {
 
 export const TitleBlock: React.FC<TitleBlockProps> = ({ data, onChange }) => {
   return (
-    <div className="space-y-4">
-      <Input
-        value={data.text}
-        onChange={(e) => onChange({ text: e.target.value })}
-        className="text-4xl font-bold bg-transparent border-none p-0 h-auto text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
-        placeholder="Enter your experience title..."
-      />
-      <div className="text-sm text-muted-foreground">
-        Make it compelling - this is the first thing people see
-      </div>
-    </div>
+    <input
+      value={data.text}
+      onChange={(e) => onChange({ text: e.target.value })}
+      className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-2xl md:text-3xl font-bold placeholder:text-neutral-500 focus:border-white/20 focus:outline-none text-white"
+      placeholder="Experience name"
+    />
   );
 };
