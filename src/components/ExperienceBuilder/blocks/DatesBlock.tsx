@@ -16,16 +16,20 @@ export const DatesBlock: React.FC<DatesBlockProps> = ({ data, onChange }) => {
   
   return (
     <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-4">
+        <CalendarIcon className="w-4 h-4 text-neon-orange" />
+        <label className="text-sm font-medium text-neutral-300 uppercase tracking-wider">Dates</label>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Start Date */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-neutral-300">Start Date</label>
+          <label className="text-sm font-medium text-neutral-400">Start Date</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal bg-white/5 border-white/10 text-foreground hover:bg-white/10",
+                  "w-full justify-start text-left font-normal bg-white/5 border-white/10 text-foreground hover:bg-white/10 focus:border-neon-pink/50",
                   !data.startDate && "text-muted-foreground"
                 )}
               >
@@ -48,13 +52,13 @@ export const DatesBlock: React.FC<DatesBlockProps> = ({ data, onChange }) => {
 
         {/* End Date */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-neutral-300">End Date</label>
+          <label className="text-sm font-medium text-neutral-400">End Date</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal bg-white/5 border-white/10 text-foreground hover:bg-white/10",
+                  "w-full justify-start text-left font-normal bg-white/5 border-white/10 text-foreground hover:bg-white/10 focus:border-neon-pink/50",
                   !data.endDate && "text-muted-foreground"
                 )}
               >

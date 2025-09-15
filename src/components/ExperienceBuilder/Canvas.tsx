@@ -80,7 +80,7 @@ export const Canvas: React.FC<CanvasProps> = ({
 
   return (
     <div className="flex-1 overflow-y-auto bg-gradient-dark p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto">
         {blocks.map((block, index) => (
           <BlockWrapper
             key={block.id}
