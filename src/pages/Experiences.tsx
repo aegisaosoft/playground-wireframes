@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, Calendar, User } from "lucide-react";
+import { Search, MapPin, Calendar, User, Mic, Plus } from "lucide-react";
+import { VoiceExperienceModal } from '@/components/VoiceExperienceCreation';
+import { VoiceExperienceDraft } from '@/types/voiceExperienceCreation';
 
 // Mock data for experiences
 const mockExperiences = [
@@ -87,6 +89,7 @@ const categoryColors = {
 export default function Experiences() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredExperiences, setFilteredExperiences] = useState(mockExperiences);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -107,6 +110,12 @@ export default function Experiences() {
     setFilteredExperiences(filtered);
   };
 
+  const handleVoiceDraftCreated = (draft: VoiceExperienceDraft) => {
+    // Store the draft and navigate to builder
+    localStorage.setItem('voiceExperienceDraft', JSON.stringify(draft));
+    window.location.href = '/experience-builder?fromVoice=true';
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -122,6 +131,24 @@ export default function Experiences() {
               Find your next transformative journey. From tech retreats to wellness escapes, 
               discover unique experiences crafted by inspiring hosts worldwide.
             </p>
+          </div>
+
+          {/* Create Experience CTAs */}
+          <div className="flex gap-4 justify-center mb-8">
+            <Link to="/experience-builder">
+              <Button className="bg-gradient-neon text-background hover:opacity-90 shadow-neon px-8">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Experience
+              </Button>
+            </Link>
+            <Button 
+              onClick={() => setShowVoiceModal(true)}
+              variant="outline" 
+              className="border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10 px-8"
+            >
+              <Mic className="w-4 h-4 mr-2" />
+              Create with Voice
+            </Button>
           </div>
 
           {/* Search Bar */}
@@ -232,6 +259,13 @@ export default function Experiences() {
           </div>
         )}
       </div>
+
+      {/* Voice Creation Modal */}
+      <VoiceExperienceModal 
+        isOpen={showVoiceModal}
+        onClose={() => setShowVoiceModal(false)}
+        onPrefillBuilder={handleVoiceDraftCreated}
+      />
     </div>
   );
 }

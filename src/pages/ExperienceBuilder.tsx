@@ -1,10 +1,15 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { TopBar } from '@/components/ExperienceBuilder/TopBar';
 import { BlockPalette } from '@/components/ExperienceBuilder/BlockPalette';
 import { Canvas } from '@/components/ExperienceBuilder/Canvas';
 import { SettingsSidebar } from '@/components/ExperienceBuilder/SettingsSidebar';
 import { HostData } from '@/components/ExperienceBuilder/HostSelector';
 import { Block, BlockType } from '@/types/experienceBuilder';
+import { VoiceExperienceDraft } from '@/types/voiceExperienceCreation';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Mic, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const ExperienceBuilder = () => {
   const [blocks, setBlocks] = useState<Block[]>([
@@ -29,6 +34,7 @@ const ExperienceBuilder = () => {
   ]);
   const [isPublic, setIsPublic] = useState(false);
   const [title, setTitle] = useState('');
+  const [showVoiceBanner, setShowVoiceBanner] = useState(false);
   const [selectedHost, setSelectedHost] = useState<HostData>(() => {
     // Initialize with user's personal profile
     const storedUser = localStorage.getItem('user');
@@ -44,6 +50,118 @@ const ExperienceBuilder = () => {
       name: 'User',
     };
   });
+  
+  const { toast } = useToast();
+
+  // Check for voice draft on load
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromVoice = urlParams.get('fromVoice');
+    
+    if (fromVoice === 'true') {
+      const storedDraft = localStorage.getItem('voiceExperienceDraft');
+      if (storedDraft) {
+        try {
+          const draft: VoiceExperienceDraft = JSON.parse(storedDraft);
+          prefillFromVoice(draft);
+          setShowVoiceBanner(true);
+          localStorage.removeItem('voiceExperienceDraft');
+          // Clean up URL
+          window.history.replaceState({}, '', '/experience-builder');
+        } catch (error) {
+          console.error('Error loading voice draft:', error);
+        }
+      }
+    }
+  }, []);
+
+  const prefillFromVoice = useCallback((draft: VoiceExperienceDraft) => {
+    // Update basic info
+    setTitle(draft.title);
+    setIsPublic(draft.visibility === 'public');
+
+    // Create new blocks array starting with core blocks
+    const newBlocks: Block[] = [
+      {
+        id: 'title-default',
+        type: 'title',
+        data: { text: draft.title },
+        order: 0,
+      },
+      {
+        id: 'dates-default',
+        type: 'dates',
+        data: { 
+          startDate: draft.dates.startDate, 
+          endDate: draft.dates.endDate 
+        },
+        order: 1,
+      },
+      {
+        id: 'location-default',
+        type: 'location',
+        data: { 
+          city: draft.location.city, 
+          country: draft.location.country 
+        },
+        order: 2,
+      },
+    ];
+
+    let blockOrder = 3;
+
+    // Add description as rich text if available
+    if (draft.description) {
+      newBlocks.push({
+        id: `richText-${Date.now()}`,
+        type: 'richText',
+        data: { content: draft.description },
+        order: blockOrder++,
+      });
+    }
+
+    // Add agenda days
+    draft.agendaDays.forEach((day, index) => {
+      newBlocks.push({
+        id: `agendaDay-${Date.now()}-${index}`,
+        type: 'agendaDay',
+        data: {
+          date: day.title || `Day ${day.day}`,
+          items: day.items
+        },
+        order: blockOrder++,
+      });
+    });
+
+    // Add ticket tiers
+    if (draft.ticketTiers.length > 0) {
+      newBlocks.push({
+        id: `tickets-${Date.now()}`,
+        type: 'tickets',
+        data: { tiers: draft.ticketTiers },
+        order: blockOrder++,
+      });
+    }
+
+    // Add CTA
+    newBlocks.push({
+      id: `cta-${Date.now()}`,
+      type: 'cta',
+      data: { text: draft.ctaText, style: 'primary' },
+      order: blockOrder++,
+    });
+
+    setBlocks(newBlocks);
+    toast({
+      title: "Experience prefilled from voice!",
+      description: "Review the details and customize as needed before publishing.",
+    });
+  }, [toast]);
+
+  const handleVoicePrefill = useCallback((draft: VoiceExperienceDraft) => {
+    prefillFromVoice(draft);
+    setShowVoiceBanner(true);
+  }, [prefillFromVoice]);
 
   const addBlock = useCallback((type: BlockType) => {
     const newBlock: Block = {
@@ -122,10 +240,38 @@ const ExperienceBuilder = () => {
 
   return (
     <div className="min-h-screen bg-[#0b0b12] flex flex-col">
-        <TopBar
-          onSaveDraft={handleSaveDraft}
-          onPublish={handlePublish}
-        />
+      {/* Voice Banner */}
+      {showVoiceBanner && (
+        <Card className="m-4 bg-gradient-to-r from-neon-cyan/10 to-neon-purple/10 border-neon-cyan/20">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-neon rounded-full flex items-center justify-center">
+                  <Mic className="w-4 h-4 text-background" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Prefilled from voice</p>
+                  <p className="text-sm text-muted-foreground">Review and customize your experience before publishing</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowVoiceBanner(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <TopBar
+        onSaveDraft={handleSaveDraft}
+        onPublish={handlePublish}
+        onVoicePrefill={handleVoicePrefill}
+      />
       
       <div className="flex-1 flex overflow-hidden">
         <BlockPalette onAddBlock={addBlock} />
