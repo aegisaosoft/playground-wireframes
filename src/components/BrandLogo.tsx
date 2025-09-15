@@ -9,9 +9,9 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({ className = "" }) => {
   return (
     <Link 
       to="/" 
-      className={`text-2xl font-bold bg-gradient-neon bg-clip-text text-transparent hover:opacity-80 transition-opacity cursor-pointer ${className}`}
+      className={`text-2xl font-bold text-neon-pink hover:opacity-80 transition-opacity cursor-pointer ${className}`}
     >
-      Playground
+      playground
     </Link>
   );
 };
