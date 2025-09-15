@@ -1,9 +1,6 @@
 import React from 'react';
 import { BlockType } from '@/types/experienceBuilder';
 import { 
-  Type, 
-  Calendar, 
-  MapPin, 
   Image, 
   FileText, 
   Clock, 
@@ -18,9 +15,6 @@ interface BlockPaletteProps {
 }
 
 const blockItems = [
-  { type: 'title' as BlockType, label: 'Title', icon: Type, description: 'Large heading text' },
-  { type: 'dates' as BlockType, label: 'Dates', icon: Calendar, description: 'Start & end dates' },
-  { type: 'location' as BlockType, label: 'Location', icon: MapPin, description: 'City & country' },
   { type: 'image' as BlockType, label: 'Image', icon: Image, description: 'Hero image with preview' },
   { type: 'richText' as BlockType, label: 'Rich Text', icon: FileText, description: 'Multi-line storytelling' },
   { type: 'agendaDay' as BlockType, label: 'Agenda Day', icon: Clock, description: 'Daily schedule items' },
