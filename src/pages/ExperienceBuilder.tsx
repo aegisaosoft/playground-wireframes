@@ -28,7 +28,7 @@ const ExperienceBuilder = () => {
     },
   ]);
   const [isPublic, setIsPublic] = useState(false);
-  const [title, setTitle] = useState('Untitled Experience');
+  const [title, setTitle] = useState('');
   const [selectedHost, setSelectedHost] = useState<HostData>(() => {
     // Initialize with user's personal profile
     const storedUser = localStorage.getItem('user');
