@@ -15,7 +15,7 @@ interface BlockPaletteProps {
 }
 
 const blockItems = [
-  { type: 'image' as BlockType, label: 'Image', icon: Image, description: 'Hero image with preview' },
+  { type: 'image' as BlockType, label: 'Cover Image', icon: Image, description: '' },
   { type: 'richText' as BlockType, label: 'Description', icon: FileText, description: '' },
   { type: 'agendaDay' as BlockType, label: 'Agenda', icon: Clock, description: '' },
   { type: 'tickets' as BlockType, label: 'Tickets', icon: Ticket, description: '' },
