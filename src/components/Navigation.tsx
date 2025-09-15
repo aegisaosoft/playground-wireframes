@@ -119,9 +119,6 @@ export const Navigation = ({
           <Link to="#" className="text-foreground hover:text-neon-cyan transition-colors font-medium">
             Community
           </Link>
-          <Link to="#" className="text-foreground hover:text-neon-cyan transition-colors font-medium">
-            About
-          </Link>
           
           {/* Create Experience Button */}
           <Link to="/create">
