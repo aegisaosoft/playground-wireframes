@@ -82,9 +82,6 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
               <Link2 className="w-4 h-4 text-neon-cyan" />
               <span className="font-medium text-neon-cyan text-sm">Private Link</span>
             </div>
-            <p className="text-xs text-neon-cyan/70 mb-3">
-              Only people with this link can access your experience
-            </p>
             <Button
               variant="outline"
               size="sm"
