@@ -26,7 +26,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
           className="bg-white/5 border-white/10 text-foreground text-lg font-semibold w-80 focus:ring-neon-pink/50"
-          placeholder="Experience Title"
+          placeholder="Experience Name"
         />
       </div>
 

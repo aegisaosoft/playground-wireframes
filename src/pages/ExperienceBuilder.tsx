@@ -11,7 +11,7 @@ const ExperienceBuilder = () => {
     {
       id: 'title-default',
       type: 'title',
-      data: { text: 'Experience Title' },
+      data: { text: '' },
       order: 0,
     },
     {
@@ -154,7 +154,7 @@ const ExperienceBuilder = () => {
 function getDefaultBlockData(type: BlockType): any {
   switch (type) {
     case 'title':
-      return { text: 'Experience Title' };
+      return { text: '' };
     case 'dates':
       return { startDate: null, endDate: null };
     case 'location':
