@@ -19,8 +19,8 @@
     --popover: 0 0% 8%;
     --popover-foreground: 0 0% 98%;
 
-    /* Bright magenta primary #FF0080 */
-    --primary: 320 100% 50%;
+    /* Bright magenta primary #ff66c4 */
+    --primary: 323 100% 70%;
     --primary-foreground: 0 0% 98%;
 
     /* Dark secondary with slight blue tint */
@@ -40,12 +40,12 @@
 
     --border: 240 6% 15%;
     --input: 240 6% 15%;
-    --ring: 320 100% 50%;
+    --ring: 323 100% 70%;
 
     --radius: 1rem;
 
     /* Playground neon color palette */
-    --neon-pink: 320 100% 50%;      /* #FF0080 */
+    --neon-pink: 323 100% 70%;      /* #ff66c4 */
     --neon-cyan: 180 100% 50%;      /* #00FFFF */
     --neon-yellow: 60 100% 65%;     /* #FFFF52 */
     --neon-purple: 280 100% 70%;    /* #B366FF */
@@ -65,12 +65,12 @@
     --gray-900: 240 6% 12%;
 
     /* Neon glow shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(255 0 128 / 0.1);
-    --shadow: 0 1px 3px 0 rgb(255 0 128 / 0.2), 0 1px 2px -1px rgb(255 0 128 / 0.1);
-    --shadow-md: 0 4px 6px -1px rgb(255 0 128 / 0.3), 0 2px 4px -2px rgb(255 0 128 / 0.2);
-    --shadow-lg: 0 10px 15px -3px rgb(255 0 128 / 0.4), 0 4px 6px -4px rgb(255 0 128 / 0.3);
-    --shadow-xl: 0 20px 25px -5px rgb(255 0 128 / 0.5), 0 8px 10px -6px rgb(255 0 128 / 0.4);
-    --shadow-neon: 0 0 20px rgb(255 0 128 / 0.6), 0 0 40px rgb(255 0 128 / 0.4);
+    --shadow-sm: 0 1px 2px 0 rgb(255 102 196 / 0.1);
+    --shadow: 0 1px 3px 0 rgb(255 102 196 / 0.2), 0 1px 2px -1px rgb(255 102 196 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(255 102 196 / 0.3), 0 2px 4px -2px rgb(255 102 196 / 0.2);
+    --shadow-lg: 0 10px 15px -3px rgb(255 102 196 / 0.4), 0 4px 6px -4px rgb(255 102 196 / 0.3);
+    --shadow-xl: 0 20px 25px -5px rgb(255 102 196 / 0.5), 0 8px 10px -6px rgb(255 102 196 / 0.4);
+    --shadow-neon: 0 0 20px rgb(255 102 196 / 0.6), 0 0 40px rgb(255 102 196 / 0.4);
     --shadow-cyan: 0 0 20px rgb(0 255 255 / 0.6), 0 0 40px rgb(0 255 255 / 0.4);
     --shadow-yellow: 0 0 20px rgb(255 255 82 / 0.6), 0 0 40px rgb(255 255 82 / 0.4);
 
