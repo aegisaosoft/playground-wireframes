@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 
 const PlaygroundHero = () => {
   return (
-    <div className="relative min-h-screen bg-background flex flex-col justify-center items-center overflow-hidden">
+    <div className="relative overflow-hidden" style={{ background: '#0b0b12' }}>
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-20 w-4 h-4 bg-neon-pink rounded-full animate-pulse shadow-neon"></div>
@@ -12,7 +12,7 @@ const PlaygroundHero = () => {
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 text-center px-6 max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto px-6 pt-24 pb-20 relative z-10 text-center min-h-screen flex flex-col justify-center">
         {/* Announcement banner */}
         <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-neon-pink/20 to-neon-purple/20 border border-neon-pink/30 mb-12">
           <span className="text-neon-pink text-sm font-medium">
