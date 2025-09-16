@@ -58,38 +58,37 @@ export const PortalOverview = ({ data, isReadOnly = false }: PortalOverviewProps
         </CardContent>
       </Card>
 
-      {/* What You'll Do */}
-      <Card className="bg-white/5 border-white/10 rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-foreground">What You'll Do</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {data.highlights.map((highlight, index) => (
-              <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-card border border-gray-800">
-                <div className="w-2 h-2 bg-neon-pink rounded-full" />
-                <span className="text-gray-300">{highlight}</span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* What You'll Do & Location */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* What You'll Do */}
+        <Card className="bg-white/5 border-white/10 rounded-2xl">
+          <CardHeader>
+            <CardTitle className="text-foreground">What You'll Do</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-3">
+              {data.highlights.map((highlight, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-card border border-gray-800">
+                  <div className="w-2 h-2 bg-neon-pink rounded-full" />
+                  <span className="text-gray-300">{highlight}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Map Snippet */}
-      <Card className="bg-white/5 border-white/10 rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-foreground">Location Preview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="aspect-video rounded-lg bg-gray-800 flex items-center justify-center border border-gray-700">
+        {/* Location Preview */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-foreground">Location Preview</h3>
+          <div className="h-48 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center border border-gray-700 shadow-lg">
             <div className="text-center">
-              <MapPin className="w-12 h-12 text-neon-cyan mx-auto mb-2" />
+              <MapPin className="w-10 h-10 text-neon-cyan mx-auto mb-2" />
               <p className="text-foreground font-medium">{data.location}</p>
               <p className="text-sm text-muted-foreground">Interactive map coming soon</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* House Rules */}
       <Card className="bg-white/5 border-white/10 rounded-2xl">
