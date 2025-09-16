@@ -277,7 +277,6 @@ const ExperienceBuilder = () => {
       <TopBar
         onSaveDraft={handleSaveDraft}
         onPublish={handlePublish}
-        onVoicePrefill={handleVoicePrefill}
       />
       
       <div className="flex-1 flex overflow-hidden">
