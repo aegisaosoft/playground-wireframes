@@ -6,6 +6,7 @@ import { DatesBlock } from './blocks/DatesBlock';
 import { LocationBlock } from './blocks/LocationBlock';
 import { ImageBlock } from './blocks/ImageBlock';
 import { RichTextBlock } from './blocks/RichTextBlock';
+import { HighlightsBlock } from './blocks/HighlightsBlock';
 import { AgendaDayBlock } from './blocks/AgendaDayBlock';
 import { TicketsBlock } from './blocks/TicketsBlock';
 import { GalleryBlock } from './blocks/GalleryBlock';
@@ -45,6 +46,8 @@ export const Canvas: React.FC<CanvasProps> = ({
         return <ImageBlock {...props} />;
       case 'richText':
         return <RichTextBlock {...props} />;
+      case 'highlights':
+        return <HighlightsBlock {...props} />;
       case 'agendaDay':
         return <AgendaDayBlock {...props} />;
       case 'tickets':

@@ -4,6 +4,7 @@ export type BlockType =
   | 'location'
   | 'image'
   | 'richText'
+  | 'highlights'
   | 'agendaDay'
   | 'tickets'
   | 'gallery'

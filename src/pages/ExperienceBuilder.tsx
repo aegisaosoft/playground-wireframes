@@ -320,6 +320,8 @@ function getDefaultBlockData(type: BlockType): any {
       return { url: '', alt: '' };
     case 'richText':
       return { content: 'Tell your story here...' };
+    case 'highlights':
+      return { highlights: [] };
     case 'agendaDay':
       return { date: null, items: [{ time: '09:00', activity: 'Welcome & Introductions' }] };
     case 'tickets':

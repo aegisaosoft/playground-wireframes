@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Image, 
   FileText, 
+  Stars,
   Clock, 
   Ticket, 
   Grid3X3, 
@@ -21,6 +22,7 @@ interface BlockPaletteProps {
 const blockItems = [
   { type: 'image' as BlockType, label: 'Cover Image', icon: Image, description: '' },
   { type: 'richText' as BlockType, label: 'Description', icon: FileText, description: '' },
+  { type: 'highlights' as BlockType, label: 'Highlights', icon: Stars, description: '' },
   { type: 'agendaDay' as BlockType, label: 'Agenda', icon: Clock, description: '' },
   { type: 'tickets' as BlockType, label: 'Tickets', icon: Ticket, description: '' },
   { type: 'gallery' as BlockType, label: 'Gallery', icon: Grid3X3, description: '' },
