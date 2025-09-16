@@ -271,6 +271,14 @@ const ExperienceDetail = () => {
 
           {/* Action Buttons */}
           <div className="absolute top-8 right-8 flex gap-3">
+            {/* Mock approved user - in real app, check user's approval status */}
+            <Button 
+              size="sm" 
+              onClick={() => navigate(`/experience/portal/${experience.id}`)}
+              className="bg-neon-green hover:bg-neon-green/90 text-background font-medium"
+            >
+              Enter Portal
+            </Button>
             <Button size="sm" variant="secondary" className="bg-background/80 hover:bg-background/90">
               <Heart className="w-4 h-4" />
             </Button>

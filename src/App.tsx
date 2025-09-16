@@ -11,6 +11,7 @@ import { BrandPageWrapper } from "./components/BrandPageWrapper";
 import RetreatPage from "./pages/RetreatPage";
 import ExperienceBuilder from "./pages/ExperienceBuilder";
 import ExperienceDetail from "./pages/ExperienceDetail";
+import ExperiencePortal from "./pages/ExperiencePortal";
 import Experiences from "./pages/Experiences";
 import BrandProfile from "./pages/BrandProfile";
 import OrganizerDashboard from "./pages/OrganizerDashboard";
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/create" element={<ExperienceBuilder />} />
           <Route path="/experiences" element={<Layout><Experiences /></Layout>} />
           <Route path="/experience/:experienceId" element={<ExperienceDetail />} />
+          <Route path="/experience/portal/:experienceId" element={<ExperiencePortal />} />
           <Route path="/host/:hostId" element={<Layout><BrandProfile /></Layout>} />
           <Route path="/organizer/dashboard" element={<Layout><OrganizerDashboard /></Layout>} />
           <Route path="/account" element={<MyAccount />} />

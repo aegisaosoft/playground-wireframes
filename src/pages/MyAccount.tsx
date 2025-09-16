@@ -382,9 +382,13 @@ export default function MyAccount() {
                           <Badge className="bg-neon-green/20 text-neon-green border-neon-green/40">
                             Approved
                           </Badge>
-                          <Button variant="outline" size="sm" className="border-white/20 text-foreground hover:bg-white/10">
-                            <Eye className="w-4 h-4 mr-2" />
-                            View
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
+                            onClick={() => window.open(`/experience/portal/${application.id}`, '_blank')}
+                          >
+                            Open Portal
                           </Button>
                         </div>
                       </div>
