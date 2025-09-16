@@ -17,7 +17,6 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -28,7 +27,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
     try {
       const endpoint = isSignUp ? '/api/signup' : '/api/login';
       const body = isSignUp 
-        ? { email, password, name }
+        ? { email, password }
         : { email, password };
 
       // Simulate API call
@@ -38,7 +37,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       const existingUser = localStorage.getItem('user');
       const isFirstSignIn = isSignUp || !existingUser;
       const user = { 
-        name: name || email.split('@')[0], 
+        name: email.split('@')[0], 
         email,
         profile: existingUser ? JSON.parse(existingUser).profile : undefined
       };
@@ -58,7 +57,6 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       setEmail("");
       setPassword("");
       setConfirmPassword("");
-      setName("");
     } catch (error) {
       toast({
         title: "Error",
@@ -177,30 +175,17 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
             </div>
 
             {isSignUp && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your name"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Confirm your password"
-                    required
-                  />
-                </div>
-              </>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                  required
+                />
+              </div>
             )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
