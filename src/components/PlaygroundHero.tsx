@@ -1,7 +1,27 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AnimatedTypingText } from "@/components/AnimatedTypingText";
+import { AuthModal } from "@/components/AuthModal";
 
 const PlaygroundHero = () => {
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [user, setUser] = useState<{ name: string; email: string; profile?: any } | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogin = (userData: { name: string; email: string; profile?: any }) => {
+    setUser(userData);
+  };
+
+  const handleGetEarlyAccess = () => {
+    setShowAuthModal(true);
+  };
+
   return (
     <div className="relative min-h-screen bg-background flex flex-col justify-center items-center overflow-hidden">
       {/* Animated background elements */}
@@ -43,8 +63,9 @@ const PlaygroundHero = () => {
           <Button 
             size="lg" 
             className="bg-neon-pink hover:bg-neon-purple text-background font-bold text-lg px-12 py-6 rounded-full shadow-neon transition-all duration-300 hover:scale-105"
+            onClick={handleGetEarlyAccess}
           >
-            Join the Waitlist
+            Get Early Access
           </Button>
           <Button 
             size="lg" 
@@ -72,6 +93,13 @@ const PlaygroundHero = () => {
           </div>
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLogin={handleLogin}
+      />
     </div>
   );
 };

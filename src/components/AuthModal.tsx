@@ -241,8 +241,14 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
             )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Loading..." : isSignUp ? "Create Account" : "Sign In"}
+              {isLoading ? "Loading..." : isSignUp ? "Get Early Access" : "Sign In"}
             </Button>
+            
+            {isSignUp && (
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                Join now to access private experiences. You'll also be added to the waitlist for public access.
+              </p>
+            )}
           </form>
 
           <div className="text-center text-sm">

@@ -121,14 +121,24 @@ export const Navigation = ({
           </Link>
           
           {/* Create Experience Button */}
-          <Link to="/create">
+          {user ? (
+            <Link to="/create">
+              <Button 
+                variant="outline" 
+                className="bg-transparent border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-background transition-all font-semibold"
+              >
+                Create Experience
+              </Button>
+            </Link>
+          ) : (
             <Button 
               variant="outline" 
               className="bg-transparent border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-background transition-all font-semibold"
+              onClick={() => setIsAuthModalOpen(true)}
             >
               Create Experience
             </Button>
-          </Link>
+          )}
           
           {/* Notification Bell - only show when user is logged in */}
           {user && <NotificationDropdown />}
@@ -148,7 +158,7 @@ export const Navigation = ({
               className="bg-neon-pink text-background hover:bg-neon-purple shadow-neon font-bold px-6"
               onClick={() => setIsAuthModalOpen(true)}
             >
-              Join the Waitlist
+              Get Early Access
             </Button>
           )}
         </div>

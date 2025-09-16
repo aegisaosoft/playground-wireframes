@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, MapPin, Calendar, User, Mic, Plus } from "lucide-react";
 import { VoiceExperienceModal } from '@/components/VoiceExperienceCreation';
 import { VoiceExperienceDraft } from '@/types/voiceExperienceCreation';
+import { AuthModal } from '@/components/AuthModal';
 
 // Mock data for experiences
 const mockExperiences = [
@@ -90,6 +91,19 @@ export default function Experiences() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredExperiences, setFilteredExperiences] = useState(mockExperiences);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [user, setUser] = useState<{ name: string; email: string; profile?: any } | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const handleLogin = (userData: { name: string; email: string; profile?: any }) => {
+    setUser(userData);
+  };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -108,6 +122,22 @@ export default function Experiences() {
     );
     
     setFilteredExperiences(filtered);
+  };
+
+  const handleCreateExperience = () => {
+    if (!user) {
+      setShowAuthModal(true);
+    } else {
+      window.location.href = '/experience-builder';
+    }
+  };
+
+  const handleVoiceExperience = () => {
+    if (!user) {
+      setShowAuthModal(true);
+    } else {
+      setShowVoiceModal(true);
+    }
   };
 
   const handleVoiceDraftCreated = (draft: VoiceExperienceDraft) => {
@@ -135,14 +165,15 @@ export default function Experiences() {
 
           {/* Create Experience CTAs */}
           <div className="flex gap-4 justify-center mb-8">
-            <Link to="/experience-builder">
-              <Button className="bg-gradient-neon text-background hover:opacity-90 shadow-neon px-8">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Experience
-              </Button>
-            </Link>
             <Button 
-              onClick={() => setShowVoiceModal(true)}
+              onClick={handleCreateExperience}
+              className="bg-gradient-neon text-background hover:opacity-90 shadow-neon px-8"
+            > 
+              <Plus className="w-4 h-4 mr-2" />
+              Create Experience
+            </Button>
+            <Button 
+              onClick={handleVoiceExperience}
               variant="outline" 
               className="border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10 px-8"
             >
@@ -265,6 +296,13 @@ export default function Experiences() {
         isOpen={showVoiceModal}
         onClose={() => setShowVoiceModal(false)}
         onPrefillBuilder={handleVoiceDraftCreated}
+      />
+      
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLogin={handleLogin}
       />
     </div>
   );
