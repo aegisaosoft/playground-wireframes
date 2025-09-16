@@ -53,14 +53,17 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
         // For signup, show voice onboarding modal
         setShowVoiceOnboarding(true);
       } else {
-        // For login, proceed normally
-        onLogin(user, isFirstSignIn);
+        // For login, proceed normally and redirect to profile
+        onLogin(user, false);
         onClose();
         
         toast({
           title: "Welcome back!",
           description: "You've been logged in successfully.",
         });
+        
+        // Navigate to profile section for returning users
+        navigate('/account');
       }
       
       // Reset form
@@ -97,13 +100,16 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       if (isFirstSignIn) {
         setShowVoiceOnboarding(true);
       } else {
-        onLogin(user, isFirstSignIn);
+        onLogin(user, false);
         onClose();
         
         toast({
-          title: "Welcome!",
+          title: "Welcome back!",
           description: "You've been logged in with Google.",
         });
+        
+        // Navigate to profile section for returning users
+        navigate('/account');
       }
     } catch (error) {
       toast({
