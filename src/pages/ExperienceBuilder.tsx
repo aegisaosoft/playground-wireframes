@@ -6,6 +6,7 @@ import { SettingsSidebar } from '@/components/ExperienceBuilder/SettingsSidebar'
 import { HostData } from '@/components/ExperienceBuilder/HostSelector';
 import { Block, BlockType } from '@/types/experienceBuilder';
 import { VoiceExperienceDraft } from '@/types/voiceExperienceCreation';
+import { VoiceExperienceModal } from '@/components/VoiceExperienceCreation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Mic, X } from 'lucide-react';
@@ -35,6 +36,7 @@ const ExperienceBuilder = () => {
   const [isPublic, setIsPublic] = useState(false);
   const [title, setTitle] = useState('');
   const [showVoiceBanner, setShowVoiceBanner] = useState(false);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [selectedHost, setSelectedHost] = useState<HostData>(() => {
     // Initialize with user's personal profile
     const storedUser = localStorage.getItem('user');
@@ -161,7 +163,12 @@ const ExperienceBuilder = () => {
   const handleVoicePrefill = useCallback((draft: VoiceExperienceDraft) => {
     prefillFromVoice(draft);
     setShowVoiceBanner(true);
+    setShowVoiceModal(false);
   }, [prefillFromVoice]);
+
+  const handleVoiceCreate = () => {
+    setShowVoiceModal(true);
+  };
 
   const addBlock = useCallback((type: BlockType) => {
     const newBlock: Block = {
@@ -274,7 +281,7 @@ const ExperienceBuilder = () => {
       />
       
       <div className="flex-1 flex overflow-hidden">
-        <BlockPalette onAddBlock={addBlock} />
+        <BlockPalette onAddBlock={addBlock} onVoiceCreate={handleVoiceCreate} />
         
         <Canvas
           blocks={blocks}
@@ -291,6 +298,13 @@ const ExperienceBuilder = () => {
           onHostChange={setSelectedHost}
         />
       </div>
+
+      {/* Voice Experience Modal */}
+      <VoiceExperienceModal 
+        isOpen={showVoiceModal}
+        onClose={() => setShowVoiceModal(false)}
+        onPrefillBuilder={handleVoicePrefill}
+      />
     </div>
   );
 };
