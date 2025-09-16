@@ -45,9 +45,6 @@ export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceC
             <Sparkles className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
           </div>
         </Button>
-        <p className="text-xs text-muted-foreground mt-2 text-center">
-          Describe your experience and let AI build it for you
-        </p>
       </div>
 
       {/* Divider */}
