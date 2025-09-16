@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { VoiceOnboardingModal } from "@/components/VoiceOnboarding";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -18,7 +20,9 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showVoiceOnboarding, setShowVoiceOnboarding] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,13 +49,19 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       // Store user in localStorage
       localStorage.setItem('user', JSON.stringify(user));
       
-      onLogin(user, isFirstSignIn);
-      onClose();
-      
-      toast({
-        title: isSignUp ? "Account created!" : "Welcome back!",
-        description: isSignUp ? "Your account has been created successfully." : "You've been logged in successfully.",
-      });
+      if (isSignUp) {
+        // For signup, show voice onboarding modal
+        setShowVoiceOnboarding(true);
+      } else {
+        // For login, proceed normally
+        onLogin(user, isFirstSignIn);
+        onClose();
+        
+        toast({
+          title: "Welcome back!",
+          description: "You've been logged in successfully.",
+        });
+      }
       
       // Reset form
       setEmail("");
@@ -83,13 +93,18 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       };
       localStorage.setItem('user', JSON.stringify(user));
       
-      onLogin(user, isFirstSignIn);
-      onClose();
-      
-      toast({
-        title: "Welcome!",
-        description: "You've been logged in with Google.",
-      });
+      // For Google login, check if it's a new user and show onboarding
+      if (isFirstSignIn) {
+        setShowVoiceOnboarding(true);
+      } else {
+        onLogin(user, isFirstSignIn);
+        onClose();
+        
+        toast({
+          title: "Welcome!",
+          description: "You've been logged in with Google.",
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -101,8 +116,45 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
     }
   };
 
+  const handleVoiceOnboardingComplete = (profileData: any) => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      onLogin(user, true);
+    }
+    setShowVoiceOnboarding(false);
+    onClose();
+    
+    toast({
+      title: "Welcome!",
+      description: "Your account has been created successfully.",
+    });
+
+    // Navigate to profile section
+    navigate('/account');
+  };
+
+  const handleVoiceOnboardingSkip = () => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      onLogin(user, true);
+    }
+    setShowVoiceOnboarding(false);
+    onClose();
+    
+    toast({
+      title: "Welcome!",
+      description: "Your account has been created successfully.",
+    });
+
+    // Navigate to profile section
+    navigate('/account');
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <>
+      <Dialog open={isOpen && !showVoiceOnboarding} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center">
@@ -207,5 +259,13 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
         </div>
       </DialogContent>
     </Dialog>
+
+    <VoiceOnboardingModal
+      isOpen={showVoiceOnboarding}
+      onClose={handleVoiceOnboardingSkip}
+      onComplete={handleVoiceOnboardingComplete}
+      isFirstSignIn={true}
+    />
+    </>
   );
 };
