@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { TagInput } from '@/components/TagInput';
 import { VoiceOnboardingModal } from '@/components/VoiceOnboarding';
 import { Mic, Edit, RotateCcw, User, Save, X } from 'lucide-react';
 import { ExtractedProfileData } from '@/types/voiceOnboarding';
@@ -19,6 +20,16 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedBio, setEditedBio] = useState('');
+  
+  // Edit states for each section
+  const [isEditingInterests, setIsEditingInterests] = useState(false);
+  const [editedInterests, setEditedInterests] = useState<string[]>([]);
+  const [isEditingSkills, setIsEditingSkills] = useState(false);
+  const [editedSkills, setEditedSkills] = useState<string[]>([]);
+  const [isEditingLocations, setIsEditingLocations] = useState(false);
+  const [editedLocations, setEditedLocations] = useState<string[]>([]);
+  const [isEditingExperiences, setIsEditingExperiences] = useState(false);
+  const [editedExperiences, setEditedExperiences] = useState<string[]>([]);
 
   const handleVoiceComplete = (data: ExtractedProfileData) => {
     onUpdateProfile?.(data);
@@ -44,6 +55,82 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
   const handleCancel = () => {
     setEditedBio('');
     setIsEditing(false);
+  };
+
+  // Edit handlers for interests
+  const handleEditInterests = () => {
+    setEditedInterests(profileData?.interests || []);
+    setIsEditingInterests(true);
+  };
+
+  const handleSaveInterests = () => {
+    if (profileData) {
+      const updatedData = { ...profileData, interests: editedInterests };
+      onUpdateProfile?.(updatedData);
+    }
+    setIsEditingInterests(false);
+  };
+
+  const handleCancelInterests = () => {
+    setEditedInterests([]);
+    setIsEditingInterests(false);
+  };
+
+  // Edit handlers for skills
+  const handleEditSkills = () => {
+    setEditedSkills(profileData?.skills || []);
+    setIsEditingSkills(true);
+  };
+
+  const handleSaveSkills = () => {
+    if (profileData) {
+      const updatedData = { ...profileData, skills: editedSkills };
+      onUpdateProfile?.(updatedData);
+    }
+    setIsEditingSkills(false);
+  };
+
+  const handleCancelSkills = () => {
+    setEditedSkills([]);
+    setIsEditingSkills(false);
+  };
+
+  // Edit handlers for locations
+  const handleEditLocations = () => {
+    setEditedLocations(profileData?.preferredLocations || []);
+    setIsEditingLocations(true);
+  };
+
+  const handleSaveLocations = () => {
+    if (profileData) {
+      const updatedData = { ...profileData, preferredLocations: editedLocations };
+      onUpdateProfile?.(updatedData);
+    }
+    setIsEditingLocations(false);
+  };
+
+  const handleCancelLocations = () => {
+    setEditedLocations([]);
+    setIsEditingLocations(false);
+  };
+
+  // Edit handlers for experience types
+  const handleEditExperiences = () => {
+    setEditedExperiences(profileData?.experienceTypes || []);
+    setIsEditingExperiences(true);
+  };
+
+  const handleSaveExperiences = () => {
+    if (profileData) {
+      const updatedData = { ...profileData, experienceTypes: editedExperiences };
+      onUpdateProfile?.(updatedData);
+    }
+    setIsEditingExperiences(false);
+  };
+
+  const handleCancelExperiences = () => {
+    setEditedExperiences([]);
+    setIsEditingExperiences(false);
   };
 
   const hasProfileData = profileData && Object.keys(profileData).length > 0;
@@ -166,72 +253,244 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
           {/* Interests */}
           {profileData.interests && profileData.interests.length > 0 && (
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Interests</h4>
-              <div className="flex flex-wrap gap-2">
-                {profileData.interests.map((interest, index) => (
-                  <Badge 
-                    key={index}
-                    variant="secondary" 
-                    className="bg-neon-cyan/20 text-neon-cyan border-neon-cyan/40"
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Interests</h4>
+                {isEditingInterests && (
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleSaveInterests}
+                      className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
+                    >
+                      <Save className="w-3 h-3 mr-2" />
+                      Save
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleCancelInterests}
+                      className="border-red-400/40 text-red-400 hover:bg-red-400/10"
+                    >
+                      <X className="w-3 h-3 mr-2" />
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+                {!isEditingInterests && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleEditInterests}
+                    className="border-white/20 text-foreground hover:bg-white/10"
                   >
-                    {interest}
-                  </Badge>
-                ))}
+                    <Edit className="w-3 h-3 mr-2" />
+                    Edit
+                  </Button>
+                )}
               </div>
+              {isEditingInterests ? (
+                <TagInput
+                  tags={editedInterests}
+                  onTagsChange={setEditedInterests}
+                  placeholder="Add an interest and press Enter"
+                />
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {profileData.interests.map((interest, index) => (
+                    <Badge 
+                      key={index}
+                      variant="secondary" 
+                      className="bg-neon-cyan/20 text-neon-cyan border-neon-cyan/40"
+                    >
+                      {interest}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {/* Skills */}
           {profileData.skills && profileData.skills.length > 0 && (
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Skills & Roles</h4>
-              <div className="flex flex-wrap gap-2">
-                {profileData.skills.map((skill, index) => (
-                  <Badge 
-                    key={index}
-                    variant="secondary" 
-                    className="bg-neon-pink/20 text-neon-pink border-neon-pink/40"
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Skills & Roles</h4>
+                {isEditingSkills && (
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleSaveSkills}
+                      className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
+                    >
+                      <Save className="w-3 h-3 mr-2" />
+                      Save
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleCancelSkills}
+                      className="border-red-400/40 text-red-400 hover:bg-red-400/10"
+                    >
+                      <X className="w-3 h-3 mr-2" />
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+                {!isEditingSkills && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleEditSkills}
+                    className="border-white/20 text-foreground hover:bg-white/10"
                   >
-                    {skill}
-                  </Badge>
-                ))}
+                    <Edit className="w-3 h-3 mr-2" />
+                    Edit
+                  </Button>
+                )}
               </div>
+              {isEditingSkills ? (
+                <TagInput
+                  tags={editedSkills}
+                  onTagsChange={setEditedSkills}
+                  placeholder="Add a skill or role and press Enter"
+                />
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {profileData.skills.map((skill, index) => (
+                    <Badge 
+                      key={index}
+                      variant="secondary" 
+                      className="bg-neon-pink/20 text-neon-pink border-neon-pink/40"
+                    >
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {/* Preferred Locations */}
           {profileData.preferredLocations && profileData.preferredLocations.length > 0 && (
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Preferred Locations</h4>
-              <div className="flex flex-wrap gap-2">
-                {profileData.preferredLocations.map((location, index) => (
-                  <Badge 
-                    key={index}
-                    variant="secondary" 
-                    className="bg-neon-orange/20 text-neon-orange border-neon-orange/40"
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Preferred Locations</h4>
+                {isEditingLocations && (
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleSaveLocations}
+                      className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
+                    >
+                      <Save className="w-3 h-3 mr-2" />
+                      Save
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleCancelLocations}
+                      className="border-red-400/40 text-red-400 hover:bg-red-400/10"
+                    >
+                      <X className="w-3 h-3 mr-2" />
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+                {!isEditingLocations && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleEditLocations}
+                    className="border-white/20 text-foreground hover:bg-white/10"
                   >
-                    {location}
-                  </Badge>
-                ))}
+                    <Edit className="w-3 h-3 mr-2" />
+                    Edit
+                  </Button>
+                )}
               </div>
+              {isEditingLocations ? (
+                <TagInput
+                  tags={editedLocations}
+                  onTagsChange={setEditedLocations}
+                  placeholder="Add a location and press Enter"
+                />
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {profileData.preferredLocations.map((location, index) => (
+                    <Badge 
+                      key={index}
+                      variant="secondary" 
+                      className="bg-neon-orange/20 text-neon-orange border-neon-orange/40"
+                    >
+                      {location}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {/* Experience Types */}
           {profileData.experienceTypes && profileData.experienceTypes.length > 0 && (
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Experience Types</h4>
-              <div className="flex flex-wrap gap-2">
-                {profileData.experienceTypes.map((type, index) => (
-                  <Badge 
-                    key={index}
-                    variant="secondary" 
-                    className="bg-neon-green/20 text-neon-green border-neon-green/40"
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Experience Types</h4>
+                {isEditingExperiences && (
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleSaveExperiences}
+                      className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
+                    >
+                      <Save className="w-3 h-3 mr-2" />
+                      Save
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleCancelExperiences}
+                      className="border-red-400/40 text-red-400 hover:bg-red-400/10"
+                    >
+                      <X className="w-3 h-3 mr-2" />
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+                {!isEditingExperiences && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleEditExperiences}
+                    className="border-white/20 text-foreground hover:bg-white/10"
                   >
-                    {type}
-                  </Badge>
-                ))}
+                    <Edit className="w-3 h-3 mr-2" />
+                    Edit
+                  </Button>
+                )}
               </div>
+              {isEditingExperiences ? (
+                <TagInput
+                  tags={editedExperiences}
+                  onTagsChange={setEditedExperiences}
+                  placeholder="Add an experience type and press Enter"
+                />
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {profileData.experienceTypes.map((type, index) => (
+                    <Badge 
+                      key={index}
+                      variant="secondary" 
+                      className="bg-neon-green/20 text-neon-green border-neon-green/40"
+                    >
+                      {type}
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
