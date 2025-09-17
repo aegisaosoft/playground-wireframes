@@ -18,18 +18,16 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
   onUpdateProfile
 }) => {
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedBio, setEditedBio] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
   
-  // Edit states for each section
-  const [isEditingInterests, setIsEditingInterests] = useState(false);
-  const [editedInterests, setEditedInterests] = useState<string[]>([]);
-  const [isEditingSkills, setIsEditingSkills] = useState(false);
-  const [editedSkills, setEditedSkills] = useState<string[]>([]);
-  const [isEditingLocations, setIsEditingLocations] = useState(false);
-  const [editedLocations, setEditedLocations] = useState<string[]>([]);
-  const [isEditingExperiences, setIsEditingExperiences] = useState(false);
-  const [editedExperiences, setEditedExperiences] = useState<string[]>([]);
+  // All edit states in one object
+  const [editedData, setEditedData] = useState<ExtractedProfileData>({
+    bio: '',
+    interests: [],
+    skills: [],
+    preferredLocations: [],
+    experienceTypes: []
+  });
 
   const handleVoiceComplete = (data: ExtractedProfileData) => {
     onUpdateProfile?.(data);
@@ -37,100 +35,30 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
   };
 
   const handleEditClick = () => {
-    setEditedBio(profileData?.bio || '');
-    setIsEditing(true);
+    // Initialize edit data with current profile data
+    setEditedData({
+      bio: profileData?.bio || '',
+      interests: profileData?.interests || [],
+      skills: profileData?.skills || [],
+      preferredLocations: profileData?.preferredLocations || [],
+      experienceTypes: profileData?.experienceTypes || []
+    });
+    setIsEditMode(true);
   };
 
   const handleSave = () => {
     if (profileData) {
       const updatedData = {
         ...profileData,
-        bio: editedBio
+        ...editedData
       };
       onUpdateProfile?.(updatedData);
     }
-    setIsEditing(false);
+    setIsEditMode(false);
   };
 
   const handleCancel = () => {
-    setEditedBio('');
-    setIsEditing(false);
-  };
-
-  // Edit handlers for interests
-  const handleEditInterests = () => {
-    setEditedInterests(profileData?.interests || []);
-    setIsEditingInterests(true);
-  };
-
-  const handleSaveInterests = () => {
-    if (profileData) {
-      const updatedData = { ...profileData, interests: editedInterests };
-      onUpdateProfile?.(updatedData);
-    }
-    setIsEditingInterests(false);
-  };
-
-  const handleCancelInterests = () => {
-    setEditedInterests([]);
-    setIsEditingInterests(false);
-  };
-
-  // Edit handlers for skills
-  const handleEditSkills = () => {
-    setEditedSkills(profileData?.skills || []);
-    setIsEditingSkills(true);
-  };
-
-  const handleSaveSkills = () => {
-    if (profileData) {
-      const updatedData = { ...profileData, skills: editedSkills };
-      onUpdateProfile?.(updatedData);
-    }
-    setIsEditingSkills(false);
-  };
-
-  const handleCancelSkills = () => {
-    setEditedSkills([]);
-    setIsEditingSkills(false);
-  };
-
-  // Edit handlers for locations
-  const handleEditLocations = () => {
-    setEditedLocations(profileData?.preferredLocations || []);
-    setIsEditingLocations(true);
-  };
-
-  const handleSaveLocations = () => {
-    if (profileData) {
-      const updatedData = { ...profileData, preferredLocations: editedLocations };
-      onUpdateProfile?.(updatedData);
-    }
-    setIsEditingLocations(false);
-  };
-
-  const handleCancelLocations = () => {
-    setEditedLocations([]);
-    setIsEditingLocations(false);
-  };
-
-  // Edit handlers for experience types
-  const handleEditExperiences = () => {
-    setEditedExperiences(profileData?.experienceTypes || []);
-    setIsEditingExperiences(true);
-  };
-
-  const handleSaveExperiences = () => {
-    if (profileData) {
-      const updatedData = { ...profileData, experienceTypes: editedExperiences };
-      onUpdateProfile?.(updatedData);
-    }
-    setIsEditingExperiences(false);
-  };
-
-  const handleCancelExperiences = () => {
-    setEditedExperiences([]);
-    setIsEditingExperiences(false);
+    setIsEditMode(false);
   };
 
   const hasProfileData = profileData && Object.keys(profileData).length > 0;
@@ -196,15 +124,17 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
                 <RotateCcw className="w-3 h-3 mr-2" />
                 Re-record
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleEditClick}
-                className="border-white/20 text-foreground hover:bg-white/10"
-              >
-                <Edit className="w-3 h-3 mr-2" />
-                Edit
-              </Button>
+              {!isEditMode && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleEditClick}
+                  className="border-white/20 text-foreground hover:bg-white/10"
+                >
+                  <Edit className="w-3 h-3 mr-2" />
+                  Edit
+                </Button>
+              )}
             </div>
           </CardTitle>
         </CardHeader>
@@ -212,35 +142,11 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
           {/* Bio */}
           {profileData.bio && (
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Bio</h4>
-                {isEditing && (
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleSave}
-                      className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
-                    >
-                      <Save className="w-3 h-3 mr-2" />
-                      Save
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleCancel}
-                      className="border-red-400/40 text-red-400 hover:bg-red-400/10"
-                    >
-                      <X className="w-3 h-3 mr-2" />
-                      Cancel
-                    </Button>
-                  </div>
-                )}
-              </div>
-              {isEditing ? (
+              <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Bio</h4>
+              {isEditMode ? (
                 <Textarea 
-                  value={editedBio}
-                  onChange={(e) => setEditedBio(e.target.value)}
+                  value={editedData.bio}
+                  onChange={(e) => setEditedData(prev => ({ ...prev, bio: e.target.value }))}
                   placeholder="Tell us about yourself..."
                   className="min-h-[120px] bg-white/5 border-white/10 text-foreground resize-none"
                 />
@@ -253,46 +159,11 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
           {/* Interests */}
           {profileData.interests && profileData.interests.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Interests</h4>
-                {isEditingInterests && (
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleSaveInterests}
-                      className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
-                    >
-                      <Save className="w-3 h-3 mr-2" />
-                      Save
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleCancelInterests}
-                      className="border-red-400/40 text-red-400 hover:bg-red-400/10"
-                    >
-                      <X className="w-3 h-3 mr-2" />
-                      Cancel
-                    </Button>
-                  </div>
-                )}
-                {!isEditingInterests && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleEditInterests}
-                    className="border-white/20 text-foreground hover:bg-white/10"
-                  >
-                    <Edit className="w-3 h-3 mr-2" />
-                    Edit
-                  </Button>
-                )}
-              </div>
-              {isEditingInterests ? (
+              <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Interests</h4>
+              {isEditMode ? (
                 <TagInput
-                  tags={editedInterests}
-                  onTagsChange={setEditedInterests}
+                  tags={editedData.interests}
+                  onTagsChange={(interests) => setEditedData(prev => ({ ...prev, interests }))}
                   placeholder="Add an interest and press Enter"
                 />
               ) : (
@@ -314,46 +185,11 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
           {/* Skills */}
           {profileData.skills && profileData.skills.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Skills & Roles</h4>
-                {isEditingSkills && (
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleSaveSkills}
-                      className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
-                    >
-                      <Save className="w-3 h-3 mr-2" />
-                      Save
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleCancelSkills}
-                      className="border-red-400/40 text-red-400 hover:bg-red-400/10"
-                    >
-                      <X className="w-3 h-3 mr-2" />
-                      Cancel
-                    </Button>
-                  </div>
-                )}
-                {!isEditingSkills && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleEditSkills}
-                    className="border-white/20 text-foreground hover:bg-white/10"
-                  >
-                    <Edit className="w-3 h-3 mr-2" />
-                    Edit
-                  </Button>
-                )}
-              </div>
-              {isEditingSkills ? (
+              <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Skills & Roles</h4>
+              {isEditMode ? (
                 <TagInput
-                  tags={editedSkills}
-                  onTagsChange={setEditedSkills}
+                  tags={editedData.skills}
+                  onTagsChange={(skills) => setEditedData(prev => ({ ...prev, skills }))}
                   placeholder="Add a skill or role and press Enter"
                 />
               ) : (
@@ -375,46 +211,11 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
           {/* Preferred Locations */}
           {profileData.preferredLocations && profileData.preferredLocations.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Preferred Locations</h4>
-                {isEditingLocations && (
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleSaveLocations}
-                      className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
-                    >
-                      <Save className="w-3 h-3 mr-2" />
-                      Save
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleCancelLocations}
-                      className="border-red-400/40 text-red-400 hover:bg-red-400/10"
-                    >
-                      <X className="w-3 h-3 mr-2" />
-                      Cancel
-                    </Button>
-                  </div>
-                )}
-                {!isEditingLocations && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleEditLocations}
-                    className="border-white/20 text-foreground hover:bg-white/10"
-                  >
-                    <Edit className="w-3 h-3 mr-2" />
-                    Edit
-                  </Button>
-                )}
-              </div>
-              {isEditingLocations ? (
+              <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Preferred Locations</h4>
+              {isEditMode ? (
                 <TagInput
-                  tags={editedLocations}
-                  onTagsChange={setEditedLocations}
+                  tags={editedData.preferredLocations}
+                  onTagsChange={(preferredLocations) => setEditedData(prev => ({ ...prev, preferredLocations }))}
                   placeholder="Add a location and press Enter"
                 />
               ) : (
@@ -436,46 +237,11 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
           {/* Experience Types */}
           {profileData.experienceTypes && profileData.experienceTypes.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Experience Types</h4>
-                {isEditingExperiences && (
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleSaveExperiences}
-                      className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
-                    >
-                      <Save className="w-3 h-3 mr-2" />
-                      Save
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handleCancelExperiences}
-                      className="border-red-400/40 text-red-400 hover:bg-red-400/10"
-                    >
-                      <X className="w-3 h-3 mr-2" />
-                      Cancel
-                    </Button>
-                  </div>
-                )}
-                {!isEditingExperiences && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleEditExperiences}
-                    className="border-white/20 text-foreground hover:bg-white/10"
-                  >
-                    <Edit className="w-3 h-3 mr-2" />
-                    Edit
-                  </Button>
-                )}
-              </div>
-              {isEditingExperiences ? (
+              <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Experience Types</h4>
+              {isEditMode ? (
                 <TagInput
-                  tags={editedExperiences}
-                  onTagsChange={setEditedExperiences}
+                  tags={editedData.experienceTypes}
+                  onTagsChange={(experienceTypes) => setEditedData(prev => ({ ...prev, experienceTypes }))}
                   placeholder="Add an experience type and press Enter"
                 />
               ) : (
@@ -491,6 +257,27 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Edit Mode Actions */}
+          {isEditMode && (
+            <div className="flex gap-3 pt-6 border-t border-white/10">
+              <Button 
+                onClick={handleSave}
+                className="flex-1 bg-neon-green text-background hover:bg-neon-green/90"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save Changes
+              </Button>
+              <Button 
+                onClick={handleCancel}
+                variant="outline"
+                className="flex-1 border-red-400/40 text-red-400 hover:bg-red-400/10"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </Button>
             </div>
           )}
 
