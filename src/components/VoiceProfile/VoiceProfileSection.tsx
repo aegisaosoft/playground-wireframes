@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { VoiceOnboardingModal } from '@/components/VoiceOnboarding';
-import { Mic, Edit, RotateCcw, User } from 'lucide-react';
+import { Mic, Edit, RotateCcw, User, Save, X } from 'lucide-react';
 import { ExtractedProfileData } from '@/types/voiceOnboarding';
 
 interface VoiceProfileSectionProps {
@@ -16,10 +17,33 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
   onUpdateProfile
 }) => {
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedBio, setEditedBio] = useState('');
 
   const handleVoiceComplete = (data: ExtractedProfileData) => {
     onUpdateProfile?.(data);
     setIsVoiceModalOpen(false);
+  };
+
+  const handleEditClick = () => {
+    setEditedBio(profileData?.bio || '');
+    setIsEditing(true);
+  };
+
+  const handleSave = () => {
+    if (profileData) {
+      const updatedData = {
+        ...profileData,
+        bio: editedBio
+      };
+      onUpdateProfile?.(updatedData);
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditedBio('');
+    setIsEditing(false);
   };
 
   const hasProfileData = profileData && Object.keys(profileData).length > 0;
@@ -88,6 +112,7 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
               <Button 
                 variant="outline" 
                 size="sm"
+                onClick={handleEditClick}
                 className="border-white/20 text-foreground hover:bg-white/10"
               >
                 <Edit className="w-3 h-3 mr-2" />
@@ -100,8 +125,41 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
           {/* Bio */}
           {profileData.bio && (
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Bio</h4>
-              <p className="text-foreground leading-relaxed">{profileData.bio}</p>
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Bio</h4>
+                {isEditing && (
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleSave}
+                      className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
+                    >
+                      <Save className="w-3 h-3 mr-2" />
+                      Save
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handleCancel}
+                      className="border-red-400/40 text-red-400 hover:bg-red-400/10"
+                    >
+                      <X className="w-3 h-3 mr-2" />
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
+              {isEditing ? (
+                <Textarea 
+                  value={editedBio}
+                  onChange={(e) => setEditedBio(e.target.value)}
+                  placeholder="Tell us about yourself..."
+                  className="min-h-[120px] bg-white/5 border-white/10 text-foreground resize-none"
+                />
+              ) : (
+                <p className="text-foreground leading-relaxed">{profileData.bio}</p>
+              )}
             </div>
           )}
 
