@@ -541,7 +541,7 @@ export default function MyAccount() {
                   <Card 
                     key={experience.id} 
                     className="bg-white/3 border-white/10 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/experience/${experience.id}`)}
+                    onClick={() => navigate(`/experience/${experience.id}`, { state: { origin: 'hosting' } })}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">

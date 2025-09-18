@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Share2, Edit, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -203,6 +203,7 @@ const categoryColors = {
 const ExperienceDetail = () => {
   const { experienceId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   const experience = experiences.find(exp => exp.id === parseInt(experienceId || '0'));
@@ -226,6 +227,17 @@ const ExperienceDetail = () => {
     });
   };
 
+  const handleBack = () => {
+    const origin = location.state?.origin;
+    
+    if (origin === 'hosting') {
+      navigate('/account?tab=hosting');
+    } else {
+      // Fallback to hosting tab for deep links
+      navigate('/account?tab=hosting');
+    }
+  };
+
   if (!experience) {
     return (
       <div className="min-h-screen bg-background">
@@ -243,11 +255,11 @@ const ExperienceDetail = () => {
         {/* Back Button */}
         <Button 
           variant="ghost" 
-          onClick={() => navigate('/')}
+          onClick={handleBack}
           className="mb-6 text-gray-400 hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Experiences
+          Back
         </Button>
 
         {/* Hero Section */}
