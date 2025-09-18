@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -121,6 +121,7 @@ export default function MyAccount() {
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -549,12 +550,26 @@ export default function MyAccount() {
                               </span>
                             )}
                           </div>
-                         </div>
-                         <div className="flex items-center space-x-2">
-                           <Button variant="outline" size="sm" className="border-white/20 text-foreground hover:bg-white/10">
-                             <Edit className="w-4 h-4 mr-2" />
-                             Edit
-                           </Button>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="border-white/20 text-foreground hover:bg-white/10"
+                              onClick={() => navigate(`/experiences/${experience.id}/edit`)}
+                            >
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="border-neon-pink/40 text-neon-pink hover:bg-neon-pink/10"
+                              onClick={() => navigate(`/experiences/${experience.id}/applicants`)}
+                            >
+                              <UserPlus className="w-4 h-4 mr-2" />
+                              Applicants
+                            </Button>
                             {experience.visibility === 'private' && experience.privateSlug ? (
                               <div className="flex flex-col items-end space-y-1">
                                 <Button 

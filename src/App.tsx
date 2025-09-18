@@ -17,6 +17,8 @@ import Community from "./pages/Community";
 import BrandProfile from "./pages/BrandProfile";
 import OrganizerDashboard from "./pages/OrganizerDashboard";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
+import ExperienceEdit from "./pages/ExperienceEdit";
+import ExperienceApplicants from "./pages/ExperienceApplicants";
 import NotFound from "./pages/NotFound";
 import MyAccount from "./pages/MyAccount";
 
@@ -40,6 +42,8 @@ const App = () => (
           <Route path="/account" element={<Layout><MyAccount /></Layout>} />
           <Route path="/brand/:brandId" element={<Layout><BrandPageWrapper /></Layout>} />
           <Route path="/retreat/:retreatId" element={<Layout><RetreatPage /></Layout>} />
+          <Route path="/experiences/:experienceId/edit" element={<Layout><ExperienceEdit /></Layout>} />
+          <Route path="/experiences/:experienceId/applicants" element={<Layout><ExperienceApplicants /></Layout>} />
           <Route path="/checkout/success" element={<Layout><CheckoutSuccess /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<Layout><NotFound /></Layout>} />

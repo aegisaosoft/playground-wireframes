@@ -1,21 +1,35 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Save, Eye } from 'lucide-react';
+import { Save, Eye, ArrowLeft } from 'lucide-react';
 import { BrandLogo } from '@/components/BrandLogo';
 
 interface TopBarProps {
   onSaveDraft: () => void;
   onPublish: () => void;
+  showBackButton?: boolean;
+  onBack?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
   onSaveDraft,
   onPublish,
+  showBackButton,
+  onBack,
 }) => {
   return (
     <div className="h-16 bg-black/40 border-b border-white/10 flex items-center justify-between px-6 backdrop-blur-sm">
       <div className="flex items-center gap-4">
-        {/* Logo removed - now handled by navigation bar */}
+        {showBackButton && onBack && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onBack}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-3">
