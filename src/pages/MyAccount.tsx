@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -115,7 +115,13 @@ const mockFollowedHosts = [
 type SidebarItem = 'profile' | 'applications' | 'hosting' | 'saved' | 'following' | 'brand' | 'dashboard' | 'settings';
 
 export default function MyAccount() {
-  const [activeTab, setActiveTab] = useState<SidebarItem>('profile');
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<SidebarItem>(() => {
+    const tab = searchParams.get('tab');
+    return (tab && ['profile', 'applications', 'hosting', 'saved', 'following', 'brand', 'dashboard', 'settings'].includes(tab)) 
+      ? tab as SidebarItem 
+      : 'profile';
+  });
   const [user, setUser] = useState<{ name: string; email: string; profile?: any } | null>(null);
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -131,6 +137,14 @@ export default function MyAccount() {
       setName(userData.name);
     }
   }, []);
+
+  // Update activeTab when URL search params change
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['profile', 'applications', 'hosting', 'saved', 'following', 'brand', 'dashboard', 'settings'].includes(tab)) {
+      setActiveTab(tab as SidebarItem);
+    }
+  }, [searchParams]);
 
   const handleSaveProfile = async () => {
     if (!user) return;
