@@ -15,7 +15,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   return (
     <div className="h-16 bg-black/40 border-b border-white/10 flex items-center justify-between px-6 backdrop-blur-sm">
       <div className="flex items-center gap-4">
-        <BrandLogo />
+        {/* Logo removed - now handled by navigation bar */}
       </div>
 
       <div className="flex items-center gap-3">
