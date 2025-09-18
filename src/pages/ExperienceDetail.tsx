@@ -3,7 +3,6 @@ import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Share2, Edit, Copy } 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Navigation } from "@/components/Navigation";
 import { TicketTierDisplay } from "@/components/TicketTierDisplay";
 import { useToast } from "@/hooks/use-toast";
 import retreatBali from "@/assets/retreat-bali.jpg";
@@ -230,7 +229,6 @@ const ExperienceDetail = () => {
   if (!experience) {
     return (
       <div className="min-h-screen bg-background">
-        <Navigation />
         <div className="container mx-auto px-6 py-20 text-center">
           <h1 className="text-4xl font-bold text-foreground mb-4">Experience Not Found</h1>
           <Button onClick={() => navigate('/')}>Return Home</Button>
@@ -241,8 +239,6 @@ const ExperienceDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-      
       <main className="container mx-auto px-6 py-8">
         {/* Back Button */}
         <Button 
