@@ -537,8 +537,12 @@ export default function MyAccount() {
                 <CardTitle className="text-foreground">Your Experiences</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {mockHostedExperiences.map((experience) => (
-                  <Card key={experience.id} className="bg-white/3 border-white/10 rounded-xl hover:bg-white/5 transition-colors">
+{mockHostedExperiences.map((experience) => (
+                  <Card 
+                    key={experience.id} 
+                    className="bg-white/3 border-white/10 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/experience/${experience.id}`)}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
@@ -564,48 +568,60 @@ export default function MyAccount() {
                               </span>
                             )}
                           </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="border-white/20 text-foreground hover:bg-white/10"
-                              onClick={() => navigate(`/experiences/${experience.id}/edit`)}
-                            >
-                              <Edit className="w-4 h-4 mr-2" />
-                              Edit
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="border-neon-pink/40 text-neon-pink hover:bg-neon-pink/10"
-                              onClick={() => navigate(`/experiences/${experience.id}/applicants`)}
-                            >
-                              <UserPlus className="w-4 h-4 mr-2" />
-                              Applicants
-                            </Button>
-                            {experience.visibility === 'private' && experience.privateSlug ? (
-                              <div className="flex flex-col items-end space-y-1">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10"
-                                  onClick={() => copyPrivateLink(experience.privateSlug!)}
-                                >
-                                  <Copy className="w-4 h-4 mr-2" />
-                                  Copy Link
-                                </Button>
-                                <span className="text-xs text-neon-cyan/70">
-                                  Private link — only people with this link can access
-                                </span>
-                              </div>
-                            ) : (
-                             <Button variant="outline" size="sm" className="border-white/20 text-foreground hover:bg-white/10">
-                               <Eye className="w-4 h-4 mr-2" />
-                               View
-                             </Button>
-                           )}
-                         </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="border-white/20 text-foreground hover:bg-white/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/experiences/${experience.id}/edit`);
+                            }}
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="border-neon-pink/40 text-neon-pink hover:bg-neon-pink/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/experiences/${experience.id}/applicants`);
+                            }}
+                          >
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Applicants
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const url = experience.visibility === 'private' && experience.privateSlug
+                                ? `${window.location.origin}/experience/${experience.privateSlug}`
+                                : `${window.location.origin}/experience/${experience.id}`;
+                              navigator.clipboard.writeText(url).then(() => {
+                                toast({
+                                  title: "Link copied!",
+                                  description: `${experience.visibility === 'private' ? 'Private experience' : 'Experience'} link copied to clipboard.`,
+                                });
+                              }).catch(() => {
+                                toast({
+                                  title: "Copy failed",
+                                  description: "Could not copy link to clipboard. Please try again.",
+                                  variant: "destructive",
+                                });
+                              });
+                            }}
+                            title="Copy experience link"
+                            aria-label="Copy experience link"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

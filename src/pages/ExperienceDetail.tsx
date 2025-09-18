@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Share2 } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Share2, Edit, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Navigation } from "@/components/Navigation";
 import { TicketTierDisplay } from "@/components/TicketTierDisplay";
+import { useToast } from "@/hooks/use-toast";
 import retreatBali from "@/assets/retreat-bali.jpg";
 import retreatCostaRica from "@/assets/retreat-costa-rica.jpg";
 import retreatTulum from "@/assets/retreat-tulum.jpg";
@@ -203,8 +204,28 @@ const categoryColors = {
 const ExperienceDetail = () => {
   const { experienceId } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const experience = experiences.find(exp => exp.id === parseInt(experienceId || '0'));
+  
+  // Mock: Check if current user owns this experience
+  const isOwner = true; // In real app: compare experience.organizer.id with current user ID
+  
+  const handleCopyLink = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      toast({
+        title: "Link copied!",
+        description: "Experience link copied to clipboard.",
+      });
+    }).catch(() => {
+      toast({
+        title: "Copy failed",
+        description: "Could not copy link to clipboard. Please try again.",
+        variant: "destructive",
+      });
+    });
+  };
 
   if (!experience) {
     return (
@@ -253,19 +274,34 @@ const ExperienceDetail = () => {
               </Badge>
             </div>
             
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              {experience.title}
-            </h1>
-            
-            <div className="flex items-center gap-6 text-white/90">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
-                <span>{experience.location}</span>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                  {experience.title}
+                </h1>
+                
+                <div className="flex items-center gap-6 text-white/90">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5" />
+                    <span>{experience.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-5 h-5" />
+                    <span>{experience.dates}</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                <span>{experience.dates}</span>
-              </div>
+              
+              {/* Owner Edit Control */}
+              {isOwner && (
+                <Button 
+                  onClick={() => navigate(`/experiences/${experience.id}/edit`)}
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Experience
+                </Button>
+              )}
             </div>
           </div>
 
@@ -282,8 +318,15 @@ const ExperienceDetail = () => {
             <Button size="sm" variant="secondary" className="bg-background/80 hover:bg-background/90">
               <Heart className="w-4 h-4" />
             </Button>
-            <Button size="sm" variant="secondary" className="bg-background/80 hover:bg-background/90">
-              <Share2 className="w-4 h-4" />
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              className="bg-background/80 hover:bg-background/90"
+              onClick={handleCopyLink}
+              title="Copy experience link"
+              aria-label="Copy experience link"
+            >
+              <Copy className="w-4 h-4" />
             </Button>
           </div>
         </div>
