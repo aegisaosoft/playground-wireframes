@@ -116,7 +116,7 @@ export const Navigation = ({
           <Link to="/experiences" className="text-foreground hover:text-neon-cyan transition-colors font-medium">
             Experiences
           </Link>
-          <Link to="#" className="text-foreground hover:text-neon-cyan transition-colors font-medium">
+          <Link to="/community" className="text-foreground hover:text-neon-cyan transition-colors font-medium">
             Community
           </Link>
           

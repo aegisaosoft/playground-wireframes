@@ -13,6 +13,7 @@ import ExperienceBuilder from "./pages/ExperienceBuilder";
 import ExperienceDetail from "./pages/ExperienceDetail";
 import ExperiencePortal from "./pages/ExperiencePortal";
 import Experiences from "./pages/Experiences";
+import Community from "./pages/Community";
 import BrandProfile from "./pages/BrandProfile";
 import OrganizerDashboard from "./pages/OrganizerDashboard";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/" element={<Layout><Index /></Layout>} />
           <Route path="/create" element={<Layout><ExperienceBuilder /></Layout>} />
           <Route path="/experiences" element={<Layout><Experiences /></Layout>} />
+          <Route path="/community" element={<Layout><Community /></Layout>} />
           <Route path="/experience/:experienceId" element={<Layout><ExperienceDetail /></Layout>} />
           <Route path="/experience/portal/:experienceId" element={<Layout><ExperiencePortal /></Layout>} />
           <Route path="/host/:hostId" element={<Layout><BrandProfile /></Layout>} />
