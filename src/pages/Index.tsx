@@ -286,20 +286,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation 
-        onCreateRetreat={handleCreateRetreat} 
-        userRetreats={userRetreats}
-        currentView={currentView}
-        onViewChange={setCurrentView}
-        editingRetreat={editingRetreat}
-        onEditRetreat={handleEditRetreat}
-        savedRetreats={savedRetreats}
-        followedHosts={followedHosts}
-        retreats={retreats}
-        userBrandData={userBrandData}
-        onSaveBrandData={handleSaveBrandData}
-      />
-      
       <main>
         {/* Hero Section */}
         <PlaygroundHero />

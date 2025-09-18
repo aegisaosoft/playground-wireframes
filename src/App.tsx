@@ -28,17 +28,17 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/create" element={<ExperienceBuilder />} />
+          <Route path="/" element={<Layout><Index /></Layout>} />
+          <Route path="/create" element={<Layout><ExperienceBuilder /></Layout>} />
           <Route path="/experiences" element={<Layout><Experiences /></Layout>} />
-          <Route path="/experience/:experienceId" element={<ExperienceDetail />} />
-          <Route path="/experience/portal/:experienceId" element={<ExperiencePortal />} />
+          <Route path="/experience/:experienceId" element={<Layout><ExperienceDetail /></Layout>} />
+          <Route path="/experience/portal/:experienceId" element={<Layout><ExperiencePortal /></Layout>} />
           <Route path="/host/:hostId" element={<Layout><BrandProfile /></Layout>} />
           <Route path="/organizer/dashboard" element={<Layout><OrganizerDashboard /></Layout>} />
-          <Route path="/account" element={<MyAccount />} />
+          <Route path="/account" element={<Layout><MyAccount /></Layout>} />
           <Route path="/brand/:brandId" element={<Layout><BrandPageWrapper /></Layout>} />
           <Route path="/retreat/:retreatId" element={<Layout><RetreatPage /></Layout>} />
-          <Route path="/checkout/success" element={<CheckoutSuccess />} />
+          <Route path="/checkout/success" element={<Layout><CheckoutSuccess /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<Layout><NotFound /></Layout>} />
         </Routes>
