@@ -44,9 +44,9 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-6">
         <Users className="w-4 h-4 text-neon-purple" />
-        <h3 className="font-medium text-foreground">Team & Co-hosts</h3>
+        <h3 className="font-medium text-foreground">Admins & Co-hosts</h3>
       </div>
 
       {/* Current Team Members */}
@@ -57,32 +57,52 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
               key={member.id}
               className="p-3 bg-white/5 border border-white/10 rounded-lg flex items-center justify-between"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-neon-purple to-neon-pink rounded-full flex items-center justify-center">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-8 h-8 bg-gradient-to-br from-neon-purple to-neon-pink rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="text-xs font-medium text-white">
                     {member.name.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-foreground">{member.name}</div>
-                  <div className="text-xs text-muted-foreground">{member.email}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-foreground truncate">{member.name}</div>
+                  <div className="text-xs text-muted-foreground truncate">{member.email}</div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   {member.role === 'admin' ? (
-                    <Shield className="w-3 h-3 text-neon-yellow" />
+                    <Shield className="w-3 h-3 text-neon-yellow flex-shrink-0" />
                   ) : (
-                    <UserCheck className="w-3 h-3 text-neon-green" />
+                    <UserCheck className="w-3 h-3 text-neon-green flex-shrink-0" />
                   )}
                   <Select
                     value={member.role}
                     onValueChange={(value: 'co-host' | 'admin') => onUpdateMemberRole(member.id, value)}
                   >
-                    <SelectTrigger className="w-20 h-6 text-xs bg-white/5 border-white/20">
+                    <SelectTrigger className="w-24 h-7 text-xs bg-white/5 border-white/20">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="co-host">Co-Host</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
+                    <SelectContent className="z-50 bg-background border-white/20">
+                      <SelectItem value="co-host">
+                        <div className="flex items-center gap-2 py-1">
+                          <UserCheck className="w-3 h-3 text-neon-green flex-shrink-0" />
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium">Co-Host</div>
+                            <div className="text-xs text-muted-foreground leading-tight">
+                              Full editing rights + guest management. Displayed as co-host on the experience page.
+                            </div>
+                          </div>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="admin">
+                        <div className="flex items-center gap-2 py-1">
+                          <Shield className="w-3 h-3 text-neon-yellow flex-shrink-0" />
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium">Admin</div>
+                            <div className="text-xs text-muted-foreground leading-tight">
+                              Editing rights (no payment access). Not shown on the experience page.
+                            </div>
+                          </div>
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -102,43 +122,49 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
 
       {/* Add New Member */}
       {isAddingMember ? (
-        <div className="p-4 bg-neon-purple/10 border border-neon-purple/20 rounded-lg space-y-3">
-          <Input
-            placeholder="Enter email address"
-            value={newMemberEmail}
-            onChange={(e) => setNewMemberEmail(e.target.value)}
-            className="bg-white/5 border-white/20 text-foreground placeholder:text-muted-foreground"
-          />
-          <Select value={newMemberRole} onValueChange={(value: 'co-host' | 'admin') => setNewMemberRole(value)}>
-            <SelectTrigger className="bg-white/5 border-white/20">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="co-host">
-                <div className="flex items-center gap-2">
-                  <UserCheck className="w-3 h-3" />
-                  <div>
-                    <div className="text-sm">Co-Host</div>
-                    <div className="text-xs text-muted-foreground">Can edit and manage applicants</div>
+        <div className="p-4 bg-white/5 border border-white/10 rounded-lg space-y-4">
+          <div className="space-y-3">
+            <Input
+              placeholder="Enter email address"
+              value={newMemberEmail}
+              onChange={(e) => setNewMemberEmail(e.target.value)}
+              className="bg-white/5 border-white/20 text-foreground placeholder:text-muted-foreground"
+            />
+            <Select value={newMemberRole} onValueChange={(value: 'co-host' | 'admin') => setNewMemberRole(value)}>
+              <SelectTrigger className="bg-white/5 border-white/20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="z-50 bg-background border-white/20">
+                <SelectItem value="co-host">
+                  <div className="flex items-center gap-2 py-1">
+                    <UserCheck className="w-3 h-3 text-neon-green flex-shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium">Co-Host</div>
+                      <div className="text-xs text-muted-foreground leading-tight">
+                        Full editing rights + guest management. Displayed as co-host on the experience page.
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </SelectItem>
-              <SelectItem value="admin">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-3 h-3" />
-                  <div>
-                    <div className="text-sm">Admin</div>
-                    <div className="text-xs text-muted-foreground">Full control like organizer</div>
+                </SelectItem>
+                <SelectItem value="admin">
+                  <div className="flex items-center gap-2 py-1">
+                    <Shield className="w-3 h-3 text-neon-yellow flex-shrink-0" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium">Admin</div>
+                      <div className="text-xs text-muted-foreground leading-tight">
+                        Editing rights (no payment access). Not shown on the experience page.
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </SelectItem>
-            </SelectContent>
-          </Select>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex gap-2">
             <Button
               onClick={handleAddMember}
               size="sm"
-              className="flex-1 bg-neon-purple hover:bg-neon-purple/80 text-white"
+              className="flex-1 bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-purple/80 hover:to-neon-pink/80 text-white font-medium"
             >
               Send Invite
             </Button>
@@ -171,7 +197,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
       {teamMembers.length === 0 && !isAddingMember && (
         <div className="p-3 bg-white/5 border border-white/10 rounded-lg text-center">
           <div className="text-sm text-muted-foreground">
-            No team members yet. Add co-hosts or admins to help manage this experience.
+            No team members yet. Add admins or co-hosts to help manage this experience.
           </div>
         </div>
       )}
