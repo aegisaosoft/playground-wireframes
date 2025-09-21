@@ -4,6 +4,7 @@ import { BlockPalette } from '@/components/ExperienceBuilder/BlockPalette';
 import { Canvas } from '@/components/ExperienceBuilder/Canvas';
 import { SettingsSidebar } from '@/components/ExperienceBuilder/SettingsSidebar';
 import { HostData } from '@/components/ExperienceBuilder/HostSelector';
+import { TeamMember } from '@/components/ExperienceBuilder/TeamManagement';
 import { Block, BlockType } from '@/types/experienceBuilder';
 import { VoiceExperienceDraft } from '@/types/voiceExperienceCreation';
 import { VoiceExperienceModal } from '@/components/VoiceExperienceCreation';
@@ -52,6 +53,8 @@ const ExperienceBuilder = () => {
       name: 'User',
     };
   });
+
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   
   const { toast } = useToast();
 
@@ -245,6 +248,27 @@ const ExperienceBuilder = () => {
     // If selectedHost.type === 'brand' and selectedHost.brandId, create/update brand page
   }, [title, blocks, isPublic, selectedHost]);
 
+  // Team management handlers
+  const handleAddTeamMember = useCallback((member: Omit<TeamMember, 'id'>) => {
+    const newMember: TeamMember = {
+      ...member,
+      id: `team-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    };
+    setTeamMembers(prev => [...prev, newMember]);
+  }, []);
+
+  const handleRemoveTeamMember = useCallback((id: string) => {
+    setTeamMembers(prev => prev.filter(member => member.id !== id));
+  }, []);
+
+  const handleUpdateTeamMemberRole = useCallback((id: string, role: 'co-host' | 'admin') => {
+    setTeamMembers(prev => 
+      prev.map(member => 
+        member.id === id ? { ...member, role } : member
+      )
+    );
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#0b0b12] flex flex-col">
       {/* Voice Banner */}
@@ -295,6 +319,10 @@ const ExperienceBuilder = () => {
           onToggleVisibility={setIsPublic}
           selectedHost={selectedHost}
           onHostChange={setSelectedHost}
+          teamMembers={teamMembers}
+          onAddTeamMember={handleAddTeamMember}
+          onRemoveTeamMember={handleRemoveTeamMember}
+          onUpdateTeamMemberRole={handleUpdateTeamMemberRole}
         />
       </div>
 

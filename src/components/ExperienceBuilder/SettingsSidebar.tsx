@@ -4,12 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Globe, Lock, Link2, Lightbulb } from 'lucide-react';
 import { PaymentsCard } from '@/components/PaymentsCard';
 import { HostSelector, HostData } from './HostSelector';
+import { TeamManagement, TeamMember } from './TeamManagement';
 
 interface SettingsSidebarProps {
   isPublic: boolean;
   onToggleVisibility: (isPublic: boolean) => void;
   selectedHost: HostData;
   onHostChange: (host: HostData) => void;
+  teamMembers: TeamMember[];
+  onAddTeamMember: (member: Omit<TeamMember, 'id'>) => void;
+  onRemoveTeamMember: (id: string) => void;
+  onUpdateTeamMemberRole: (id: string, role: 'co-host' | 'admin') => void;
 }
 
 export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
@@ -17,6 +22,10 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   onToggleVisibility,
   selectedHost,
   onHostChange,
+  teamMembers,
+  onAddTeamMember,
+  onRemoveTeamMember,
+  onUpdateTeamMemberRole,
 }) => {
   return (
     <div className="w-80 bg-black/20 border-l border-white/10 p-6">
@@ -30,6 +39,16 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
         <HostSelector 
           selectedHost={selectedHost}
           onHostChange={onHostChange}
+        />
+      </div>
+
+      {/* Team Management */}
+      <div className="mb-8">
+        <TeamManagement
+          teamMembers={teamMembers}
+          onAddMember={onAddTeamMember}
+          onRemoveMember={onRemoveTeamMember}
+          onUpdateMemberRole={onUpdateTeamMemberRole}
         />
       </div>
 
