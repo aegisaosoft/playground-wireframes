@@ -112,13 +112,13 @@ const mockFollowedHosts = [
   }
 ];
 
-type SidebarItem = 'profile' | 'applications' | 'hosting' | 'saved' | 'following' | 'brand' | 'dashboard' | 'settings';
+type SidebarItem = 'profile' | 'applications' | 'hosting' | 'saved' | 'following' | 'brand' | 'settings';
 
 export default function MyAccount() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<SidebarItem>(() => {
     const tab = searchParams.get('tab');
-    return (tab && ['profile', 'applications', 'hosting', 'saved', 'following', 'brand', 'dashboard', 'settings'].includes(tab)) 
+    return (tab && ['profile', 'applications', 'hosting', 'saved', 'following', 'brand', 'settings'].includes(tab)) 
       ? tab as SidebarItem 
       : 'profile';
   });
@@ -141,7 +141,7 @@ export default function MyAccount() {
   // Update activeTab when URL search params change
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['profile', 'applications', 'hosting', 'saved', 'following', 'brand', 'dashboard', 'settings'].includes(tab)) {
+    if (tab && ['profile', 'applications', 'hosting', 'saved', 'following', 'brand', 'settings'].includes(tab)) {
       setActiveTab(tab as SidebarItem);
     }
   }, [searchParams]);
@@ -213,15 +213,17 @@ export default function MyAccount() {
   const hasHostedExperiences = mockHostedExperiences.length > 0;
   const hasCreatedBrands = true; // Mock - would check if user has created any brands
   
-  const sidebarItems = [
+  const profileItems = [
     { id: 'profile' as SidebarItem, label: 'Profile', icon: User },
     { id: 'applications' as SidebarItem, label: 'My Applications', icon: FileText },
-    { id: 'hosting' as SidebarItem, label: 'Hosting', icon: Home },
     { id: 'saved' as SidebarItem, label: 'Saved Experiences', icon: Bookmark },
     { id: 'following' as SidebarItem, label: 'Following Hosts', icon: Users },
-    ...(hasCreatedBrands ? [{ id: 'brand' as SidebarItem, label: 'Brand Page', icon: Building }] : []),
-    ...(hasHostedExperiences ? [{ id: 'dashboard' as SidebarItem, label: 'Dashboard', icon: BarChart3 }] : []),
     { id: 'settings' as SidebarItem, label: 'Settings', icon: Settings },
+  ];
+
+  const hostingItems = [
+    { id: 'hosting' as SidebarItem, label: 'Experiences', icon: Home },
+    ...(hasCreatedBrands ? [{ id: 'brand' as SidebarItem, label: 'Brand Page', icon: Building }] : []),
   ];
 
   const renderContent = () => {
@@ -471,7 +473,7 @@ export default function MyAccount() {
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold text-foreground">Hosting Dashboard</h1>
+              <h1 className="text-3xl font-bold text-foreground">Experiences</h1>
               <Link to="/organizer/dashboard">
                 <Button className="bg-gradient-neon text-background hover:opacity-90 shadow-neon">
                   <BarChart3 className="w-4 h-4 mr-2" />
@@ -839,71 +841,6 @@ export default function MyAccount() {
           </div>
         );
 
-      case 'dashboard':
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-              <Link to="/organizer/dashboard">
-                <Button 
-                  variant="outline" 
-                  className="border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10"
-                >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Full Dashboard
-                </Button>
-              </Link>
-            </div>
-            
-            {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="bg-white/5 border-white/10 rounded-2xl">
-                <CardContent className="p-6 text-center">
-                  <div className="text-3xl font-bold text-neon-cyan mb-2">2</div>
-                  <p className="text-muted-foreground">Experiences Hosted</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-white/5 border-white/10 rounded-2xl">
-                <CardContent className="p-6 text-center">
-                  <div className="text-3xl font-bold text-neon-purple mb-2">45</div>
-                  <p className="text-muted-foreground">Total Participants</p>
-                </CardContent>
-              </Card>
-              <Card className="bg-white/5 border-white/10 rounded-2xl">
-                <CardContent className="p-6 text-center">
-                  <div className="text-3xl font-bold text-neon-pink mb-2">124</div>
-                  <p className="text-muted-foreground">Followers</p>
-                </CardContent>
-              </Card>
-            </div>
-            
-            {/* Recent Activity */}
-            <Card className="bg-white/5 border-white/10 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="text-foreground">Recent Activity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-3 bg-white/3 rounded-lg">
-                    <TrendingUp className="w-5 h-5 text-neon-cyan" />
-                    <div>
-                      <p className="text-foreground font-medium">New application received</p>
-                      <p className="text-sm text-muted-foreground">Digital Nomad Bootcamp • 2 hours ago</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-white/3 rounded-lg">
-                    <Users className="w-5 h-5 text-neon-purple" />
-                    <div>
-                      <p className="text-foreground font-medium">5 new followers</p>
-                      <p className="text-sm text-muted-foreground">Your brand page • 1 day ago</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-
       default:
         return null;
     }
@@ -942,10 +879,14 @@ export default function MyAccount() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex gap-8">
           {/* Sidebar */}
-          <div className="w-64 flex-shrink-0">
+          <div className="w-64 flex-shrink-0 space-y-4">
+            {/* Profile Section */}
             <Card className="bg-white/5 border-white/10 rounded-2xl p-2 sticky top-8">
+              <div className="px-3 py-2 mb-2">
+                <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Profile</h3>
+              </div>
               <nav className="space-y-1">
-                {sidebarItems.map((item) => {
+                {profileItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
                   
@@ -966,6 +907,36 @@ export default function MyAccount() {
                 })}
               </nav>
             </Card>
+
+            {/* Hosting Section */}
+            {(hasHostedExperiences || hasCreatedBrands) && (
+              <Card className="bg-white/5 border-white/10 rounded-2xl p-2">
+                <div className="px-3 py-2 mb-2">
+                  <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Hosting</h3>
+                </div>
+                <nav className="space-y-1">
+                  {hostingItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setActiveTab(item.id)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                          isActive 
+                            ? 'bg-gradient-neon text-background shadow-neon' 
+                            : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span className="font-medium">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
+              </Card>
+            )}
           </div>
 
           {/* Main Content */}
