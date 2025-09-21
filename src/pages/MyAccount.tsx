@@ -30,6 +30,7 @@ import {
   Link2,
   Building
 } from 'lucide-react';
+import { SocialAccountsInput, SocialAccounts } from '@/components/SocialAccountsInput';
 
 // Mock data
 const mockUserApplications = [
@@ -125,6 +126,7 @@ export default function MyAccount() {
   const [user, setUser] = useState<{ name: string; email: string; profile?: any } | null>(null);
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [name, setName] = useState('');
+  const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({});
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -135,6 +137,7 @@ export default function MyAccount() {
       const userData = JSON.parse(storedUser);
       setUser(userData);
       setName(userData.name);
+      setSocialAccounts(userData.socialAccounts || {});
     }
   }, []);
 
@@ -153,7 +156,7 @@ export default function MyAccount() {
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const updatedUser = { ...user, name };
+      const updatedUser = { ...user, name, socialAccounts };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
       
@@ -314,6 +317,12 @@ export default function MyAccount() {
                       });
                     }
                   }}
+                />
+
+                {/* Social Accounts */}
+                <SocialAccountsInput
+                  value={socialAccounts}
+                  onChange={setSocialAccounts}
                 />
 
                 {/* Brand Info */}

@@ -7,6 +7,7 @@ import { RetreatCard } from "@/components/RetreatCard";
 import { RetreatDetailsModal, RetreatDetail } from "@/components/RetreatDetailsModal";
 import { ArrowLeft, UserPlus, UserCheck, ExternalLink } from "lucide-react";
 import { Retreat } from "@/components/RetreatGrid";
+import { SocialLinksDisplay } from "@/components/SocialLinksDisplay";
 
 interface HostProfileProps {
   retreats: Retreat[];
@@ -36,6 +37,13 @@ const HostProfile = ({ retreats, savedRetreats, onToggleSaveRetreat, followedHos
   );
 
   const host = hostRetreats[0]?.organizer;
+
+  // Mock social accounts for demo - in real app this would come from database
+  const mockSocialAccounts = {
+    linkedinUrl: 'https://www.linkedin.com/in/retreat-organizer',
+    instagramUrl: 'https://www.instagram.com/mindfulretreats',
+    twitterUrl: 'https://twitter.com/wellnessjourney'
+  };
 
   if (!host) {
     return (
@@ -111,6 +119,11 @@ const HostProfile = ({ retreats, savedRetreats, onToggleSaveRetreat, followedHos
                 Creating transformative experiences that connect mind, body, and spirit. 
                 Join me on a journey of self-discovery and personal growth.
               </p>
+              
+              {/* Social Links */}
+              <div className="mt-4">
+                <SocialLinksDisplay socialAccounts={mockSocialAccounts} />
+              </div>
             </div>
 
             <div className="flex flex-col gap-3 md:items-end">

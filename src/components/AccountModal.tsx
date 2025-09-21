@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Edit2, Upload, Calendar, MapPin, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { SocialAccountsInput, SocialAccounts } from '@/components/SocialAccountsInput';
 import { Retreat } from "@/components/RetreatGrid";
 import { ApplicantManagement } from "@/components/ApplicantManagement";
 import { UserRetreatDashboard } from "@/components/UserRetreatDashboard";
@@ -19,9 +20,9 @@ import { Applicant, RetreatWithApplicants } from "@/types/applicant";
 interface AccountModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: { name: string; email: string } | null;
+  user: { name: string; email: string; socialAccounts?: SocialAccounts } | null;
   onLogout: () => void;
-  onUpdateUser: (user: { name: string; email: string }) => void;
+  onUpdateUser: (user: { name: string; email: string; socialAccounts?: SocialAccounts }) => void;
   userRetreats: Retreat[];
   onEditRetreat: (retreat: Retreat) => void;
   savedRetreats: number[];
@@ -33,6 +34,7 @@ interface AccountModalProps {
 
 export const AccountModal = ({ isOpen, onClose, user, onLogout, onUpdateUser, userRetreats, onEditRetreat, savedRetreats, followedHosts, retreats, userBrandData, onSaveBrandData }: AccountModalProps) => {
   const [name, setName] = useState(user?.name || "");
+  const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({});
   const [isLoading, setIsLoading] = useState(false);
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [selectedRetreatForManagement, setSelectedRetreatForManagement] = useState<RetreatWithApplicants | null>(null);
@@ -41,6 +43,13 @@ export const AccountModal = ({ isOpen, onClose, user, onLogout, onUpdateUser, us
   
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Initialize social accounts from user data
+  useEffect(() => {
+    if (user?.socialAccounts) {
+      setSocialAccounts(user.socialAccounts);
+    }
+  }, [user]);
 
   // Generate sample applicant data for demo
   useEffect(() => {
@@ -123,7 +132,7 @@ export const AccountModal = ({ isOpen, onClose, user, onLogout, onUpdateUser, us
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const updatedUser = { ...user, name };
+      const updatedUser = { ...user, name, socialAccounts };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       
       onUpdateUser(updatedUser);
@@ -296,6 +305,12 @@ export const AccountModal = ({ isOpen, onClose, user, onLogout, onUpdateUser, us
                     />
                   </div>
                 </div>
+
+                {/* Social Accounts */}
+                <SocialAccountsInput
+                  value={socialAccounts}
+                  onChange={setSocialAccounts}
+                />
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 pt-4">

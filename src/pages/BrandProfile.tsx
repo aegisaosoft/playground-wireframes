@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, Calendar, Globe, Instagram, Twitter, Heart, ArrowLeft, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { SocialLinksDisplay } from "@/components/SocialLinksDisplay";
 
 // Mock AI review summary data
 const mockAISummary = {
@@ -361,6 +362,13 @@ export default function BrandProfile() {
   const host = hostId ? mockHosts[hostId as keyof typeof mockHosts] : null;
   const hostExperiences = hostId ? getExperiencesForHost(hostId) : { upcoming: [], past: [] };
 
+  // Mock social accounts for demo - in real app this would come from user data
+  const mockSocialAccounts = {
+    linkedinUrl: 'https://www.linkedin.com/in/sarah-wellness',
+    instagramUrl: 'https://www.instagram.com/zenretreatspace',
+    twitterUrl: 'https://twitter.com/techcorpevents'
+  };
+
   if (!host) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -443,6 +451,12 @@ export default function BrandProfile() {
                   <div>
                     <h4 className="font-semibold mb-2">About</h4>
                     <p className="text-sm text-muted-foreground">{host.bio}</p>
+                  </div>
+
+                  {/* Social Links */}
+                  <div>
+                    <h4 className="font-semibold mb-2">Connect</h4>
+                    <SocialLinksDisplay socialAccounts={mockSocialAccounts} size="sm" />
                   </div>
 
                   <Separator className="bg-gray-800" />
