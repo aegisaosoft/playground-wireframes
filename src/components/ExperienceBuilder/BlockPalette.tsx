@@ -10,6 +10,7 @@ import {
   Grid3X3, 
   HelpCircle, 
   MousePointer,
+  Folder,
   Mic,
   Sparkles
 } from 'lucide-react';
@@ -27,6 +28,7 @@ const blockItems = [
   { type: 'tickets' as BlockType, label: 'Tickets', icon: Ticket, description: '' },
   { type: 'gallery' as BlockType, label: 'Gallery', icon: Grid3X3, description: '' },
   { type: 'faq' as BlockType, label: 'FAQ', icon: HelpCircle, description: '' },
+  { type: 'resources' as BlockType, label: 'Resources', icon: Folder, description: '' },
   { type: 'cta' as BlockType, label: 'Call to Action', icon: MousePointer, description: '' },
 ];
 

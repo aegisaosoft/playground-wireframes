@@ -329,6 +329,8 @@ function getDefaultBlockData(type: BlockType): any {
       return { items: [{ question: 'What should I bring?', answer: 'Just yourself and an open mind!' }] };
     case 'cta':
       return { text: 'Book Your Spot', style: 'primary' };
+    case 'resources':
+      return { resources: [] };
     default:
       return {};
   }

@@ -12,6 +12,7 @@ import { TicketsBlock } from './blocks/TicketsBlock';
 import { GalleryBlock } from './blocks/GalleryBlock';
 import { FaqBlock } from './blocks/FaqBlock';
 import { CtaBlock } from './blocks/CtaBlock';
+import { ResourcesBlock } from './blocks/ResourcesBlock';
 import { Sparkles } from 'lucide-react';
 
 interface CanvasProps {
@@ -58,6 +59,8 @@ export const Canvas: React.FC<CanvasProps> = ({
         return <FaqBlock {...props} />;
       case 'cta':
         return <CtaBlock {...props} />;
+      case 'resources':
+        return <ResourcesBlock {...props} />;
       default:
         return <div>Unknown block type</div>;
     }
