@@ -42,7 +42,7 @@ const HostProfile = ({ retreats, savedRetreats, onToggleSaveRetreat, followedHos
   const mockSocialAccounts = {
     linkedinUrl: 'https://www.linkedin.com/in/retreat-organizer',
     instagramUrl: 'https://www.instagram.com/mindfulretreats',
-    twitterUrl: 'https://twitter.com/wellnessjourney'
+    xUrl: 'https://x.com/wellnessjourney'
   };
 
   if (!host) {

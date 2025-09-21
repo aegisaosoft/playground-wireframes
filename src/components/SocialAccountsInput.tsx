@@ -3,12 +3,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ExternalLink, Linkedin, Instagram, Twitter } from 'lucide-react';
+import { ExternalLink, Linkedin, Instagram } from 'lucide-react';
+import { XIcon } from '@/components/ui/icons';
 
 export interface SocialAccounts {
   linkedinUrl?: string;
   instagramUrl?: string;
-  twitterUrl?: string;
+  xUrl?: string;
 }
 
 interface SocialAccountsInputProps {
@@ -17,7 +18,7 @@ interface SocialAccountsInputProps {
   className?: string;
 }
 
-const normalizeUrl = (input: string, platform: 'linkedin' | 'instagram' | 'twitter'): string => {
+const normalizeUrl = (input: string, platform: 'linkedin' | 'instagram' | 'x'): string => {
   if (!input.trim()) return '';
   
   const trimmed = input.trim();
@@ -42,17 +43,17 @@ const normalizeUrl = (input: string, platform: 'linkedin' | 'instagram' | 'twitt
         return `https://www.${handle}`;
       }
       return `https://www.instagram.com/${handle}`;
-    case 'twitter':
+    case 'x':
       if (handle.includes('twitter.com') || handle.includes('x.com')) {
         return handle.includes('x.com') ? `https://www.${handle}` : `https://www.${handle}`;
       }
-      return `https://twitter.com/${handle}`;
+      return `https://x.com/${handle}`;
     default:
       return trimmed;
   }
 };
 
-const validateUrl = (input: string, platform: 'linkedin' | 'instagram' | 'twitter'): boolean => {
+const validateUrl = (input: string, platform: 'linkedin' | 'instagram' | 'x'): boolean => {
   if (!input.trim()) return true; // Empty is valid (optional field)
   
   const normalized = normalizeUrl(input, platform);
@@ -64,7 +65,7 @@ const validateUrl = (input: string, platform: 'linkedin' | 'instagram' | 'twitte
         return url.hostname.includes('linkedin.com');
       case 'instagram':
         return url.hostname.includes('instagram.com');
-      case 'twitter':
+      case 'x':
         return url.hostname.includes('twitter.com') || url.hostname.includes('x.com');
       default:
         return false;
@@ -82,7 +83,7 @@ export const SocialAccountsInput: React.FC<SocialAccountsInputProps> = ({
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [focused, setFocused] = useState<string | null>(null);
 
-  const handleInputChange = (platform: 'linkedin' | 'instagram' | 'twitter', input: string) => {
+  const handleInputChange = (platform: 'linkedin' | 'instagram' | 'x', input: string) => {
     const urlKey = `${platform}Url` as keyof SocialAccounts;
     
     // Update value immediately for typing
@@ -97,7 +98,7 @@ export const SocialAccountsInput: React.FC<SocialAccountsInputProps> = ({
     }
   };
 
-  const handleInputBlur = (platform: 'linkedin' | 'instagram' | 'twitter') => {
+  const handleInputBlur = (platform: 'linkedin' | 'instagram' | 'x') => {
     const urlKey = `${platform}Url` as keyof SocialAccounts;
     const input = value[urlKey] || '';
     
@@ -115,7 +116,7 @@ export const SocialAccountsInput: React.FC<SocialAccountsInputProps> = ({
       } else {
         setErrors(prev => ({
           ...prev,
-          [platform]: `Enter a valid ${platform.charAt(0).toUpperCase() + platform.slice(1)} URL or handle`
+          [platform]: `Enter a valid ${platform === 'x' ? 'X' : platform.charAt(0).toUpperCase() + platform.slice(1)} URL or handle`
         }));
       }
     } else {
@@ -130,7 +131,7 @@ export const SocialAccountsInput: React.FC<SocialAccountsInputProps> = ({
   };
 
   const renderInput = (
-    platform: 'linkedin' | 'instagram' | 'twitter',
+    platform: 'linkedin' | 'instagram' | 'x',
     icon: React.ReactNode,
     placeholder: string,
     label: string
@@ -207,10 +208,10 @@ export const SocialAccountsInput: React.FC<SocialAccountsInputProps> = ({
           )}
 
           {renderInput(
-            'twitter',
-            <Twitter className="w-4 h-4 text-blue-400" />,
-            'https://twitter.com/username',
-            'Twitter / X'
+            'x',
+            <XIcon className="w-4 h-4 text-foreground" />,
+            'https://x.com/username',
+            'X'
           )}
         </div>
       </CardContent>

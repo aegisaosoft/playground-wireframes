@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Linkedin, Instagram, Twitter } from 'lucide-react';
+import { Linkedin, Instagram } from 'lucide-react';
 import { SocialAccounts } from './SocialAccountsInput';
+import { XIcon } from '@/components/ui/icons';
 
 interface SocialLinksDisplayProps {
   socialAccounts: SocialAccounts;
@@ -28,10 +29,10 @@ export const SocialLinksDisplay: React.FC<SocialLinksDisplayProps> = ({
       color: 'text-pink-400 hover:text-pink-300'
     },
     {
-      url: socialAccounts.twitterUrl,
-      icon: Twitter,
-      label: 'Twitter',
-      color: 'text-blue-400 hover:text-blue-300'
+      url: socialAccounts.xUrl,
+      icon: XIcon,
+      label: 'X',
+      color: 'text-foreground hover:text-muted-foreground'
     }
   ].filter(link => link.url && link.url.trim() !== '');
 

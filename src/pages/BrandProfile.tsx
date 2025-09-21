@@ -366,7 +366,7 @@ export default function BrandProfile() {
   const mockSocialAccounts = {
     linkedinUrl: 'https://www.linkedin.com/in/sarah-wellness',
     instagramUrl: 'https://www.instagram.com/zenretreatspace',
-    twitterUrl: 'https://twitter.com/techcorpevents'
+    xUrl: 'https://x.com/techcorpevents'
   };
 
   if (!host) {
