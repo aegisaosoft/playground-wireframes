@@ -63,7 +63,7 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
     const newField: ApplicationField = {
       id: `field_${Date.now()}`,
       type: newFieldType,
-      label: '',
+      label: 'Untitled Question',
       required: false,
       appliesTo: 'all',
       placeholder: '',
@@ -162,9 +162,8 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
                     <Lock className="w-4 h-4 text-muted-foreground" />
                     <div className="flex-1">
                       <div className="font-medium text-foreground">{field.label}</div>
-                      <div className="text-xs text-muted-foreground">Required by platform</div>
+                      <div className="text-xs text-muted-foreground">Required</div>
                     </div>
-                    <Badge variant="secondary" className="text-xs">Required</Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -198,47 +197,32 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
                       </Button>
                     </div>
 
-                    {/* Type switcher and controls */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Select 
-                          value={field.type} 
-                          onValueChange={(value: ApplicationFieldType) => updateField(field.id, { type: value })}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(fieldTypeLabels).map(([value, label]) => (
-                              <SelectItem key={value} value={value}>
-                                {label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-
+                    {/* Controls */}
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                      <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
                           <Switch
                             checked={field.required}
                             onCheckedChange={(checked) => updateField(field.id, { required: checked })}
+                            className="data-[state=checked]:bg-primary"
                           />
-                          <Label className="text-sm">Required</Label>
+                          <Label className="text-sm font-medium">Required</Label>
                         </div>
                       </div>
 
                       {/* Tier applicability */}
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">Applies to:</span>
+                        <span className="text-sm text-muted-foreground">For:</span>
                         <Select 
                           value={field.appliesTo === 'all' ? 'all' : 'specific'} 
                           onValueChange={(value) => updateField(field.id, { appliesTo: value === 'all' ? 'all' : [] })}
                         >
-                          <SelectTrigger className="w-28">
+                          <SelectTrigger className="w-32">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All tiers</SelectItem>
-                            <SelectItem value="specific">Specific</SelectItem>
+                            <SelectItem value="specific">Selected tiers</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -319,35 +303,31 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
             ))}
 
             {/* Add Question Button */}
-            <Card className="border-dashed border-muted-foreground/30">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <Select value={newFieldType} onValueChange={(value: ApplicationFieldType) => setNewFieldType(value)}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(fieldTypeLabels).map(([value, label]) => {
-                        const Icon = fieldTypeIcons[value as ApplicationFieldType];
-                        return (
-                          <SelectItem key={value} value={value}>
-                            <div className="flex items-center gap-2">
-                              <Icon className="w-4 h-4" />
-                              {label}
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                  
-                  <Button onClick={addField} className="flex-1">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Question
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex items-center gap-3 p-4 border border-dashed border-muted-foreground/30 rounded-lg">
+              <Select value={newFieldType} onValueChange={(value: ApplicationFieldType) => setNewFieldType(value)}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(fieldTypeLabels).map(([value, label]) => {
+                    const Icon = fieldTypeIcons[value as ApplicationFieldType];
+                    return (
+                      <SelectItem key={value} value={value}>
+                        <div className="flex items-center gap-2">
+                          <Icon className="w-4 h-4" />
+                          {label}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              
+              <Button onClick={addField} className="flex-1">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Question
+              </Button>
+            </div>
           </div>
         </div>
       )}
