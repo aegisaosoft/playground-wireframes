@@ -60,10 +60,12 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
   const customFields = fields.filter(field => !defaultRequiredFields.some(df => df.id === field.id));
 
   const addField = () => {
+    const defaultLabel = newFieldType === 'socialMedia' ? 'Social Media Accounts' : 'Untitled Question';
+    
     const newField: ApplicationField = {
       id: `field_${Date.now()}`,
       type: newFieldType,
-      label: 'Untitled Question',
+      label: defaultLabel,
       required: false,
       appliesTo: 'all',
       placeholder: '',
@@ -181,12 +183,18 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
                     {/* Question input row */}
                     <div className="flex items-center gap-3">
                       <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
-                      <Input
-                        value={field.label}
-                        onChange={(e) => updateField(field.id, { label: e.target.value })}
-                        placeholder="Type your question…"
-                        className="flex-1"
-                      />
+                      {field.type === 'socialMedia' ? (
+                        <div className="flex-1">
+                          <div className="font-medium text-foreground">Social Media Accounts</div>
+                        </div>
+                      ) : (
+                        <Input
+                          value={field.label}
+                          onChange={(e) => updateField(field.id, { label: e.target.value })}
+                          placeholder="Type your question…"
+                          className="flex-1"
+                        />
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -231,16 +239,16 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
                     {/* Options for select fields */}
                     {(field.type === 'singleSelect' || field.type === 'multiSelect') && field.options && (
                       <div className="space-y-2">
-                        <Label className="text-sm">Options</Label>
+                        <Label className="text-sm font-medium">Options</Label>
                         <div className="space-y-2">
                           {field.options.map((option, optionIndex) => (
                             option.trim() && (
                               <div key={optionIndex} className="flex items-center gap-2">
-                                <Badge variant="outline" className="flex items-center gap-1">
-                                  <span>{option}</span>
+                                <Badge variant="outline" className="flex items-center gap-1 max-w-full">
+                                  <span className="truncate">{option}</span>
                                   <button
                                     onClick={() => removeOption(field.id, optionIndex)}
-                                    className="ml-1 text-muted-foreground hover:text-destructive"
+                                    className="ml-1 text-muted-foreground hover:text-destructive flex-shrink-0"
                                   >
                                     ×
                                   </button>
@@ -262,8 +270,8 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
                     {/* Social networks for social media fields */}
                     {field.type === 'socialMedia' && field.socialNetworks && (
                       <div className="space-y-2">
-                        <Label className="text-sm">Social Networks</Label>
-                        <div className="flex items-center gap-4">
+                        <Label className="text-sm font-medium">Available Networks</Label>
+                        <div className="flex items-center gap-3">
                           <button
                             onClick={() => toggleSocialNetwork(field.id, 'linkedin')}
                             className={`p-2 rounded-md border transition-colors ${
@@ -347,8 +355,8 @@ const ApplicationFormPreview: React.FC<{
       <CardContent className="space-y-6">
         {fields.map((field) => (
           <div key={field.id} className="space-y-2">
-            <Label className="flex items-center gap-1">
-              {field.label}
+            <Label className="flex items-center gap-1 font-medium">
+              {field.type === 'socialMedia' ? 'Social Media Accounts' : field.label}
               {field.required && <span className="text-destructive">*</span>}
             </Label>
             
