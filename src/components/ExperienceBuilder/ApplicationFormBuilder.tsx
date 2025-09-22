@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,7 +19,10 @@ import {
   AlignLeft,
   CircleDot,
   CheckSquare,
-  Users
+  Users,
+  Linkedin,
+  Instagram,
+  X as XIcon
 } from 'lucide-react';
 import { ApplicationField, ApplicationFieldType, TicketTierWithApplication, defaultRequiredFields } from '@/types/applicationForm';
 
@@ -38,11 +41,11 @@ const fieldTypeIcons = {
 };
 
 const fieldTypeLabels = {
-  shortText: 'Short Text',
-  longText: 'Long Text',
-  singleSelect: 'Single Select',
-  multiSelect: 'Multi Select',
-  socialMedia: 'Social Media',
+  shortText: 'Short text',
+  longText: 'Long text', 
+  singleSelect: 'Single select',
+  multiSelect: 'Multi select',
+  socialMedia: 'Socials',
 };
 
 export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
@@ -52,6 +55,7 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
 }) => {
   const [showPreview, setShowPreview] = useState(false);
   const [newFieldType, setNewFieldType] = useState<ApplicationFieldType>('shortText');
+  const [newOptions, setNewOptions] = useState<{[key: string]: string}>({});
 
   const customFields = fields.filter(field => !defaultRequiredFields.some(df => df.id === field.id));
 
@@ -59,11 +63,12 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
     const newField: ApplicationField = {
       id: `field_${Date.now()}`,
       type: newFieldType,
-      label: `New ${fieldTypeLabels[newFieldType]}`,
+      label: '',
       required: false,
       appliesTo: 'all',
       placeholder: '',
-      options: newFieldType === 'singleSelect' || newFieldType === 'multiSelect' ? ['Option 1'] : undefined,
+      options: newFieldType === 'singleSelect' || newFieldType === 'multiSelect' ? [''] : undefined,
+      socialNetworks: newFieldType === 'socialMedia' ? { linkedin: true, instagram: true, x: true } : undefined,
     };
 
     onFieldsChange([...fields, newField]);
@@ -81,12 +86,22 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
     onFieldsChange(updatedFields);
   };
 
-  const addOption = (fieldId: string) => {
+  const addOption = (fieldId: string, value: string) => {
+    if (!value.trim()) return;
+    
     const field = fields.find(f => f.id === fieldId);
     if (field && field.options) {
       updateField(fieldId, {
-        options: [...field.options, `Option ${field.options.length + 1}`]
+        options: [...field.options.filter(o => o.trim()), value.trim()]
       });
+    }
+    setNewOptions({...newOptions, [fieldId]: ''});
+  };
+
+  const handleOptionKeyPress = (e: KeyboardEvent<HTMLInputElement>, fieldId: string) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addOption(fieldId, newOptions[fieldId] || '');
     }
   };
 
@@ -107,6 +122,18 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
     }
   };
 
+  const toggleSocialNetwork = (fieldId: string, network: 'linkedin' | 'instagram' | 'x') => {
+    const field = fields.find(f => f.id === fieldId);
+    if (field && field.socialNetworks) {
+      updateField(fieldId, {
+        socialNetworks: {
+          ...field.socialNetworks,
+          [network]: !field.socialNetworks[network]
+        }
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -118,7 +145,7 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
           className="text-muted-foreground hover:text-foreground"
         >
           {showPreview ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
-          {showPreview ? 'Hide Preview' : 'Show Preview'}
+          {showPreview ? 'Hide Preview' : 'Preview Application'}
         </Button>
       </div>
 
@@ -127,20 +154,15 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
       ) : (
         <div className="space-y-4">
           {/* Required Fields */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Lock className="w-4 h-4" />
-              <span>Required by platform</span>
-            </div>
-            
+          <div className="space-y-2">
             {defaultRequiredFields.map((field) => (
               <Card key={field.id} className="bg-muted/20 border-muted">
-                <CardContent className="p-4">
+                <CardContent className="p-3">
                   <div className="flex items-center gap-3">
                     <Lock className="w-4 h-4 text-muted-foreground" />
                     <div className="flex-1">
                       <div className="font-medium text-foreground">{field.label}</div>
-                      <div className="text-sm text-muted-foreground">Always required for all applicants</div>
+                      <div className="text-xs text-muted-foreground">Required by platform</div>
                     </div>
                     <Badge variant="secondary" className="text-xs">Required</Badge>
                   </div>
@@ -153,81 +175,48 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
 
           {/* Custom Fields */}
           <div className="space-y-3">
-            <h5 className="font-medium text-foreground">Custom Questions</h5>
-            
             {customFields.map((field, index) => (
               <Card key={field.id} className="bg-background border-border">
                 <CardContent className="p-4">
                   <div className="space-y-4">
+                    {/* Question input row */}
                     <div className="flex items-center gap-3">
                       <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
-                      <div className="flex-1 grid grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-sm">Question Label</Label>
-                          <Input
-                            value={field.label}
-                            onChange={(e) => updateField(field.id, { label: e.target.value })}
-                            placeholder="Enter question"
-                            className="mt-1"
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-sm">Placeholder (optional)</Label>
-                          <Input
-                            value={field.placeholder || ''}
-                            onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
-                            placeholder="Enter placeholder text"
-                            className="mt-1"
-                          />
-                        </div>
-                      </div>
+                      <Input
+                        value={field.label}
+                        onChange={(e) => updateField(field.id, { label: e.target.value })}
+                        placeholder="Type your question…"
+                        className="flex-1"
+                      />
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => removeField(field.id)}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/20"
+                        className="text-muted-foreground hover:text-destructive"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
 
-                    {/* Options for select fields */}
-                    {(field.type === 'singleSelect' || field.type === 'multiSelect') && field.options && (
-                      <div className="space-y-2">
-                        <Label className="text-sm">Options</Label>
-                        {field.options.map((option, optionIndex) => (
-                          <div key={optionIndex} className="flex items-center gap-2">
-                            <Input
-                              value={option}
-                              onChange={(e) => updateOption(field.id, optionIndex, e.target.value)}
-                              placeholder={`Option ${optionIndex + 1}`}
-                              className="flex-1"
-                            />
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeOption(field.id, optionIndex)}
-                              disabled={field.options!.length <= 1}
-                              className="text-muted-foreground hover:text-destructive"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        ))}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => addOption(field.id)}
-                          className="w-full text-muted-foreground hover:text-foreground"
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add Option
-                        </Button>
-                      </div>
-                    )}
-
+                    {/* Type switcher and controls */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3">
+                        <Select 
+                          value={field.type} 
+                          onValueChange={(value: ApplicationFieldType) => updateField(field.id, { type: value })}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(fieldTypeLabels).map(([value, label]) => (
+                              <SelectItem key={value} value={value}>
+                                {label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
                         <div className="flex items-center gap-2">
                           <Switch
                             checked={field.required}
@@ -236,21 +225,105 @@ export const ApplicationFormBuilder: React.FC<ApplicationFormBuilderProps> = ({
                           <Label className="text-sm">Required</Label>
                         </div>
                       </div>
-                      
-                      <Badge variant="outline" className="text-xs">
-                        {fieldTypeLabels[field.type]}
-                      </Badge>
+
+                      {/* Tier applicability */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">Applies to:</span>
+                        <Select 
+                          value={field.appliesTo === 'all' ? 'all' : 'specific'} 
+                          onValueChange={(value) => updateField(field.id, { appliesTo: value === 'all' ? 'all' : [] })}
+                        >
+                          <SelectTrigger className="w-28">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All tiers</SelectItem>
+                            <SelectItem value="specific">Specific</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
+
+                    {/* Options for select fields */}
+                    {(field.type === 'singleSelect' || field.type === 'multiSelect') && field.options && (
+                      <div className="space-y-2">
+                        <Label className="text-sm">Options</Label>
+                        <div className="space-y-2">
+                          {field.options.map((option, optionIndex) => (
+                            option.trim() && (
+                              <div key={optionIndex} className="flex items-center gap-2">
+                                <Badge variant="outline" className="flex items-center gap-1">
+                                  <span>{option}</span>
+                                  <button
+                                    onClick={() => removeOption(field.id, optionIndex)}
+                                    className="ml-1 text-muted-foreground hover:text-destructive"
+                                  >
+                                    ×
+                                  </button>
+                                </Badge>
+                              </div>
+                            )
+                          ))}
+                          <Input
+                            value={newOptions[field.id] || ''}
+                            onChange={(e) => setNewOptions({...newOptions, [field.id]: e.target.value})}
+                            onKeyPress={(e) => handleOptionKeyPress(e, field.id)}
+                            placeholder="Type option and press Enter"
+                            className="text-sm"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Social networks for social media fields */}
+                    {field.type === 'socialMedia' && field.socialNetworks && (
+                      <div className="space-y-2">
+                        <Label className="text-sm">Social Networks</Label>
+                        <div className="flex items-center gap-4">
+                          <button
+                            onClick={() => toggleSocialNetwork(field.id, 'linkedin')}
+                            className={`p-2 rounded-md border transition-colors ${
+                              field.socialNetworks.linkedin 
+                                ? 'bg-primary text-primary-foreground border-primary' 
+                                : 'bg-background border-border text-muted-foreground hover:text-foreground'
+                            }`}
+                          >
+                            <Linkedin className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => toggleSocialNetwork(field.id, 'instagram')}
+                            className={`p-2 rounded-md border transition-colors ${
+                              field.socialNetworks.instagram 
+                                ? 'bg-primary text-primary-foreground border-primary' 
+                                : 'bg-background border-border text-muted-foreground hover:text-foreground'
+                            }`}
+                          >
+                            <Instagram className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => toggleSocialNetwork(field.id, 'x')}
+                            className={`p-2 rounded-md border transition-colors ${
+                              field.socialNetworks.x 
+                                ? 'bg-primary text-primary-foreground border-primary' 
+                                : 'bg-background border-border text-muted-foreground hover:text-foreground'
+                            }`}
+                          >
+                            <XIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             ))}
 
+            {/* Add Question Button */}
             <Card className="border-dashed border-muted-foreground/30">
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
                   <Select value={newFieldType} onValueChange={(value: ApplicationFieldType) => setNewFieldType(value)}>
-                    <SelectTrigger className="w-48">
+                    <SelectTrigger className="w-40">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -313,7 +386,7 @@ const ApplicationFormPreview: React.FC<{
                   <SelectValue placeholder="Select an option" />
                 </SelectTrigger>
                 <SelectContent>
-                  {field.options.map((option, index) => (
+                  {field.options.filter(o => o.trim()).map((option, index) => (
                     <SelectItem key={index} value={option}>{option}</SelectItem>
                   ))}
                 </SelectContent>
@@ -322,7 +395,7 @@ const ApplicationFormPreview: React.FC<{
             
             {field.type === 'multiSelect' && field.options && (
               <div className="space-y-2 p-3 bg-muted/50 rounded-md">
-                {field.options.map((option, index) => (
+                {field.options.filter(o => o.trim()).map((option, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <input type="checkbox" disabled />
                     <span className="text-sm">{option}</span>
@@ -331,11 +404,26 @@ const ApplicationFormPreview: React.FC<{
               </div>
             )}
             
-            {field.type === 'socialMedia' && (
+            {field.type === 'socialMedia' && field.socialNetworks && (
               <div className="space-y-2">
-                <Input placeholder="LinkedIn URL (optional)" disabled />
-                <Input placeholder="Instagram URL (optional)" disabled />
-                <Input placeholder="X (Twitter) URL (optional)" disabled />
+                {field.socialNetworks.linkedin && (
+                  <div className="flex items-center gap-2">
+                    <Linkedin className="w-4 h-4" />
+                    <Input placeholder="LinkedIn URL (optional)" disabled />
+                  </div>
+                )}
+                {field.socialNetworks.instagram && (
+                  <div className="flex items-center gap-2">
+                    <Instagram className="w-4 h-4" />
+                    <Input placeholder="Instagram URL (optional)" disabled />
+                  </div>
+                )}
+                {field.socialNetworks.x && (
+                  <div className="flex items-center gap-2">
+                    <XIcon className="w-4 h-4" />
+                    <Input placeholder="X URL (optional)" disabled />
+                  </div>
+                )}
               </div>
             )}
           </div>

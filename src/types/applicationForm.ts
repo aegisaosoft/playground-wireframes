@@ -13,6 +13,11 @@ export interface ApplicationField {
   options?: string[]; // For select fields
   appliesTo: 'all' | string[]; // 'all' or array of tier IDs
   placeholder?: string;
+  socialNetworks?: {
+    linkedin: boolean;
+    instagram: boolean;
+    x: boolean;
+  }; // For social media fields
 }
 
 export interface ApplicationForm {
