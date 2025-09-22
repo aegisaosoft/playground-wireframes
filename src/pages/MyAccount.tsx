@@ -873,8 +873,8 @@ export default function MyAccount() {
 
   return (
     <div className="min-h-screen bg-gradient-dark">
-      {/* Header with Navigation */}
-      <div className="border-b border-white/10 bg-background/80 backdrop-blur-sm">
+      {/* Sticky Header with Navigation */}
+      <div className="sticky top-0 z-50 border-b border-white/10 bg-background/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
             <Link to="/experiences" className="flex items-center text-muted-foreground hover:text-foreground transition-colors">
@@ -886,44 +886,101 @@ export default function MyAccount() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex gap-8">
-          {/* Sidebar */}
-          <div className="w-64 flex-shrink-0 space-y-4">
-            {/* Profile Section */}
-            <Card className="bg-white/5 border-white/10 rounded-2xl p-2 sticky top-8">
-              <div className="px-3 py-2 mb-2">
-                <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Profile</h3>
-              </div>
-              <nav className="space-y-1">
-                {profileItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeTab === item.id;
-                  
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => setActiveTab(item.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                        isActive 
-                          ? 'bg-gradient-neon text-background shadow-neon' 
-                          : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
-                      }`}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="font-medium">{item.label}</span>
-                    </button>
-                  );
-                })}
-              </nav>
-            </Card>
-
-            {/* Hosting Section */}
-            {(hasHostedExperiences || hasCreatedBrands) && (
-              <Card className="bg-white/5 border-white/10 rounded-2xl p-2">
-                <div className="px-3 py-2 mb-2">
-                  <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Hosting</h3>
+        <div className="lg:flex lg:gap-8">
+          {/* Sidebar - Desktop */}
+          <div className="hidden lg:block w-64 flex-shrink-0">
+            <div className="max-h-[calc(100vh-120px)] overflow-auto">
+              <div className="space-y-8">
+                {/* Profile Group */}
+                <div className="space-y-2">
+                  <div className="px-3 py-2">
+                    <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Profile</h3>
+                  </div>
+                  <Card className="bg-white/5 border-white/10 rounded-2xl p-2">
+                    <nav className="space-y-1">
+                      {profileItems.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = activeTab === item.id;
+                        
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                              isActive 
+                                ? 'bg-gradient-neon text-background shadow-neon' 
+                                : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                            }`}
+                          >
+                            <Icon className="w-5 h-5" />
+                            <span className="font-medium">{item.label}</span>
+                          </button>
+                        );
+                      })}
+                    </nav>
+                  </Card>
                 </div>
-                <nav className="space-y-1">
+
+                {/* Hosting Group */}
+                {(hasHostedExperiences || hasCreatedBrands) && (
+                  <div className="space-y-2">
+                    <div className="px-3 py-2">
+                      <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Hosting</h3>
+                    </div>
+                    <Card className="bg-white/5 border-white/10 rounded-2xl p-2">
+                      <nav className="space-y-1">
+                        {hostingItems.map((item) => {
+                          const Icon = item.icon;
+                          const isActive = activeTab === item.id;
+                          
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={() => setActiveTab(item.id)}
+                              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                                isActive 
+                                  ? 'bg-gradient-neon text-background shadow-neon' 
+                                  : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                              }`}
+                            >
+                              <Icon className="w-5 h-5" />
+                              <span className="font-medium">{item.label}</span>
+                            </button>
+                          );
+                        })}
+                      </nav>
+                    </Card>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Navigation Tabs */}
+          <div className="lg:hidden mb-6">
+            <div className="flex overflow-x-auto pb-2 gap-2">
+              {profileItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap transition-all ${
+                      isActive 
+                        ? 'bg-gradient-neon text-background shadow-neon' 
+                        : 'bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="font-medium">{item.label}</span>
+                  </button>
+                );
+              })}
+              {(hasHostedExperiences || hasCreatedBrands) && (
+                <>
+                  <div className="w-px bg-white/20 mx-2" />
                   {hostingItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = activeTab === item.id;
@@ -932,24 +989,24 @@ export default function MyAccount() {
                       <button
                         key={item.id}
                         onClick={() => setActiveTab(item.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap transition-all ${
                           isActive 
                             ? 'bg-gradient-neon text-background shadow-neon' 
-                            : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                            : 'bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10'
                         }`}
                       >
-                        <Icon className="w-5 h-5" />
+                        <Icon className="w-4 h-4" />
                         <span className="font-medium">{item.label}</span>
                       </button>
                     );
                   })}
-                </nav>
-              </Card>
-            )}
+                </>
+              )}
+            </div>
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 lg:max-w-none">
             {renderContent()}
           </div>
         </div>
