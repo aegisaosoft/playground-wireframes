@@ -22,10 +22,29 @@ const mockApplicantsData: RetreatWithApplicants[] = [
         retreatId: 1,
         status: 'pending',
         applicationAnswers: [
-          { question: 'Why are you interested in this workshop?', answer: 'I\'ve been writing for 5 years and want to improve my craft.' },
-          { question: 'What\'s your writing experience?', answer: 'I have published several short stories in literary magazines.' }
+          { question: 'Why are you interested in this workshop?', answer: 'I\'ve been writing for 5 years and want to improve my craft. I\'m particularly interested in developing my character development skills and learning new narrative techniques.' },
+          { question: 'What\'s your writing experience?', answer: 'I have published several short stories in literary magazines including "The Paris Review" and "Granta". I\'m currently working on my debut novel.' }
         ],
-        appliedAt: '2024-03-15T10:30:00Z'
+        appliedAt: '2024-03-15T10:30:00Z',
+        profile: {
+          profilePicture: '/src/assets/retreat-bali.jpg',
+          bio: 'Passionate storyteller and emerging novelist with a love for literary fiction. I believe in the power of words to transform both writer and reader.',
+          interests: ['Literary Fiction', 'Poetry', 'Narrative Theory', 'Character Development'],
+          skills: ['Creative Writing', 'Editing', 'Workshop Facilitation', 'Literary Analysis'],
+          preferredLocations: ['Portland', 'San Francisco', 'Europe'],
+          experienceTypes: ['Writing Workshops', 'Literary Retreats', 'Author Talks'],
+          socialAccounts: {
+            linkedinUrl: 'https://linkedin.com/in/sarahjohnson',
+            instagramUrl: 'https://instagram.com/sarahwriteswords',
+            xUrl: 'https://x.com/sarahjwriter'
+          },
+          voiceIntro: {
+            audioUrl: '/mock-audio.mp3',
+            duration: 45
+          },
+          previousApplications: 0
+        },
+        organizerNotes: ''
       },
       {
         id: '2',
@@ -34,11 +53,24 @@ const mockApplicantsData: RetreatWithApplicants[] = [
         retreatId: 1,
         status: 'approved',
         applicationAnswers: [
-          { question: 'Why are you interested in this workshop?', answer: 'I want to transition from technical writing to creative writing.' },
-          { question: 'What\'s your writing experience?', answer: 'Mostly technical documentation, but I have some personal creative projects.' }
+          { question: 'Why are you interested in this workshop?', answer: 'I want to transition from technical writing to creative writing and explore storytelling techniques.' },
+          { question: 'What\'s your writing experience?', answer: 'Mostly technical documentation for the past 8 years, but I have some personal creative projects and have completed several online writing courses.' }
         ],
         appliedAt: '2024-03-10T14:15:00Z',
-        processedAt: '2024-03-12T09:00:00Z'
+        processedAt: '2024-03-12T09:00:00Z',
+        profile: {
+          bio: 'Technical writer by day, creative storyteller by night. Making the transition from APIs to narratives.',
+          interests: ['Science Fiction', 'Technology', 'World Building', 'Character Arcs'],
+          skills: ['Technical Writing', 'Research', 'Documentation', 'Project Management'],
+          preferredLocations: ['Seattle', 'Portland', 'San Francisco'],
+          experienceTypes: ['Writing Workshops', 'Online Courses', 'Writing Groups'],
+          socialAccounts: {
+            linkedinUrl: 'https://linkedin.com/in/mikechen',
+            xUrl: 'https://x.com/mikechen_writes'
+          },
+          previousApplications: 1
+        },
+        organizerNotes: 'Strong technical background, eager to learn creative writing. Good candidate for mentorship.'
       },
       {
         id: '3',
@@ -48,10 +80,23 @@ const mockApplicantsData: RetreatWithApplicants[] = [
         status: 'rejected',
         applicationAnswers: [
           { question: 'Why are you interested in this workshop?', answer: 'I love writing and want to learn more.' },
-          { question: 'What\'s your writing experience?', answer: 'I write in my journal sometimes.' }
+          { question: 'What\'s your writing experience?', answer: 'I write in my journal sometimes and have written a few blog posts.' }
         ],
         appliedAt: '2024-03-20T16:45:00Z',
-        processedAt: '2024-03-22T11:30:00Z'
+        processedAt: '2024-03-22T11:30:00Z',
+        profile: {
+          bio: 'Aspiring writer with a passion for personal storytelling and lifestyle content.',
+          interests: ['Lifestyle Writing', 'Personal Essays', 'Travel Writing'],
+          skills: ['Blogging', 'Social Media', 'Content Creation'],
+          preferredLocations: ['Los Angeles', 'New York', 'Miami'],
+          experienceTypes: ['Writing Workshops', 'Blogging Courses'],
+          socialAccounts: {
+            instagramUrl: 'https://instagram.com/emmawrites',
+            xUrl: 'https://x.com/emma_rodriguez'
+          },
+          previousApplications: 0
+        },
+        organizerNotes: 'Application lacks depth and specific writing experience. Consider for future beginner-level workshops.'
       }
     ]
   },
@@ -69,10 +114,28 @@ const mockApplicantsData: RetreatWithApplicants[] = [
         retreatId: 2,
         status: 'pending',
         applicationAnswers: [
-          { question: 'What\'s your photography experience?', answer: 'I\'ve been doing photography as a hobby for 3 years.' },
-          { question: 'What type of photography interests you most?', answer: 'Portrait and street photography.' }
+          { question: 'What\'s your photography experience?', answer: 'I\'ve been doing photography as a hobby for 3 years, focusing on street and portrait photography. I shoot with a Canon 5D Mark IV and have basic Lightroom skills.' },
+          { question: 'What type of photography interests you most?', answer: 'Portrait and street photography. I\'m fascinated by capturing human emotion and candid moments in urban environments.' }
         ],
-        appliedAt: '2024-03-25T12:00:00Z'
+        appliedAt: '2024-03-25T12:00:00Z',
+        profile: {
+          profilePicture: '/src/assets/retreat-greece.jpg',
+          bio: 'Urban photographer passionate about capturing the human condition through street and portrait photography.',
+          interests: ['Street Photography', 'Portrait Photography', 'Urban Exploration', 'Photo Essays'],
+          skills: ['Photography', 'Lightroom', 'Photo Editing', 'Composition'],
+          preferredLocations: ['San Francisco', 'New York', 'Tokyo', 'Berlin'],
+          experienceTypes: ['Photography Workshops', 'Photo Walks', 'Masterclasses'],
+          socialAccounts: {
+            instagramUrl: 'https://instagram.com/davidkimphotography',
+            linkedinUrl: 'https://linkedin.com/in/davidkim-photographer'
+          },
+          voiceIntro: {
+            audioUrl: '/mock-audio-david.mp3',
+            duration: 38
+          },
+          previousApplications: 2
+        },
+        organizerNotes: ''
       }
     ]
   }
@@ -139,6 +202,22 @@ export default function ExperienceApplicants() {
     });
   };
 
+  const handleUpdateNotes = (applicantId: string, notes: string) => {
+    if (!experienceData) return;
+
+    setExperienceData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        applicants: prev.applicants.map(applicant =>
+          applicant.id === applicantId
+            ? { ...applicant, organizerNotes: notes }
+            : applicant
+        )
+      };
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0b0b12] flex items-center justify-center">
@@ -192,6 +271,7 @@ export default function ExperienceApplicants() {
           retreat={experienceData}
           onUpdateApplicant={handleUpdateApplicant}
           onAddApplicants={handleAddApplicants}
+          onUpdateNotes={handleUpdateNotes}
         />
       </div>
     </div>

@@ -3,6 +3,25 @@ export interface ApplicationAnswer {
   answer: string;
 }
 
+export interface ApplicantProfile {
+  profilePicture?: string;
+  bio?: string;
+  interests?: string[];
+  skills?: string[];
+  preferredLocations?: string[];
+  experienceTypes?: string[];
+  socialAccounts?: {
+    linkedinUrl?: string;
+    instagramUrl?: string;
+    xUrl?: string;
+  };
+  voiceIntro?: {
+    audioUrl: string;
+    duration: number;
+  };
+  previousApplications?: number; // How many times they've applied before
+}
+
 export interface Applicant {
   id: string;
   name: string;
@@ -12,6 +31,8 @@ export interface Applicant {
   applicationAnswers: ApplicationAnswer[];
   appliedAt: string;
   processedAt?: string;
+  profile?: ApplicantProfile;
+  organizerNotes?: string; // Private notes from organizers
 }
 
 export interface RetreatWithApplicants {

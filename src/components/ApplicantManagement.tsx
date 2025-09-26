@@ -3,24 +3,25 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle, XCircle, Eye, Download, Upload, Calendar, MapPin } from "lucide-react";
+import { Download, Upload, Calendar, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Applicant, ApplicationAnswer, RetreatWithApplicants } from "@/types/applicant";
+import { EnhancedApplicantCard } from "@/components/EnhancedApplicantCard";
+import { ExtendedApplicantProfileModal } from "@/components/ExtendedApplicantProfileModal";
 
 interface ApplicantManagementProps {
   retreat: RetreatWithApplicants;
   onUpdateApplicant: (applicantId: string, status: 'approved' | 'rejected') => void;
   onAddApplicants: (retreatId: number, applicants: Omit<Applicant, 'id' | 'retreatId' | 'appliedAt'>[]) => void;
+  onUpdateNotes: (applicantId: string, notes: string) => void;
 }
 
-export const ApplicantManagement = ({ retreat, onUpdateApplicant, onAddApplicants }: ApplicantManagementProps) => {
+export const ApplicantManagement = ({ retreat, onUpdateApplicant, onAddApplicants, onUpdateNotes }: ApplicantManagementProps) => {
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
-  const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [csvContent, setCsvContent] = useState("");
   const { toast } = useToast();
@@ -45,9 +46,9 @@ export const ApplicantManagement = ({ retreat, onUpdateApplicant, onAddApplicant
     });
   };
 
-  const handleViewApplication = (applicant: Applicant) => {
+  const handleViewProfile = (applicant: Applicant) => {
     setSelectedApplicant(applicant);
-    setIsApplicationModalOpen(true);
+    setIsProfileModalOpen(true);
   };
 
   const handleExportApplicants = () => {
@@ -122,58 +123,6 @@ export const ApplicantManagement = ({ retreat, onUpdateApplicant, onAddApplicant
     }
   };
 
-  const ApplicantCard = ({ applicant, showActions = true }: { applicant: Applicant; showActions?: boolean }) => (
-    <Card className="p-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Avatar>
-            <AvatarFallback>
-              {applicant.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-medium">{applicant.name}</p>
-            <p className="text-sm text-muted-foreground">{applicant.email}</p>
-            <p className="text-xs text-muted-foreground">
-              Applied: {new Date(applicant.appliedAt).toLocaleDateString()}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleViewApplication(applicant)}
-          >
-            <Eye className="w-4 h-4 mr-1" />
-            View
-          </Button>
-          {showActions && applicant.status === 'pending' && (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleApprove(applicant.id)}
-                className="text-green-600 hover:text-green-700"
-              >
-                <CheckCircle className="w-4 h-4 mr-1" />
-                Approve
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleReject(applicant.id)}
-                className="text-red-600 hover:text-red-700"
-              >
-                <XCircle className="w-4 h-4 mr-1" />
-                Reject
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-    </Card>
-  );
 
   return (
     <div className="space-y-6">
@@ -260,7 +209,14 @@ export const ApplicantManagement = ({ retreat, onUpdateApplicant, onAddApplicant
             </Card>
           ) : (
             pendingApplicants.map(applicant => (
-              <ApplicantCard key={applicant.id} applicant={applicant} />
+              <EnhancedApplicantCard 
+                key={applicant.id} 
+                applicant={applicant}
+                onViewProfile={handleViewProfile}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                showActions={true}
+              />
             ))
           )}
         </TabsContent>
@@ -274,7 +230,12 @@ export const ApplicantManagement = ({ retreat, onUpdateApplicant, onAddApplicant
             </Card>
           ) : (
             approvedApplicants.map(applicant => (
-              <ApplicantCard key={applicant.id} applicant={applicant} showActions={false} />
+              <EnhancedApplicantCard 
+                key={applicant.id} 
+                applicant={applicant}
+                onViewProfile={handleViewProfile}
+                showActions={false}
+              />
             ))
           )}
         </TabsContent>
@@ -288,79 +249,25 @@ export const ApplicantManagement = ({ retreat, onUpdateApplicant, onAddApplicant
             </Card>
           ) : (
             rejectedApplicants.map(applicant => (
-              <ApplicantCard key={applicant.id} applicant={applicant} showActions={false} />
+              <EnhancedApplicantCard 
+                key={applicant.id} 
+                applicant={applicant}
+                onViewProfile={handleViewProfile}
+                showActions={false}
+              />
             ))
           )}
         </TabsContent>
       </Tabs>
 
-      {/* Application Details Modal */}
-      <Dialog open={isApplicationModalOpen} onOpenChange={setIsApplicationModalOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Application Details</DialogTitle>
-          </DialogHeader>
-          {selectedApplicant && (
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <Avatar>
-                  <AvatarFallback>
-                    {selectedApplicant.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium">{selectedApplicant.name}</p>
-                  <p className="text-sm text-muted-foreground">{selectedApplicant.email}</p>
-                  <Badge variant={
-                    selectedApplicant.status === 'approved' ? 'default' :
-                    selectedApplicant.status === 'rejected' ? 'destructive' : 'secondary'
-                  }>
-                    {selectedApplicant.status.charAt(0).toUpperCase() + selectedApplicant.status.slice(1)}
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="font-medium">Application Answers</h3>
-                {selectedApplicant.applicationAnswers.map((answer, index) => (
-                  <div key={index} className="space-y-2">
-                    <Label className="font-medium">{answer.question}</Label>
-                    <div className="p-3 bg-muted rounded-md">
-                      <p className="text-sm">{answer.answer}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {selectedApplicant.status === 'pending' && (
-                <div className="flex space-x-2 pt-4">
-                  <Button
-                    onClick={() => {
-                      handleApprove(selectedApplicant.id);
-                      setIsApplicationModalOpen(false);
-                    }}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Approve Application
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      handleReject(selectedApplicant.id);
-                      setIsApplicationModalOpen(false);
-                    }}
-                    className="flex-1"
-                  >
-                    <XCircle className="w-4 h-4 mr-2" />
-                    Reject Application
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Extended Applicant Profile Modal */}
+      <ExtendedApplicantProfileModal
+        applicant={selectedApplicant}
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        onUpdateApplicant={onUpdateApplicant}
+        onUpdateNotes={onUpdateNotes}
+      />
 
       {/* Upload Contacts Modal */}
       <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>

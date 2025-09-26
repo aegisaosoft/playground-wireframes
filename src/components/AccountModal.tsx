@@ -204,6 +204,14 @@ export const AccountModal = ({ isOpen, onClose, user, onLogout, onUpdateUser, us
     setApplicants(prev => [...prev, ...applicantsWithIds]);
   };
 
+  const handleUpdateNotes = (applicantId: string, notes: string) => {
+    setApplicants(prev => prev.map(applicant => 
+      applicant.id === applicantId 
+        ? { ...applicant, organizerNotes: notes }
+        : applicant
+    ));
+  };
+
   const handleBackToDashboard = () => {
     setCurrentView('dashboard');
     setSelectedRetreatForManagement(null);
@@ -237,6 +245,7 @@ export const AccountModal = ({ isOpen, onClose, user, onLogout, onUpdateUser, us
               retreat={selectedRetreatForManagement}
               onUpdateApplicant={handleUpdateApplicant}
               onAddApplicants={handleAddApplicants}
+              onUpdateNotes={handleUpdateNotes}
             />
           </div>
         ) : (
