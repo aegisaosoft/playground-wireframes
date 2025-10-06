@@ -53,10 +53,6 @@ const PlaygroundHero = () => {
             <br />
             <span className="text-neon-cyan">starts here.</span>
           </h1>
-          
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto">
-            A playground for those who mix ambition with adventure.
-          </p>
         </div>
 
         {/* Search Bar */}
