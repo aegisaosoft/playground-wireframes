@@ -69,10 +69,6 @@ const ExperiencesSection = () => {
             <br />
             <span className="text-neon-yellow">Go IRL</span>
           </h2>
-          
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Carefully curated experiences for people who think different.
-          </p>
         </div>
 
         {/* Experience Cards Grid */}
