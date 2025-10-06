@@ -124,7 +124,7 @@ export default function Experiences() {
     if (!user) {
       setShowAuthModal(true);
     } else {
-      window.location.href = '/experience-builder';
+      window.location.href = '/create';
     }
   };
 
