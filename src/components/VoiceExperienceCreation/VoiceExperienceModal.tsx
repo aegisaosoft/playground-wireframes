@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Mic, X, Sparkles } from 'lucide-react';
 import { VoiceExperienceCapture } from './VoiceExperienceCapture';
-import { VoiceExperienceReview } from './VoiceExperienceReview';
 import { VoiceExperienceFollowup } from './VoiceExperienceFollowup';
 import { VoiceCreationState, ExtractedExperienceData, VoiceExperienceDraft } from '@/types/voiceExperienceCreation';
 import { useToast } from '@/hooks/use-toast';
@@ -99,13 +98,45 @@ export const VoiceExperienceModal: React.FC<VoiceExperienceModalProps> = ({
             confidence: 'low' as const
           }));
 
-        setState(prev => ({
-          ...prev,
-          step: followupQuestions.length > 0 ? 'followup' : 'review',
-          extractedData: mockExtractedData,
-          followupQuestions,
-          currentFollowupIndex: 0
-        }));
+        if (followupQuestions.length > 0) {
+          setState(prev => ({
+            ...prev,
+            step: 'followup',
+            extractedData: mockExtractedData,
+            followupQuestions,
+            currentFollowupIndex: 0
+          }));
+        } else {
+          // Skip review step and go straight to builder
+          const draft: VoiceExperienceDraft = {
+            title: mockExtractedData.title || '',
+            location: {
+              city: mockExtractedData.location?.city || '',
+              country: mockExtractedData.location?.country || ''
+            },
+            dates: {
+              startDate: mockExtractedData.dates?.startDate || null,
+              endDate: mockExtractedData.dates?.endDate || null
+            },
+            audience: mockExtractedData.audience || [],
+            vibe: mockExtractedData.vibe || [],
+            category: mockExtractedData.category,
+            agendaDays: mockExtractedData.agendaDays || [],
+            ticketTiers: mockExtractedData.ticketTiers || [],
+            visibility: mockExtractedData.visibility || 'public',
+            ctaText: mockExtractedData.ctaText || 'Apply Now',
+            capacity: mockExtractedData.ticketTiers?.reduce((sum, tier) => sum + tier.quantity, 0) || 0,
+            images: mockExtractedData.images || [],
+            description: mockExtractedData.description
+          };
+
+          onPrefillBuilder?.(draft);
+          toast({
+            title: "✨ Experience pre-filled from your recording",
+            description: "Review and edit the details in the builder below.",
+          });
+          onClose();
+        }
       }, 1500);
     }, 2000);
   };
@@ -130,40 +161,38 @@ export const VoiceExperienceModal: React.FC<VoiceExperienceModalProps> = ({
         currentFollowupIndex: currentIndex + 1
       }));
     } else {
-      setState(prev => ({ ...prev, step: 'review' }));
+      // All followups complete - skip review and go to builder
+      if (state.extractedData) {
+        const draft: VoiceExperienceDraft = {
+          title: state.extractedData.title || '',
+          location: {
+            city: state.extractedData.location?.city || '',
+            country: state.extractedData.location?.country || ''
+          },
+          dates: {
+            startDate: state.extractedData.dates?.startDate || null,
+            endDate: state.extractedData.dates?.endDate || null
+          },
+          audience: state.extractedData.audience || [],
+          vibe: state.extractedData.vibe || [],
+          category: state.extractedData.category,
+          agendaDays: state.extractedData.agendaDays || [],
+          ticketTiers: state.extractedData.ticketTiers || [],
+          visibility: state.extractedData.visibility || 'public',
+          ctaText: state.extractedData.ctaText || 'Apply Now',
+          capacity: state.extractedData.ticketTiers?.reduce((sum, tier) => sum + tier.quantity, 0) || 0,
+          images: state.extractedData.images || [],
+          description: state.extractedData.description
+        };
+
+        onPrefillBuilder?.(draft);
+        toast({
+          title: "✨ Experience pre-filled from your recording",
+          description: "Review and edit the details in the builder below.",
+        });
+        onClose();
+      }
     }
-  };
-
-  const handleCreateDraft = (finalData: ExtractedExperienceData, saveTranscript: boolean) => {
-    // Convert extracted data to Builder format
-    const draft: VoiceExperienceDraft = {
-      title: finalData.title || '',
-      location: {
-        city: finalData.location?.city || '',
-        country: finalData.location?.country || ''
-      },
-      dates: {
-        startDate: finalData.dates?.startDate || null,
-        endDate: finalData.dates?.endDate || null
-      },
-      audience: finalData.audience || [],
-      vibe: finalData.vibe || [],
-      category: finalData.category,
-      agendaDays: finalData.agendaDays || [],
-      ticketTiers: finalData.ticketTiers || [],
-      visibility: finalData.visibility || 'public',
-      ctaText: finalData.ctaText || 'Apply Now',
-      capacity: finalData.ticketTiers?.reduce((sum, tier) => sum + tier.quantity, 0) || 0,
-      images: finalData.images || [],
-      description: finalData.description
-    };
-
-    onPrefillBuilder?.(draft);
-    toast({
-      title: "Experience created!",
-      description: "Your voice-created experience has been loaded into the builder.",
-    });
-    onClose();
   };
 
   const renderContent = () => {
@@ -252,18 +281,6 @@ export const VoiceExperienceModal: React.FC<VoiceExperienceModalProps> = ({
               current: (state.currentFollowupIndex || 0) + 1,
               total: state.followupQuestions.length
             }}
-          />
-        );
-
-      case 'review':
-        if (!state.extractedData) return null;
-        return (
-          <VoiceExperienceReview
-            extractedData={state.extractedData}
-            transcript={state.transcript || ''}
-            onCreateDraft={handleCreateDraft}
-            onReRecord={() => setState(prev => ({ ...prev, step: 'recording' }))}
-            onBack={() => setState(prev => ({ ...prev, step: 'intro' }))}
           />
         );
 
