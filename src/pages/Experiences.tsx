@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, Calendar, User, Mic, Plus } from "lucide-react";
+import { MapPin, Calendar, User, Plus } from "lucide-react";
 import { VoiceExperienceModal } from '@/components/VoiceExperienceCreation';
 import { VoiceExperienceDraft } from '@/types/voiceExperienceCreation';
 import { AuthModal } from '@/components/AuthModal';
 import { searchExperiences } from '@/utils/searchExperiences';
+import { HomeSearchBar } from '@/components/HomeSearchBar';
 
 // Mock data for experiences
 const mockExperiences = [
@@ -171,16 +171,7 @@ export default function Experiences() {
           </div>
 
           {/* Search Bar */}
-          <div className="max-w-2xl mx-auto relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-            <Input
-              type="text"
-              placeholder="Search for experiences... (e.g., 'hacker house in Bali', 'yoga retreat India')"
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="pl-12 pr-4 py-4 text-lg bg-card border-gray-800 focus:border-neon-cyan focus:ring-neon-cyan/20"
-            />
-          </div>
+          <HomeSearchBar />
         </div>
       </div>
 
