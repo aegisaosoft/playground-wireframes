@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Mic, Square, Play, Pause, ArrowLeft, AlertCircle, Volume2, FileText, Link as LinkIcon, Upload } from 'lucide-react';
+import { Mic, Square, Play, Pause, ArrowLeft, AlertCircle, Volume2, FileText, Link as LinkIcon, Upload, X } from 'lucide-react';
 import { AudioRecordingState } from '@/types/voiceOnboarding';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 
 interface VoiceExperienceCaptureProps {
   onComplete: (recording: any, transcript: string) => void;
@@ -18,12 +19,14 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
   const [audioLevel, setAudioLevel] = useState(0);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [inputMode, setInputMode] = useState<'voice' | 'file' | 'link'>('voice');
-  const [linkUrl, setLinkUrl] = useState('');
-  const [isDragging, setIsDragging] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [showTranscriptEditor, setShowTranscriptEditor] = useState(false);
   const [accumulatedRecordings, setAccumulatedRecordings] = useState<any[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; file: File }>>([]);
+  const [pastedLinks, setPastedLinks] = useState<string[]>([]);
+  const [linkInputValue, setLinkInputValue] = useState('');
+  const [inputMode, setInputMode] = useState<'voice' | 'file' | 'link'>('voice');
+  const [isDragging, setIsDragging] = useState(false);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -153,7 +156,9 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
   const handleContinue = () => {
     onComplete(
       { 
-        recordings: accumulatedRecordings, 
+        recordings: accumulatedRecordings,
+        uploadedFiles,
+        pastedLinks,
         timestamp: new Date() 
       }, 
       transcript
@@ -212,20 +217,19 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
       return;
     }
 
+    setUploadedFiles(prev => [...prev, { name: file.name, file }]);
     toast({
-      title: "Processing file...",
-      description: "AI is analyzing your uploaded file.",
+      title: "File added",
+      description: `${file.name} will be included in your experience generation.`,
     });
-
-    // Simulate file processing
-    setTimeout(() => {
-      const mockTranscript = `Extracted from ${file.name}: Creating a collaborative tech experience with networking events and workshops.`;
-      onComplete({ file, timestamp: new Date() }, mockTranscript);
-    }, 2000);
   };
 
-  const handleLinkSubmit = () => {
-    if (!linkUrl.trim()) {
+  const removeUploadedFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleLinkAdd = () => {
+    if (!linkInputValue.trim()) {
       toast({
         title: "Link required",
         description: "Please enter a valid URL.",
@@ -234,16 +238,16 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
       return;
     }
 
+    setPastedLinks(prev => [...prev, linkInputValue]);
+    setLinkInputValue('');
     toast({
-      title: "Processing link...",
-      description: "AI is analyzing the content from your link.",
+      title: "Link added",
+      description: "Link will be included in your experience generation.",
     });
+  };
 
-    // Simulate link processing
-    setTimeout(() => {
-      const mockTranscript = `Extracted from ${linkUrl}: Creating an experience based on the provided documentation.`;
-      onComplete({ link: linkUrl, timestamp: new Date() }, mockTranscript);
-    }, 2000);
+  const removePastedLink = (index: number) => {
+    setPastedLinks(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -277,7 +281,7 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
       {/* Transcript Editor (shown after recording) */}
       {showTranscriptEditor && transcript && (
         <Card className="bg-white/5 border-white/10">
-          <CardContent className="p-6 space-y-4">
+          <CardContent className="p-6 space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Your Experience Description</label>
               <p className="text-xs text-muted-foreground">Edit the transcription or add more details</p>
@@ -288,7 +292,80 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
               className="min-h-[200px] bg-white/5 border-white/20 text-foreground resize-none"
               placeholder="Transcription will appear here..."
             />
-            <div className="flex gap-3 justify-end">
+
+            {/* Upload & Link Section */}
+            <div className="space-y-4 pt-2">
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  variant="outline"
+                  className="flex-1 border-white/20 hover:bg-white/10 hover:border-white/30"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Files
+                </Button>
+                <Button
+                  onClick={() => {
+                    const input = prompt("Paste a link to your content (Notion, website, etc.):");
+                    if (input) {
+                      setLinkInputValue(input);
+                      handleLinkAdd();
+                    }
+                  }}
+                  variant="outline"
+                  className="flex-1 border-white/20 hover:bg-white/10 hover:border-white/30"
+                >
+                  <LinkIcon className="w-4 h-4 mr-2" />
+                  Paste Link
+                </Button>
+              </div>
+
+              {/* Uploaded Files Chips */}
+              {uploadedFiles.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {uploadedFiles.map((file, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="bg-white/10 text-foreground border-white/20 pr-1 flex items-center gap-2"
+                    >
+                      <FileText className="w-3 h-3" />
+                      <span className="text-xs">{file.name}</span>
+                      <button
+                        onClick={() => removeUploadedFile(index)}
+                        className="ml-1 hover:bg-white/20 rounded-full p-0.5"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {/* Pasted Links Chips */}
+              {pastedLinks.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {pastedLinks.map((link, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="bg-white/10 text-foreground border-white/20 pr-1 flex items-center gap-2 max-w-xs"
+                    >
+                      <LinkIcon className="w-3 h-3" />
+                      <span className="text-xs truncate">{link}</span>
+                      <button
+                        onClick={() => removePastedLink(index)}
+                        className="ml-1 hover:bg-white/20 rounded-full p-0.5"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 justify-end pt-2">
               <Button
                 onClick={handleRecordMore}
                 variant="outline"
@@ -415,8 +492,8 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
         </Card>
       )}
 
-      {/* File Upload Section */}
-      {inputMode === 'file' && (
+      {/* File Upload Section - Only when explicitly in file mode and not editing transcript */}
+      {inputMode === 'file' && !showTranscriptEditor && (
         <Card className="bg-white/5 border-white/10">
           <CardContent className="p-8">
             <input
@@ -447,8 +524,8 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
         </Card>
       )}
 
-      {/* Link Input Section */}
-      {inputMode === 'link' && (
+      {/* Link Input Section - Only when explicitly in link mode and not editing transcript */}
+      {inputMode === 'link' && !showTranscriptEditor && (
         <Card className="bg-white/5 border-white/10">
           <CardContent className="p-8 space-y-4">
             <div className="flex items-center gap-3 mb-4">
@@ -461,15 +538,15 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
             <Input
               type="url"
               placeholder="https://notion.so/your-event-page"
-              value={linkUrl}
-              onChange={(e) => setLinkUrl(e.target.value)}
+              value={linkInputValue}
+              onChange={(e) => setLinkInputValue(e.target.value)}
               className="bg-white/5 border-white/20"
             />
             <Button 
-              onClick={handleLinkSubmit}
+              onClick={handleLinkAdd}
               className="w-full bg-gradient-neon text-background hover:opacity-90 shadow-neon"
             >
-              Process Link
+              Add Link
             </Button>
           </CardContent>
         </Card>
