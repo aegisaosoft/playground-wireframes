@@ -414,32 +414,12 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
         </Card>
       )}
 
-      {/* Divider */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-white/10"></div>
-        </div>
-        <div className="relative flex justify-center text-xs">
-          <span className="bg-card px-4 py-2 text-muted-foreground rounded-full border border-white/10">
-            Or let AI help you build from your existing materials
-          </span>
-        </div>
-      </div>
-
       {/* Input Mode Options */}
-      <div className="flex gap-4 justify-center">
-        <Button
-          variant={inputMode === 'voice' ? 'default' : 'outline'}
-          onClick={() => setInputMode('voice')}
-          className={inputMode === 'voice' ? 'bg-gradient-neon text-background shadow-neon' : 'border-white/20 hover:bg-white/5'}
-        >
-          <Mic className="w-4 h-4 mr-2" />
-          Record Voice
-        </Button>
+      <div className="flex gap-4 justify-center pt-4">
         <Button
           variant={inputMode === 'file' ? 'default' : 'outline'}
           onClick={() => setInputMode('file')}
-          className={inputMode === 'file' ? 'bg-gradient-neon text-background shadow-neon' : 'border-white/20 hover:bg-white/5'}
+          className={`transition-all ${inputMode === 'file' ? 'bg-gradient-neon text-background shadow-neon' : 'border-white/20 hover:bg-white/10 hover:border-white/30 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]'}`}
         >
           <FileText className="w-4 h-4 mr-2" />
           Upload Files
@@ -447,7 +427,7 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
         <Button
           variant={inputMode === 'link' ? 'default' : 'outline'}
           onClick={() => setInputMode('link')}
-          className={inputMode === 'link' ? 'bg-gradient-neon text-background shadow-neon' : 'border-white/20 hover:bg-white/5'}
+          className={`transition-all ${inputMode === 'link' ? 'bg-gradient-neon text-background shadow-neon' : 'border-white/20 hover:bg-white/10 hover:border-white/30 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]'}`}
         >
           <LinkIcon className="w-4 h-4 mr-2" />
           Paste Link
