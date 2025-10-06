@@ -10,7 +10,8 @@ export type BlockType =
   | 'gallery'
   | 'faq'
   | 'cta'
-  | 'resources';
+  | 'resources'
+  | 'logistics';
 
 export interface Block {
   id: string;

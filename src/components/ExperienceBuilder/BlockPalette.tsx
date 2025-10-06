@@ -12,7 +12,8 @@ import {
   MousePointer,
   Folder,
   Mic,
-  Sparkles
+  Sparkles,
+  MapPin
 } from 'lucide-react';
 
 interface BlockPaletteProps {
@@ -26,6 +27,7 @@ const blockItems = [
   { type: 'highlights' as BlockType, label: 'Highlights', icon: Stars, description: '' },
   { type: 'agendaDay' as BlockType, label: 'Agenda', icon: Clock, description: '' },
   { type: 'tickets' as BlockType, label: 'Tickets', icon: Ticket, description: '' },
+  { type: 'logistics' as BlockType, label: 'Logistics & Info', icon: MapPin, description: '' },
   { type: 'gallery' as BlockType, label: 'Gallery', icon: Grid3X3, description: '' },
   { type: 'faq' as BlockType, label: 'FAQ', icon: HelpCircle, description: '' },
   { type: 'resources' as BlockType, label: 'Resources', icon: Folder, description: '' },

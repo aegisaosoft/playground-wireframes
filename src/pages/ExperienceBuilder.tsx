@@ -362,6 +362,14 @@ function getDefaultBlockData(type: BlockType): any {
       return { text: 'Book Your Spot', style: 'primary' };
     case 'resources':
       return { resources: [] };
+    case 'logistics':
+      return { 
+        address: '', 
+        meetupInstructions: '', 
+        checkInNotes: '', 
+        emergencyContact: { name: '', phone: '' },
+        additionalInfo: ''
+      };
     default:
       return {};
   }
