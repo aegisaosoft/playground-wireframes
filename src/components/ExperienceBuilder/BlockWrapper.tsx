@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Block } from '@/types/experienceBuilder';
 import { Button } from '@/components/ui/button';
 import { GripVertical, Copy, Trash2, MapPin } from 'lucide-react';
@@ -10,6 +10,8 @@ interface BlockWrapperProps {
   onDuplicate: () => void;
   onReorder: (dragIndex: number, hoverIndex: number) => void;
   children: React.ReactNode;
+  blockRefsMap: React.MutableRefObject<Map<string, HTMLDivElement>>;
+  isHighlighted: boolean;
 }
 
 export const BlockWrapper: React.FC<BlockWrapperProps> = ({
@@ -19,10 +21,22 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
   onDuplicate,
   onReorder,
   children,
+  blockRefsMap,
+  isHighlighted,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOver, setDragOver] = useState<'top' | 'bottom' | null>(null);
+  
+  // Register this block's ref
+  useEffect(() => {
+    if (ref.current) {
+      blockRefsMap.current.set(block.id, ref.current);
+    }
+    return () => {
+      blockRefsMap.current.delete(block.id);
+    };
+  }, [block.id, blockRefsMap]);
   
   // Core blocks that cannot be deleted
   const coreBlocks = ['title-default', 'dates-default', 'location-default'];
@@ -88,9 +102,13 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
   return (
     <div
       ref={ref}
-      className={`group relative transition-all duration-200 ${
+      className={`group relative transition-all duration-300 ${
         isDragging ? 'opacity-50' : ''
-      } ${dragOver ? 'scale-105' : ''}`}
+      } ${dragOver ? 'scale-105' : ''} ${
+        isHighlighted 
+          ? 'ring-2 ring-neon-pink shadow-[0_0_30px_rgba(255,71,209,0.5)] animate-pulse' 
+          : ''
+      }`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

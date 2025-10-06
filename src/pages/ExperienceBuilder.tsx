@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { TopBar } from '@/components/ExperienceBuilder/TopBar';
 import { BlockPalette } from '@/components/ExperienceBuilder/BlockPalette';
 import { Canvas } from '@/components/ExperienceBuilder/Canvas';
@@ -55,6 +55,8 @@ const ExperienceBuilder = () => {
   });
 
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
+  const blockRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
   
   const { toast } = useToast();
 
@@ -172,6 +174,40 @@ const ExperienceBuilder = () => {
   const handleVoiceCreate = () => {
     setShowVoiceModal(true);
   };
+
+  const scrollToBlockType = useCallback((type: BlockType) => {
+    // Find existing block of this type
+    const existingBlock = blocks.find(block => block.type === type);
+    
+    if (existingBlock) {
+      // Scroll to existing block
+      const blockElement = blockRefsMap.current.get(existingBlock.id);
+      if (blockElement) {
+        blockElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setHighlightedBlockId(existingBlock.id);
+        setTimeout(() => setHighlightedBlockId(null), 2000);
+      }
+    } else {
+      // Create new block and scroll to it
+      const newBlock: Block = {
+        id: `${type}-${Date.now()}`,
+        type,
+        data: getDefaultBlockData(type),
+        order: blocks.length,
+      };
+      setBlocks(prev => [...prev, newBlock]);
+      
+      // Wait for next render to scroll
+      setTimeout(() => {
+        const blockElement = blockRefsMap.current.get(newBlock.id);
+        if (blockElement) {
+          blockElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setHighlightedBlockId(newBlock.id);
+          setTimeout(() => setHighlightedBlockId(null), 2000);
+        }
+      }, 100);
+    }
+  }, [blocks]);
 
   const addBlock = useCallback((type: BlockType) => {
     const newBlock: Block = {
@@ -304,7 +340,11 @@ const ExperienceBuilder = () => {
       />
       
       <div className="flex-1 flex overflow-hidden">
-        <BlockPalette onAddBlock={addBlock} onVoiceCreate={handleVoiceCreate} />
+        <BlockPalette 
+          onAddBlock={addBlock} 
+          onVoiceCreate={handleVoiceCreate}
+          onScrollToBlock={scrollToBlockType}
+        />
         
         <Canvas
           blocks={blocks}
@@ -312,6 +352,8 @@ const ExperienceBuilder = () => {
           onDeleteBlock={deleteBlock}
           onDuplicateBlock={duplicateBlock}
           onReorderBlocks={reorderBlocks}
+          blockRefsMap={blockRefsMap}
+          highlightedBlockId={highlightedBlockId}
         />
         
         <SettingsSidebar

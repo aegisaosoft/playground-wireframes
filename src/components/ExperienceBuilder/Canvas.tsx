@@ -22,6 +22,8 @@ interface CanvasProps {
   onDeleteBlock: (id: string) => void;
   onDuplicateBlock: (id: string) => void;
   onReorderBlocks: (dragIndex: number, hoverIndex: number) => void;
+  blockRefsMap: React.MutableRefObject<Map<string, HTMLDivElement>>;
+  highlightedBlockId: string | null;
 }
 
 export const Canvas: React.FC<CanvasProps> = ({
@@ -30,6 +32,8 @@ export const Canvas: React.FC<CanvasProps> = ({
   onDeleteBlock,
   onDuplicateBlock,
   onReorderBlocks,
+  blockRefsMap,
+  highlightedBlockId,
 }) => {
   const renderBlock = (block: Block) => {
     const props = {
@@ -98,6 +102,8 @@ export const Canvas: React.FC<CanvasProps> = ({
             onDelete={() => onDeleteBlock(block.id)}
             onDuplicate={() => onDuplicateBlock(block.id)}
             onReorder={onReorderBlocks}
+            blockRefsMap={blockRefsMap}
+            isHighlighted={highlightedBlockId === block.id}
           >
             {renderBlock(block)}
           </BlockWrapper>
