@@ -20,7 +20,7 @@ export const VoiceExperienceModal: React.FC<VoiceExperienceModalProps> = ({
   onPrefillBuilder
 }) => {
   const [state, setState] = useState<VoiceCreationState>({
-    step: 'intro',
+    step: 'recording', // Skip intro, go directly to recording
     saveTranscript: false
   });
   const { toast } = useToast();
