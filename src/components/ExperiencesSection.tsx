@@ -65,7 +65,7 @@ const ExperiencesSection = () => {
           </div>
           
           <h2 className="text-5xl md:text-6xl font-bold mb-6">
-            <span className="text-neon-pink">Where Weird Ideas</span>
+            <span className="text-neon-pink">Where ∞ Ideas</span>
             <br />
             <span className="text-neon-yellow">Go IRL</span>
           </h2>
