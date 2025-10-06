@@ -160,21 +160,13 @@ export default function Experiences() {
           </div>
 
           {/* Create Experience CTAs */}
-          <div className="flex gap-4 justify-center mb-8">
+          <div className="flex justify-center mb-8">
             <Button 
               onClick={handleCreateExperience}
               className="bg-gradient-neon text-background hover:opacity-90 shadow-neon px-8"
             > 
               <Plus className="w-4 h-4 mr-2" />
               Create Experience
-            </Button>
-            <Button 
-              onClick={handleVoiceExperience}
-              variant="outline" 
-              className="border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10 px-8"
-            >
-              <Mic className="w-4 h-4 mr-2" />
-              Create with Voice
             </Button>
           </div>
 
