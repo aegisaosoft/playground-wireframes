@@ -5,6 +5,7 @@ import { Mic, Square, Play, Pause, ArrowLeft, AlertCircle, Volume2, FileText, Li
 import { AudioRecordingState } from '@/types/voiceOnboarding';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface VoiceExperienceCaptureProps {
   onComplete: (recording: any, transcript: string) => void;
@@ -20,6 +21,9 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
   const [inputMode, setInputMode] = useState<'voice' | 'file' | 'link'>('voice');
   const [linkUrl, setLinkUrl] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [showTranscriptEditor, setShowTranscriptEditor] = useState(false);
+  const [accumulatedRecordings, setAccumulatedRecordings] = useState<any[]>([]);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -85,7 +89,14 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
         const mockTranscript = "I want to create a 7-day hacker house experience in Lisbon, Portugal from October 15th to 22nd. It's for developers, entrepreneurs, and remote workers who want to collaborate on projects. The vibe should be innovative and social. Day 1 we'll have a welcome dinner at 6pm and networking until 8pm. Day 2 starts with morning standup at 9am, then focus work sessions, ending with demo presentations at 6pm. For pricing, early bird tickets are 799 euros for 10 spots, and standard tickets are 899 euros for 15 spots. This should be a public experience with the call-to-action 'Join the House'.";
         
         stream.getTracks().forEach(track => track.stop());
-        onComplete({ audioBlob, duration, timestamp: new Date() }, mockTranscript);
+        
+        // Add to accumulated recordings
+        setAccumulatedRecordings(prev => [...prev, { audioBlob, duration, timestamp: new Date() }]);
+        
+        // Append transcript and show editor
+        setTranscript(prev => prev ? `${prev}\n\n${mockTranscript}` : mockTranscript);
+        setShowTranscriptEditor(true);
+        setInputMode('voice');
       };
 
       mediaRecorderRef.current.start();
@@ -127,10 +138,26 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
     
     if (mediaRecorderRef.current?.state === 'recording' || mediaRecorderRef.current?.state === 'paused') {
       mediaRecorderRef.current.stop();
-      setRecordingState('stopped');
+      setRecordingState('idle');
+      setDuration(0);
       if (timerRef.current) clearInterval(timerRef.current);
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     }
+  };
+
+  const handleRecordMore = () => {
+    setShowTranscriptEditor(false);
+    startRecording();
+  };
+
+  const handleContinue = () => {
+    onComplete(
+      { 
+        recordings: accumulatedRecordings, 
+        timestamp: new Date() 
+      }, 
+      transcript
+    );
   };
 
   const startTimer = () => {
@@ -247,8 +274,42 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
         </div>
       </div>
 
+      {/* Transcript Editor (shown after recording) */}
+      {showTranscriptEditor && transcript && (
+        <Card className="bg-white/5 border-white/10">
+          <CardContent className="p-6 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Your Experience Description</label>
+              <p className="text-xs text-muted-foreground">Edit the transcription or add more details</p>
+            </div>
+            <Textarea
+              value={transcript}
+              onChange={(e) => setTranscript(e.target.value)}
+              className="min-h-[200px] bg-white/5 border-white/20 text-foreground resize-none"
+              placeholder="Transcription will appear here..."
+            />
+            <div className="flex gap-3 justify-end">
+              <Button
+                onClick={handleRecordMore}
+                variant="outline"
+                className="border-white/20 hover:bg-white/10 hover:border-white/30"
+              >
+                <Mic className="w-4 h-4 mr-2" />
+                Record More
+              </Button>
+              <Button
+                onClick={handleContinue}
+                className="bg-gradient-neon text-background hover:opacity-90 shadow-neon"
+              >
+                Generate Experience
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Voice Recording Section */}
-      {inputMode === 'voice' && (
+      {inputMode === 'voice' && !showTranscriptEditor && (
         <Card className="bg-white/5 border-white/10">
           <CardContent className="p-8 text-center space-y-6">
             <div className="relative">
@@ -414,8 +475,9 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
         </Card>
       )}
 
-      {/* Input Mode Options */}
-      <div className="flex gap-4 justify-center pt-4">
+      {/* Input Mode Options - Only show if not in transcript editor mode */}
+      {!showTranscriptEditor && (
+        <div className="flex gap-4 justify-center pt-4">
         <Button
           variant={inputMode === 'file' ? 'default' : 'outline'}
           onClick={() => setInputMode('file')}
@@ -432,7 +494,8 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
           <LinkIcon className="w-4 h-4 mr-2" />
           Paste Link
         </Button>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
