@@ -7,24 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-const exampleSearches = [
-  "hacker house in Bali",
-  "yoga retreat India", 
-  "founder offsite Lisbon"
-];
-
-const quickChips = [
-  "Hacker House",
-  "Wellness", 
-  "AI",
-  "Surf",
-  "Bali",
-  "Lisbon"
+const placeholderRotations = [
+  "Search experiences…",
+  "e.g., hacker house in Bali",
+  "e.g., yoga retreat in Lisbon",
+  "e.g., surf trip in Costa Rica",
+  "e.g., founder offsite in Japan"
 ];
 
 export const HomeSearchBar = () => {
   const [query, setQuery] = useState("");
-  const [placeholderExample, setPlaceholderExample] = useState(exampleSearches[0]);
+  const [placeholder, setPlaceholder] = useState(placeholderRotations[0]);
   const [isListening, setIsListening] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -33,12 +26,12 @@ export const HomeSearchBar = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Rotate placeholder examples
+  // Rotate placeholder
   useEffect(() => {
     const interval = setInterval(() => {
-      setPlaceholderExample(prev => {
-        const currentIndex = exampleSearches.indexOf(prev);
-        return exampleSearches[(currentIndex + 1) % exampleSearches.length];
+      setPlaceholder(prev => {
+        const currentIndex = placeholderRotations.indexOf(prev);
+        return placeholderRotations[(currentIndex + 1) % placeholderRotations.length];
       });
     }, 3000);
     return () => clearInterval(interval);
@@ -144,11 +137,6 @@ export const HomeSearchBar = () => {
     }
   };
 
-  const handleChipClick = (chip: string) => {
-    saveSearch(chip);
-    navigate(`/experiences?q=${encodeURIComponent(chip)}`);
-  };
-
   const handleRecentClick = (search: string) => {
     navigate(`/experiences?q=${encodeURIComponent(search)}`);
   };
@@ -179,7 +167,7 @@ export const HomeSearchBar = () => {
               onKeyDown={handleKeyDown}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-              placeholder="Search experiences…"
+              placeholder={placeholder}
               className={cn(
                 "w-full h-14 md:h-16 pl-14 pr-20 text-base md:text-lg",
                 "bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0",
@@ -203,11 +191,6 @@ export const HomeSearchBar = () => {
             >
               <Mic className="w-5 h-5" />
             </Button>
-          </div>
-
-          {/* Helper Text */}
-          <div className="absolute left-14 -bottom-6 text-xs text-muted-foreground/60 transition-opacity duration-300">
-            <span className="inline-block animate-pulse">e.g., {placeholderExample}</span>
           </div>
         </div>
 
@@ -239,20 +222,6 @@ export const HomeSearchBar = () => {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Quick Chips */}
-      <div className="flex flex-wrap justify-center gap-2 mt-12">
-        {quickChips.map((chip) => (
-          <Badge
-            key={chip}
-            variant="outline"
-            className="cursor-pointer border-border/50 hover:border-neon-cyan/50 hover:bg-neon-cyan/10 transition-all px-4 py-1.5"
-            onClick={() => handleChipClick(chip)}
-          >
-            {chip}
-          </Badge>
-        ))}
       </div>
     </div>
   );
