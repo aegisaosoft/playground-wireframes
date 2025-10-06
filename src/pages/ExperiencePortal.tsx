@@ -4,7 +4,6 @@ import { ArrowLeft, Copy, Calendar, MessageCircle, Bell, Settings, LogOut } from
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Navigation } from '@/components/Navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ExperiencePortalData } from '@/types/experiencePortal';
 import { PortalOverview } from '@/components/ExperiencePortal/PortalOverview';
@@ -134,7 +133,6 @@ const ExperiencePortal = () => {
   if (!experienceData.isApproved && experienceData.userRole === 'pending') {
     return (
       <div className="min-h-screen bg-background">
-        <Navigation />
         <main className="container mx-auto px-6 py-8">
           <Button variant="ghost" onClick={() => navigate('/account')} className="mb-6 text-gray-400 hover:text-foreground">
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -161,8 +159,6 @@ const ExperiencePortal = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-      
       <main className="container mx-auto px-6 py-8">
         <Button variant="ghost" onClick={() => navigate('/account')} className="mb-6 text-gray-400 hover:text-foreground">
           <ArrowLeft className="w-4 h-4 mr-2" />
