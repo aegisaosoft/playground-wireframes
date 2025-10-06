@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Search, MapPin, Calendar, User, Mic, Plus } from "lucide-react";
 import { VoiceExperienceModal } from '@/components/VoiceExperienceCreation';
 import { VoiceExperienceDraft } from '@/types/voiceExperienceCreation';
 import { AuthModal } from '@/components/AuthModal';
+import { searchExperiences } from '@/utils/searchExperiences';
 
 // Mock data for experiences
 const mockExperiences = [
@@ -88,6 +89,7 @@ const categoryColors = {
 };
 
 export default function Experiences() {
+  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredExperiences, setFilteredExperiences] = useState(mockExperiences);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
@@ -99,7 +101,14 @@ export default function Experiences() {
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
-  }, []);
+
+    // Check for query parameter from URL
+    const urlQuery = searchParams.get('q');
+    if (urlQuery) {
+      setSearchQuery(urlQuery);
+      handleSearch(urlQuery);
+    }
+  }, [searchParams]);
 
   const handleLogin = (userData: { name: string; email: string; profile?: any }) => {
     setUser(userData);
@@ -107,20 +116,7 @@ export default function Experiences() {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (!query.trim()) {
-      setFilteredExperiences(mockExperiences);
-      return;
-    }
-
-    // Simple mock search that matches title, location, description, or category
-    const filtered = mockExperiences.filter(exp => 
-      exp.title.toLowerCase().includes(query.toLowerCase()) ||
-      exp.location.toLowerCase().includes(query.toLowerCase()) ||
-      exp.description.toLowerCase().includes(query.toLowerCase()) ||
-      exp.category.toLowerCase().includes(query.toLowerCase()) ||
-      exp.host.name.toLowerCase().includes(query.toLowerCase())
-    );
-    
+    const filtered = searchExperiences(query, mockExperiences);
     setFilteredExperiences(filtered);
   };
 

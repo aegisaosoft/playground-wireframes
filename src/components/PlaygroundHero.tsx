@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AnimatedTypingText } from "@/components/AnimatedTypingText";
 import { AuthModal } from "@/components/AuthModal";
+import { HomeSearchBar } from "@/components/HomeSearchBar";
 
 const PlaygroundHero = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -58,6 +59,11 @@ const PlaygroundHero = () => {
           </p>
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-12">
+          <HomeSearchBar />
+        </div>
+
         {/* CTA Buttons */}
         <div className="flex justify-center">
           <Button 
@@ -67,22 +73,6 @@ const PlaygroundHero = () => {
           >
             Get Early Access
           </Button>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-8 sm:gap-16 mt-20 max-w-2xl mx-auto">
-          <div className="text-center">
-            <div className="text-3xl sm:text-4xl font-bold text-neon-pink mb-2">50+</div>
-            <div className="text-muted-foreground text-sm sm:text-base">Builders</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl sm:text-4xl font-bold text-neon-cyan mb-2">12</div>
-            <div className="text-muted-foreground text-sm sm:text-base">Countries</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl sm:text-4xl font-bold text-neon-yellow mb-2">∞</div>
-            <div className="text-muted-foreground text-sm sm:text-base">Ideas</div>
-          </div>
         </div>
       </div>
 
