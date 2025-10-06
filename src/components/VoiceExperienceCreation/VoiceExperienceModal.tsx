@@ -5,16 +5,8 @@ import { Mic, X, Sparkles } from 'lucide-react';
 import { VoiceExperienceCapture } from './VoiceExperienceCapture';
 import { VoiceExperienceReview } from './VoiceExperienceReview';
 import { VoiceExperienceFollowup } from './VoiceExperienceFollowup';
-import { FileUploadZone } from './FileUploadZone';
 import { VoiceCreationState, ExtractedExperienceData, VoiceExperienceDraft } from '@/types/voiceExperienceCreation';
 import { useToast } from '@/hooks/use-toast';
-
-interface UploadedFile {
-  id: string;
-  file: File;
-  preview?: string;
-  type: 'image' | 'pdf' | 'other';
-}
 
 interface VoiceExperienceModalProps {
   isOpen: boolean;
@@ -31,7 +23,6 @@ export const VoiceExperienceModal: React.FC<VoiceExperienceModalProps> = ({
     step: 'intro',
     saveTranscript: false
   });
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const { toast } = useToast();
 
   const handleStartRecording = () => {
@@ -179,12 +170,12 @@ export const VoiceExperienceModal: React.FC<VoiceExperienceModalProps> = ({
     switch (state.step) {
       case 'intro':
         return (
-          <div className="space-y-6 p-8">
-            <div className="text-center space-y-3">
-              <div className="w-20 h-20 bg-gradient-neon rounded-full flex items-center justify-center mx-auto animate-pulse">
-                <Sparkles className="w-10 h-10 text-background" />
-              </div>
-              
+          <div className="text-center space-y-6 p-8">
+            <div className="w-20 h-20 bg-gradient-neon rounded-full flex items-center justify-center mx-auto animate-pulse">
+              <Sparkles className="w-10 h-10 text-background" />
+            </div>
+            
+            <div className="space-y-3">
               <h2 className="text-2xl font-bold text-foreground">
                 Create Experience with Voice
               </h2>
@@ -194,25 +185,21 @@ export const VoiceExperienceModal: React.FC<VoiceExperienceModalProps> = ({
               </p>
             </div>
 
-            <FileUploadZone files={uploadedFiles} onFilesChange={setUploadedFiles} />
-
             <div className="bg-white/5 p-4 rounded-lg text-sm text-muted-foreground">
-              <p className="font-medium mb-2">💡 Try saying something like:</p>
+              <p className="font-medium mb-2">Try saying something like:</p>
               <p className="italic">
                 "7-day hacker house in Lisbon, October 15-22. For developers and entrepreneurs. 
                 Early bird €799, standard €899. Public experience with welcome dinner, daily standups, demo day."
               </p>
             </div>
 
-            <div className="flex justify-center">
-              <Button 
-                onClick={handleStartRecording}
-                className="bg-gradient-neon text-background hover:opacity-90 shadow-neon flex items-center gap-2 h-12 px-8"
-              >
-                <Mic className="w-5 h-5" />
-                Start Recording
-              </Button>
-            </div>
+            <Button 
+              onClick={handleStartRecording}
+              className="bg-gradient-neon text-background hover:opacity-90 shadow-neon flex items-center gap-2 h-12 px-8"
+            >
+              <Mic className="w-5 h-5" />
+              Start Recording
+            </Button>
           </div>
         );
 
@@ -274,7 +261,6 @@ export const VoiceExperienceModal: React.FC<VoiceExperienceModalProps> = ({
           <VoiceExperienceReview
             extractedData={state.extractedData}
             transcript={state.transcript || ''}
-            uploadedFiles={uploadedFiles}
             onCreateDraft={handleCreateDraft}
             onReRecord={() => setState(prev => ({ ...prev, step: 'recording' }))}
             onBack={() => setState(prev => ({ ...prev, step: 'intro' }))}

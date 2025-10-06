@@ -8,21 +8,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Calendar, MapPin, Users, Tag, Clock, Ticket, 
-  Eye, ChevronDown, Edit3, Mic, ArrowLeft, Plus, X, FileText, Image as ImageIcon
+  Eye, ChevronDown, Edit3, Mic, ArrowLeft, Plus, X 
 } from 'lucide-react';
 import { ExtractedExperienceData } from '@/types/voiceExperienceCreation';
-
-interface UploadedFile {
-  id: string;
-  file: File;
-  preview?: string;
-  type: 'image' | 'pdf' | 'other';
-}
 
 interface VoiceExperienceReviewProps {
   extractedData: ExtractedExperienceData;
   transcript: string;
-  uploadedFiles?: UploadedFile[];
   onCreateDraft: (data: ExtractedExperienceData, saveTranscript: boolean) => void;
   onReRecord: () => void;
   onBack: () => void;
@@ -31,7 +23,6 @@ interface VoiceExperienceReviewProps {
 export const VoiceExperienceReview: React.FC<VoiceExperienceReviewProps> = ({
   extractedData,
   transcript,
-  uploadedFiles = [],
   onCreateDraft,
   onReRecord,
   onBack
@@ -316,45 +307,6 @@ export const VoiceExperienceReview: React.FC<VoiceExperienceReviewProps> = ({
             ))}
           </CardContent>
         </Card>
-
-        {/* Uploaded Files */}
-        {uploadedFiles.length > 0 && (
-          <Card className="bg-white/5 border-white/10">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Uploaded Reference Materials ({uploadedFiles.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {uploadedFiles.map((file) => (
-                  <Card key={file.id} className="bg-white/5 border-white/10 overflow-hidden">
-                    {file.type === 'image' && file.preview ? (
-                      <div className="aspect-square relative">
-                        <img
-                          src={file.preview}
-                          alt={file.file.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="aspect-square flex items-center justify-center bg-gradient-dark">
-                        {file.type === 'pdf' ? (
-                          <FileText className="w-8 h-8 text-red-400" />
-                        ) : (
-                          <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                        )}
-                      </div>
-                    )}
-                    <div className="p-2 text-xs text-foreground truncate" title={file.file.name}>
-                      {file.file.name}
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Transcript */}
         <Collapsible open={showTranscript} onOpenChange={setShowTranscript}>
