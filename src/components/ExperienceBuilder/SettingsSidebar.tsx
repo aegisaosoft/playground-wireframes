@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Globe, Lock, Link2, Lightbulb } from 'lucide-react';
+import { Globe, Lock, Link2, Lightbulb, ChevronDown } from 'lucide-react';
 import { PaymentsCard } from '@/components/PaymentsCard';
 import { HostSelector, HostData } from './HostSelector';
 import { TeamManagement, TeamMember } from './TeamManagement';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface SettingsSidebarProps {
   isPublic: boolean;
@@ -27,6 +28,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   onRemoveTeamMember,
   onUpdateTeamMemberRole,
 }) => {
+  const [isTipsOpen, setIsTipsOpen] = useState(true);
+
   return (
     <div className="w-80 bg-black/20 border-l border-white/10 p-6">
       <h2 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
@@ -123,13 +126,20 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
       </div>
 
       {/* Tips Section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Lightbulb className="w-4 h-4 text-neon-yellow" />
-          <h3 className="font-medium text-foreground">Building Tips</h3>
-        </div>
+      <Collapsible open={isTipsOpen} onOpenChange={setIsTipsOpen}>
+        <CollapsibleTrigger className="w-full">
+          <div className="flex items-center gap-2 mb-4 cursor-pointer hover:opacity-80 transition-opacity">
+            <Lightbulb className="w-4 h-4 text-neon-yellow" />
+            <h3 className="font-medium text-foreground">Building Tips</h3>
+            <ChevronDown 
+              className={`w-4 h-4 text-muted-foreground ml-auto transition-transform ${
+                isTipsOpen ? 'rotate-180' : ''
+              }`} 
+            />
+          </div>
+        </CollapsibleTrigger>
 
-        <div className="space-y-3">
+        <CollapsibleContent className="space-y-3">
           <div className="p-3 bg-gradient-dark rounded-lg border border-white/10">
             <h4 className="text-sm font-medium text-foreground mb-1">
               📸 Great Photos
@@ -165,8 +175,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
               Use FAQ to address common concerns about food, accommodation, etc.
             </p>
           </div>
-        </div>
-      </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 };
