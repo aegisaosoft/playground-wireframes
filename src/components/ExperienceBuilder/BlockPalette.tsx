@@ -32,7 +32,6 @@ const blockItems = [
   { type: 'gallery' as BlockType, label: 'Gallery', icon: Grid3X3, description: '' },
   { type: 'faq' as BlockType, label: 'FAQ', icon: HelpCircle, description: '' },
   { type: 'resources' as BlockType, label: 'Resources', icon: Folder, description: '' },
-  { type: 'cta' as BlockType, label: 'Call to Action', icon: MousePointer, description: '' },
 ];
 
 export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceCreate, onScrollToBlock }) => {
