@@ -102,11 +102,11 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
   return (
     <div
       ref={ref}
-      className={`group relative transition-all duration-300 ${
-        isDragging ? 'opacity-50' : ''
-      } ${dragOver ? 'scale-105' : ''} ${
+      className={`group relative transition-all duration-200 ${
+        isDragging ? 'opacity-40' : ''
+      } ${
         isHighlighted 
-          ? 'ring-2 ring-neon-pink shadow-[0_0_30px_rgba(255,71,209,0.5)] animate-pulse' 
+          ? 'ring-2 ring-primary/50' 
           : ''
       }`}
       onDragOver={handleDragOver}
@@ -115,29 +115,27 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
     >
       {/* Drop indicator */}
       {dragOver === 'top' && (
-        <div className="absolute -top-1 left-0 right-0 h-0.5 bg-neon-purple rounded-full z-10" />
+        <div className="absolute -top-1 left-0 right-0 h-0.5 bg-primary z-10" />
       )}
       {dragOver === 'bottom' && (
-        <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-neon-purple rounded-full z-10" />
+        <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary z-10" />
       )}
 
       {/* Block Header - Only show for non-core blocks */}
       {!coreBlocks.includes(block.id) && (
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
+          <div className="flex items-center gap-2.5">
             <div 
-              className="w-4 h-4 text-muted-foreground cursor-grab hover:text-neon-pink transition-colors active:cursor-grabbing"
+              className="text-muted-foreground cursor-grab hover:text-foreground transition-colors active:cursor-grabbing"
               draggable
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
             >
               <GripVertical className="w-4 h-4" />
             </div>
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-medium text-foreground">
-                {blockTypeLabels[block.type]}
-              </span>
-            </div>
+            <span className="text-sm font-medium text-foreground">
+              {blockTypeLabels[block.type]}
+            </span>
           </div>
           
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -145,30 +143,30 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
               variant="ghost"
               size="sm"
               onClick={onDuplicate}
-              className="h-8 w-8 p-0 hover:bg-white/10 hover:text-neon-cyan"
+              className="h-8 w-8 p-0 hover:bg-accent"
             >
-              <Copy className="w-4 h-4" />
+              <Copy className="w-3.5 h-3.5" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={onDelete}
-              className="h-8 w-8 p-0 hover:bg-destructive/20 hover:text-destructive"
+              className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>
       )}
 
       {/* Block Content */}
-      <div className="mb-8">
+      <div className="mb-12">
         {children}
       </div>
 
       {/* Subtle divider after core blocks */}
       {isLastCoreBlock && (
-        <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-8"></div>
+        <div className="h-px bg-border mb-12"></div>
       )}
     </div>
   );

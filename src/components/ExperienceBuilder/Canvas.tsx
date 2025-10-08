@@ -75,16 +75,16 @@ export const Canvas: React.FC<CanvasProps> = ({
 
   if (blocks.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gradient-dark">
+      <div className="flex-1 flex items-center justify-center bg-background">
         <div className="text-center p-12 max-w-md">
-          <div className="w-16 h-16 bg-gradient-neon rounded-full flex items-center justify-center mx-auto mb-6 animate-float">
-            <Sparkles className="w-8 h-8 text-black" />
+          <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-6 h-6 text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-foreground mb-3">
-            Ready to Build Something Amazing?
+          <h2 className="text-xl font-semibold text-foreground mb-2">
+            Start building your experience
           </h2>
-          <p className="text-muted-foreground leading-relaxed">
-            Start by adding blocks from the palette on the left. Create your perfect retreat experience with drag-and-drop simplicity.
+          <p className="text-sm text-muted-foreground">
+            Add sections from the sidebar to create your experience page.
           </p>
         </div>
       </div>
@@ -92,8 +92,8 @@ export const Canvas: React.FC<CanvasProps> = ({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-gradient-dark p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="flex-1 overflow-y-auto bg-background">
+      <div className="max-w-3xl mx-auto py-12 px-8">
         {blocks.map((block, index) => (
           <BlockWrapper
             key={block.id}
