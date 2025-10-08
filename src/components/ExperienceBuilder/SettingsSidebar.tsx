@@ -31,9 +31,10 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   const [isTipsOpen, setIsTipsOpen] = useState(true);
 
   return (
-    <div className="w-80 bg-background border-l border-border p-6 overflow-y-auto">
-      <h2 className="text-sm font-semibold text-foreground mb-6">
-        Settings
+    <div className="w-80 bg-black/20 border-l border-white/10 p-6">
+      <h2 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
+        <div className="w-2 h-2 bg-neon-yellow rounded-full animate-pulse" />
+        Settings & Tips
       </h2>
 
       {/* Host Selection */}
@@ -55,16 +56,16 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
       </div>
 
       {/* Visibility Toggle */}
-      <div className="space-y-3 mb-8">
-        <div className="p-4 bg-accent/50 rounded-lg border border-border">
-          <div className="flex items-center justify-between mb-2">
+      <div className="space-y-4 mb-8">
+        <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               {isPublic ? (
-                <Globe className="w-4 h-4" />
+                <Globe className="w-4 h-4 text-neon-green" />
               ) : (
-                <Lock className="w-4 h-4" />
+                <Lock className="w-4 h-4 text-muted-foreground" />
               )}
-              <span className="text-sm font-medium">
+              <span className="font-medium text-foreground">
                 {isPublic ? 'Public' : 'Private'}
               </span>
             </div>
@@ -76,36 +77,46 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
           <p className="text-xs text-muted-foreground">
             {isPublic 
               ? 'Anyone can discover and view this experience'
-              : 'Only people with the link can see this'
+              : 'Only you and people you share the link with can see this experience'
             }
           </p>
         </div>
 
         {isPublic && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-          >
-            <Link2 className="w-4 h-4 mr-2" />
-            Copy Public Link
-          </Button>
+          <div className="p-4 bg-neon-green/10 border border-neon-green/20 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Link2 className="w-4 h-4 text-neon-green" />
+              <span className="font-medium text-neon-green text-sm">Share Link</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full bg-white/5 border-white/10 text-foreground hover:bg-white/10 text-xs"
+            >
+              Copy Public Link
+            </Button>
+          </div>
         )}
 
         {!isPublic && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() => {
-              const privateSlug = `private-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-              const privateUrl = `${window.location.origin}/experience/private/${privateSlug}`;
-              navigator.clipboard.writeText(privateUrl);
-            }}
-          >
-            <Link2 className="w-4 h-4 mr-2" />
-            Copy Private Link
-          </Button>
+          <div className="p-4 bg-neon-cyan/10 border border-neon-cyan/20 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Link2 className="w-4 h-4 text-neon-cyan" />
+              <span className="font-medium text-neon-cyan text-sm">Private Link</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full bg-white/5 border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10 text-xs"
+              onClick={() => {
+                const privateSlug = `private-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                const privateUrl = `${window.location.origin}/experience/private/${privateSlug}`;
+                navigator.clipboard.writeText(privateUrl);
+              }}
+            >
+              Copy Private Link
+            </Button>
+          </div>
         )}
       </div>
 
@@ -116,21 +127,21 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
 
       {/* Tips Section */}
       <Collapsible open={isTipsOpen} onOpenChange={setIsTipsOpen}>
-        <CollapsibleTrigger className="w-full mb-3">
-          <div className="flex items-center gap-2 cursor-pointer hover:opacity-70 transition-opacity">
-            <Lightbulb className="w-4 h-4" />
-            <h3 className="text-sm font-medium">Building Tips</h3>
+        <CollapsibleTrigger className="w-full">
+          <div className="flex items-center gap-2 mb-4 cursor-pointer hover:opacity-80 transition-opacity">
+            <Lightbulb className="w-4 h-4 text-neon-yellow" />
+            <h3 className="font-medium text-foreground">Building Tips</h3>
             <ChevronDown 
-              className={`w-4 h-4 ml-auto transition-transform ${
+              className={`w-4 h-4 text-muted-foreground ml-auto transition-transform ${
                 isTipsOpen ? 'rotate-180' : ''
               }`} 
             />
           </div>
         </CollapsibleTrigger>
 
-        <CollapsibleContent className="space-y-2">
-          <div className="p-3 rounded-lg border border-border">
-            <h4 className="text-sm font-medium mb-1">
+        <CollapsibleContent className="space-y-3">
+          <div className="p-3 bg-gradient-dark rounded-lg border border-white/10">
+            <h4 className="text-sm font-medium text-foreground mb-1">
               📸 Great Photos
             </h4>
             <p className="text-xs text-muted-foreground">
@@ -138,8 +149,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
             </p>
           </div>
 
-          <div className="p-3 rounded-lg border border-border">
-            <h4 className="text-sm font-medium mb-1">
+          <div className="p-3 bg-gradient-dark rounded-lg border border-white/10">
+            <h4 className="text-sm font-medium text-foreground mb-1">
               📅 Clear Schedule
             </h4>
             <p className="text-xs text-muted-foreground">
@@ -147,8 +158,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
             </p>
           </div>
 
-          <div className="p-3 rounded-lg border border-border">
-            <h4 className="text-sm font-medium mb-1">
+          <div className="p-3 bg-gradient-dark rounded-lg border border-white/10">
+            <h4 className="text-sm font-medium text-foreground mb-1">
               💰 Smart Pricing
             </h4>
             <p className="text-xs text-muted-foreground">
@@ -156,8 +167,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
             </p>
           </div>
 
-          <div className="p-3 rounded-lg border border-border">
-            <h4 className="text-sm font-medium mb-1">
+          <div className="p-3 bg-gradient-dark rounded-lg border border-white/10">
+            <h4 className="text-sm font-medium text-foreground mb-1">
               ❓ Answer Questions
             </h4>
             <p className="text-xs text-muted-foreground">

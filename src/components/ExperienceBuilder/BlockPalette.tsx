@@ -36,34 +36,62 @@ const blockItems = [
 
 export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceCreate, onScrollToBlock }) => {
   return (
-    <div className="w-64 bg-background border-r border-border p-6">
+    <div className="w-80 bg-black/20 border-r border-white/10 p-6">
       {/* Voice Creation Button */}
-      <Button
-        onClick={onVoiceCreate}
-        variant="outline"
-        className="w-full justify-start gap-3 h-auto py-3 mb-8 border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-colors"
-      >
-        <Mic className="w-4 h-4 text-primary" />
-        <span className="text-sm font-medium">Create with Voice</span>
-      </Button>
+      <div className="mb-6">
+        <Button
+          onClick={onVoiceCreate}
+          className="w-full bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-purple text-background font-semibold py-4 rounded-lg shadow-neon hover:shadow-neon/60 transition-all duration-300 group"
+        >
+          <div className="flex items-center justify-center gap-3">
+            <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
+              <Mic className="w-4 h-4" />
+            </div>
+            <span className="text-base">🎙 Create with Voice</span>
+            <Sparkles className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+          </div>
+        </Button>
+      </div>
+
+      {/* Divider */}
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-white/10"></div>
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-[#0b0b12] px-2 text-muted-foreground">Or build manually</span>
+        </div>
+      </div>
       
-      <div className="space-y-1">
-        <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-2">
-          Add Section
-        </h2>
-        
+      <h2 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
+        <div className="w-2 h-2 bg-neon-cyan rounded-full animate-pulse" />
+        Block Palette
+      </h2>
+      
+      <div className="space-y-2">
         {blockItems.map((item) => {
           const IconComponent = item.icon;
           return (
             <button
               key={item.type}
               onClick={() => onScrollToBlock(item.type)}
-              className="w-full px-3 py-2.5 rounded-md hover:bg-accent transition-colors text-left group flex items-center gap-3"
+              className="w-full p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-neon-pink/30 hover:shadow-neon/20 transition-all duration-200 text-left group"
             >
-              <IconComponent className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              <span className="text-sm text-foreground font-medium">
-                {item.label}
-              </span>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-gradient-neon rounded-md flex items-center justify-center group-hover:shadow-neon/40">
+                  <IconComponent className="w-4 h-4 text-black" />
+                </div>
+                 <div className="flex-1 min-w-0">
+                   <div className="text-foreground font-medium group-hover:text-neon-pink transition-colors">
+                     {item.label}
+                   </div>
+                   {item.description && (
+                     <div className="text-muted-foreground text-sm mt-1">
+                       {item.description}
+                     </div>
+                   )}
+                 </div>
+              </div>
             </button>
           );
         })}
