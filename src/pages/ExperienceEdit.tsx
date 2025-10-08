@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { TopBar } from '@/components/ExperienceBuilder/TopBar';
-import { AddBlockButton } from '@/components/ExperienceBuilder/AddBlockButton';
+import { BlockPalette } from '@/components/ExperienceBuilder/BlockPalette';
 import { Canvas } from '@/components/ExperienceBuilder/Canvas';
 import { SettingsSidebar } from '@/components/ExperienceBuilder/SettingsSidebar';
 import { HostData } from '@/components/ExperienceBuilder/HostSelector';
@@ -382,11 +382,14 @@ const ExperienceEdit = () => {
         onPublish={handlePublish}
         showBackButton={true}
         onBack={() => navigate('/account?tab=hosting')}
-        isPublic={isPublic}
-        onToggleVisibility={setIsPublic}
       />
       
       <div className="flex-1 flex overflow-hidden">
+        <BlockPalette 
+          onAddBlock={handleBlockPaletteClick} 
+          onVoiceCreate={() => setShowVoiceModal(true)}
+        />
+        
         <Canvas
           blocks={blocks}
           onUpdateBlock={updateBlock}
@@ -400,6 +403,8 @@ const ExperienceEdit = () => {
         />
         
         <SettingsSidebar
+          isPublic={isPublic}
+          onToggleVisibility={setIsPublic}
           selectedHost={selectedHost}
           onHostChange={setSelectedHost}
           teamMembers={teamMembers}
@@ -408,12 +413,6 @@ const ExperienceEdit = () => {
           onUpdateTeamMemberRole={handleUpdateTeamMemberRole}
         />
       </div>
-
-      {/* Floating Add Block Button */}
-      <AddBlockButton 
-        onAddBlock={handleBlockPaletteClick}
-        excludeTypes={blocks.filter(b => isSingletonBlock(b.type)).map(b => b.type)}
-      />
 
       {/* Voice Experience Modal */}
       <VoiceExperienceModal 

@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { TopBar } from '@/components/ExperienceBuilder/TopBar';
-import { AddBlockButton } from '@/components/ExperienceBuilder/AddBlockButton';
+import { BlockPalette } from '@/components/ExperienceBuilder/BlockPalette';
 import { Canvas } from '@/components/ExperienceBuilder/Canvas';
 import { SettingsSidebar } from '@/components/ExperienceBuilder/SettingsSidebar';
 import { HostData } from '@/components/ExperienceBuilder/HostSelector';
@@ -382,14 +382,17 @@ const ExperienceBuilder = () => {
         </Card>
       )}
 
-      <TopBar 
+      <TopBar
         onSaveDraft={handleSaveDraft}
         onPublish={handlePublish}
-        isPublic={isPublic}
-        onToggleVisibility={setIsPublic}
       />
       
       <div className="flex-1 flex overflow-hidden">
+        <BlockPalette 
+          onAddBlock={handleBlockPaletteClick} 
+          onVoiceCreate={handleVoiceCreate}
+        />
+        
         <Canvas
           blocks={blocks}
           onUpdateBlock={updateBlock}
@@ -403,6 +406,8 @@ const ExperienceBuilder = () => {
         />
         
         <SettingsSidebar
+          isPublic={isPublic}
+          onToggleVisibility={setIsPublic}
           selectedHost={selectedHost}
           onHostChange={setSelectedHost}
           teamMembers={teamMembers}
@@ -411,12 +416,6 @@ const ExperienceBuilder = () => {
           onUpdateTeamMemberRole={handleUpdateTeamMemberRole}
         />
       </div>
-
-      {/* Floating Add Block Button */}
-      <AddBlockButton 
-        onAddBlock={handleBlockPaletteClick}
-        excludeTypes={blocks.filter(b => isSingletonBlock(b.type)).map(b => b.type)}
-      />
 
       {/* Voice Experience Modal */}
       <VoiceExperienceModal 
