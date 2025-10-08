@@ -24,6 +24,8 @@ interface CanvasProps {
   onReorderBlocks: (dragIndex: number, hoverIndex: number) => void;
   blockRefsMap: React.MutableRefObject<Map<string, HTMLDivElement>>;
   highlightedBlockId: string | null;
+  collapsedBlocks: Set<string>;
+  onToggleCollapse: (id: string) => void;
 }
 
 export const Canvas: React.FC<CanvasProps> = ({
@@ -34,6 +36,8 @@ export const Canvas: React.FC<CanvasProps> = ({
   onReorderBlocks,
   blockRefsMap,
   highlightedBlockId,
+  collapsedBlocks,
+  onToggleCollapse,
 }) => {
   const renderBlock = (block: Block) => {
     const props = {
@@ -104,6 +108,8 @@ export const Canvas: React.FC<CanvasProps> = ({
             onReorder={onReorderBlocks}
             blockRefsMap={blockRefsMap}
             isHighlighted={highlightedBlockId === block.id}
+            isCollapsed={collapsedBlocks.has(block.id)}
+            onToggleCollapse={() => onToggleCollapse(block.id)}
           >
             {renderBlock(block)}
           </BlockWrapper>

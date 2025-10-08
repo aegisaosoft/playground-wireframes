@@ -1,7 +1,27 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Block } from '@/types/experienceBuilder';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Copy, Trash2, MapPin } from 'lucide-react';
+import { 
+  GripVertical, 
+  Copy, 
+  Trash2, 
+  ChevronDown, 
+  ChevronUp,
+  Image as ImageIcon,
+  FileText,
+  Stars,
+  Clock,
+  Ticket,
+  Grid3X3,
+  HelpCircle,
+  MousePointer,
+  Folder,
+  MapPin,
+  Calendar,
+  Heading
+} from 'lucide-react';
+import { getBlockSummary, isRepeatableBlock } from '@/utils/blockSummaries';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface BlockWrapperProps {
   block: Block;
@@ -12,6 +32,8 @@ interface BlockWrapperProps {
   children: React.ReactNode;
   blockRefsMap: React.MutableRefObject<Map<string, HTMLDivElement>>;
   isHighlighted: boolean;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 export const BlockWrapper: React.FC<BlockWrapperProps> = ({
@@ -23,6 +45,8 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
   children,
   blockRefsMap,
   isHighlighted,
+  isCollapsed,
+  onToggleCollapse,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -42,21 +66,59 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
   const coreBlocks = ['title-default', 'dates-default', 'location-default'];
   const isDeletable = !coreBlocks.includes(block.id);
 
-  const blockTypeLabels = {
-    title: 'Title',
+  const blockTypeLabels: Record<string, string> = {
+    title: 'Experience Name',
     dates: 'Dates', 
     location: 'Location',
-    image: 'Image',
-    richText: 'Rich Text',
-    agendaDay: 'Agenda Day',
-    tickets: 'Ticket Tiers',
+    image: 'Cover Image',
+    richText: 'Description',
+    highlights: 'Highlights',
+    agendaDay: 'Agenda',
+    tickets: 'Tickets',
     gallery: 'Gallery',
     faq: 'FAQ',
     cta: 'Call to Action',
+    resources: 'Resources',
+    logistics: 'Logistics & Info',
+  };
+
+  const blockTypeIcons: Record<string, any> = {
+    title: Heading,
+    dates: Calendar,
+    location: MapPin,
+    image: ImageIcon,
+    richText: FileText,
+    highlights: Stars,
+    agendaDay: Clock,
+    tickets: Ticket,
+    gallery: Grid3X3,
+    faq: HelpCircle,
+    cta: MousePointer,
+    resources: Folder,
+    logistics: MapPin,
   };
 
   const isLastCoreBlock = ['title-default', 'dates-default', 'location-default'].includes(block.id) && 
     block.id === 'location-default';
+
+  const canDuplicate = isRepeatableBlock(block.type);
+  const BlockIcon = blockTypeIcons[block.type];
+  const summary = getBlockSummary(block);
+
+  // Keyboard handlers
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!ref.current?.contains(document.activeElement)) return;
+      
+      if (e.key === 'Escape' && !isCollapsed) {
+        e.preventDefault();
+        onToggleCollapse();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isCollapsed, onToggleCollapse]);
 
   const handleDragStart = (e: React.DragEvent) => {
     setIsDragging(true);
@@ -121,50 +183,82 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
         <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-neon-purple rounded-full z-10" />
       )}
 
-      {/* Block Header - Only show for non-core blocks */}
-      {!coreBlocks.includes(block.id) && (
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div 
-              className="w-4 h-4 text-muted-foreground cursor-grab hover:text-neon-pink transition-colors active:cursor-grabbing"
-              draggable
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            >
-              <GripVertical className="w-4 h-4" />
-            </div>
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-medium text-foreground">
-                {blockTypeLabels[block.type]}
+      {/* Collapsible Block */}
+      <Collapsible open={!isCollapsed} onOpenChange={onToggleCollapse}>
+        {/* Block Header */}
+        <div className="flex items-center justify-between mb-3 gap-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {/* Drag Handle */}
+            {!coreBlocks.includes(block.id) && (
+              <div 
+                className="w-4 h-4 text-muted-foreground cursor-grab hover:text-neon-pink transition-colors active:cursor-grabbing flex-shrink-0"
+                draggable
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+              >
+                <GripVertical className="w-4 h-4" />
+              </div>
+            )}
+            
+            {/* Collapse Toggle */}
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 hover:bg-white/10 flex-shrink-0"
+              >
+                {isCollapsed ? (
+                  <ChevronDown className="w-4 h-4" />
+                ) : (
+                  <ChevronUp className="w-4 h-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+
+            {/* Block Label & Summary */}
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              {BlockIcon && <BlockIcon className="w-4 h-4 text-neon-cyan flex-shrink-0" />}
+              <span className="text-sm font-medium text-foreground flex-shrink-0">
+                {blockTypeLabels[block.type] || block.type}
               </span>
+              {isCollapsed && (
+                <span className="text-sm text-muted-foreground truncate">
+                  • {summary}
+                </span>
+              )}
             </div>
           </div>
           
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onDuplicate}
-              className="h-8 w-8 p-0 hover:bg-white/10 hover:text-neon-cyan"
-            >
-              <Copy className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onDelete}
-              className="h-8 w-8 p-0 hover:bg-destructive/20 hover:text-destructive"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
+          {/* Action Buttons */}
+          {!coreBlocks.includes(block.id) && (
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+              {canDuplicate && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onDuplicate}
+                  className="h-8 w-8 p-0 hover:bg-white/10 hover:text-neon-cyan"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDelete}
+                className="h-8 w-8 p-0 hover:bg-destructive/20 hover:text-destructive"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Block Content */}
-      <div className="mb-8">
-        {children}
-      </div>
+        {/* Block Content */}
+        <CollapsibleContent className="mb-8">
+          {children}
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Subtle divider after core blocks */}
       {isLastCoreBlock && (

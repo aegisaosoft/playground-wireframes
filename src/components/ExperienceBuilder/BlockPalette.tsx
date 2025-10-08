@@ -19,7 +19,6 @@ import {
 interface BlockPaletteProps {
   onAddBlock: (type: BlockType) => void;
   onVoiceCreate: () => void;
-  onScrollToBlock: (type: BlockType) => void;
 }
 
 const blockItems = [
@@ -35,7 +34,7 @@ const blockItems = [
   { type: 'cta' as BlockType, label: 'Call to Action', icon: MousePointer, description: '' },
 ];
 
-export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceCreate, onScrollToBlock }) => {
+export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceCreate }) => {
   return (
     <div className="w-80 bg-black/20 border-r border-white/10 p-6">
       {/* Voice Creation Button */}
@@ -75,7 +74,7 @@ export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceC
           return (
             <button
               key={item.type}
-              onClick={() => onScrollToBlock(item.type)}
+              onClick={() => onAddBlock(item.type)}
               className="w-full p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-neon-pink/30 hover:shadow-neon/20 transition-all duration-200 text-left group"
             >
               <div className="flex items-start gap-3">
