@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { TopBar } from '@/components/ExperienceBuilder/TopBar';
-import { BlockPalette } from '@/components/ExperienceBuilder/BlockPalette';
 import { Canvas } from '@/components/ExperienceBuilder/Canvas';
 import { SettingsSidebar } from '@/components/ExperienceBuilder/SettingsSidebar';
 import { HostData } from '@/components/ExperienceBuilder/HostSelector';
@@ -337,12 +336,6 @@ const ExperienceEdit = () => {
       />
       
       <div className="flex-1 flex overflow-hidden">
-        <BlockPalette 
-          onAddBlock={addBlock} 
-          onVoiceCreate={() => setShowVoiceModal(true)}
-          onScrollToBlock={scrollToBlockType}
-        />
-        
         <Canvas
           blocks={blocks}
           onUpdateBlock={updateBlock}
@@ -351,6 +344,8 @@ const ExperienceEdit = () => {
           onReorderBlocks={reorderBlocks}
           blockRefsMap={blockRefsMap}
           highlightedBlockId={highlightedBlockId}
+          onAddBlock={scrollToBlockType}
+          onVoiceCreate={() => setShowVoiceModal(true)}
         />
         
         <SettingsSidebar
