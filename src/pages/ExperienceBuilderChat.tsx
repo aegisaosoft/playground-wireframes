@@ -181,33 +181,60 @@ function simulateAIResponse(userInput: string, currentBlocks: Block[]): {
 } {
   const input = userInput.toLowerCase();
   let updatedBlocks = [...currentBlocks];
-  let message = "I understand! ";
+  let message = "";
   let confidence: 'high' | 'medium' | 'low' = 'medium';
+  let hasChanges = false;
 
-  // Extract title
-  if (input.includes('retreat') || input.includes('workshop') || input.includes('event')) {
+  // Extract title - look for experience, retreat, workshop, event keywords
+  if ((input.includes('retreat') || input.includes('workshop') || input.includes('event') || input.includes('experience')) && input.length < 100) {
     const titleBlock = updatedBlocks.find(b => b.type === 'title');
     if (titleBlock && !titleBlock.data.text) {
-      titleBlock.data.text = userInput.split(/\s+/).slice(0, 5).join(' ');
-      message += "I've set your experience title. ";
+      titleBlock.data.text = userInput.split(/\s+/).slice(0, 6).join(' ');
+      message += "Got it! I've set your title. ";
       confidence = 'high';
+      hasChanges = true;
     }
   }
 
-  // Extract location
-  const cities = ['bali', 'lisbon', 'paris', 'tokyo', 'new york', 'london', 'barcelona'];
+  // Extract dates - look for patterns like "jan 1st till 10th", "march 15-20", "15-20 march"
+  const datePatterns = [
+    /(\w+)\s+(\d+)(?:st|nd|rd|th)?\s+(?:till|to|until|-)\s+(\d+)(?:st|nd|rd|th)?/,
+    /(\d+)(?:st|nd|rd|th)?\s*-\s*(\d+)(?:st|nd|rd|th)?\s+(\w+)/,
+    /(\w+)\s+(\d+)\s*-\s*(\d+)/
+  ];
+  
+  for (const pattern of datePatterns) {
+    const match = input.match(pattern);
+    if (match) {
+      const datesBlock = updatedBlocks.find(b => b.type === 'dates');
+      if (datesBlock && !datesBlock.data.startDate) {
+        // Simple date construction for demo - in real app would use proper date parsing
+        const currentYear = new Date().getFullYear();
+        datesBlock.data.startDate = `${currentYear}-01-01`;
+        datesBlock.data.endDate = `${currentYear}-01-10`;
+        message += "Dates captured! ";
+        confidence = 'high';
+        hasChanges = true;
+        break;
+      }
+    }
+  }
+
+  // Extract location - look for cities
+  const cities = ['bali', 'lisbon', 'paris', 'tokyo', 'new york', 'london', 'barcelona', 'miami', 'tulum', 'ibiza'];
   const foundCity = cities.find(city => input.includes(city));
   if (foundCity) {
     const locationBlock = updatedBlocks.find(b => b.type === 'location');
-    if (locationBlock) {
-      locationBlock.data.city = foundCity.charAt(0).toUpperCase() + foundCity.slice(1);
+    if (locationBlock && !locationBlock.data.city) {
+      locationBlock.data.city = foundCity.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
       message += `Location set to ${locationBlock.data.city}. `;
       confidence = 'high';
+      hasChanges = true;
     }
   }
 
-  // Add description
-  if (input.length > 50 && !updatedBlocks.find(b => b.type === 'richText')) {
+  // Add longer descriptions as rich text
+  if (input.length > 40 && !updatedBlocks.find(b => b.type === 'richText')) {
     updatedBlocks.push({
       id: `richText-${Date.now()}`,
       type: 'richText',
@@ -215,14 +242,44 @@ function simulateAIResponse(userInput: string, currentBlocks: Block[]): {
       order: updatedBlocks.length,
     });
     message += "I've added your description. ";
+    hasChanges = true;
   }
 
-  if (updatedBlocks.length === currentBlocks.length) {
-    message = "I'm processing that. Could you provide more details about the dates, location, or what's included in your experience?";
+  // If nothing was extracted, provide helpful guidance
+  if (!hasChanges) {
+    const titleBlock = updatedBlocks.find(b => b.type === 'title');
+    const datesBlock = updatedBlocks.find(b => b.type === 'dates');
+    const locationBlock = updatedBlocks.find(b => b.type === 'location');
+    
+    const missing = [];
+    if (!titleBlock?.data.text) missing.push('title');
+    if (!datesBlock?.data.startDate) missing.push('dates');
+    if (!locationBlock?.data.city) missing.push('location');
+    
+    if (missing.length > 0) {
+      message = `Thanks! To get started, I still need: ${missing.join(', ')}. What can you tell me about ${missing[0]}?`;
+    } else {
+      message = "Great! What else would you like to add? (pricing, highlights, agenda, etc.)";
+    }
     return { message, confidence: 'low' as const, updatedBlocks: null };
   }
 
-  message += "What else would you like to add?";
+  // Check what's still missing
+  const titleBlock = updatedBlocks.find(b => b.type === 'title');
+  const datesBlock = updatedBlocks.find(b => b.type === 'dates');
+  const locationBlock = updatedBlocks.find(b => b.type === 'location');
+  
+  const stillMissing = [];
+  if (!titleBlock?.data.text) stillMissing.push('title');
+  if (!datesBlock?.data.startDate) stillMissing.push('dates');
+  if (!locationBlock?.data.city) stillMissing.push('location');
+  
+  if (stillMissing.length > 0) {
+    message += `What about ${stillMissing[0]}?`;
+  } else {
+    message += "Looking good! Want to add pricing, highlights, or an agenda?";
+  }
+  
   return { message, confidence, updatedBlocks };
 }
 
