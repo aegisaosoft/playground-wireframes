@@ -32,6 +32,7 @@ const blockItems = [
   { type: 'gallery' as BlockType, label: 'Gallery', icon: Grid3X3, description: '' },
   { type: 'faq' as BlockType, label: 'FAQ', icon: HelpCircle, description: '' },
   { type: 'resources' as BlockType, label: 'Resources', icon: Folder, description: '' },
+  { type: 'cta' as BlockType, label: 'Call to Action', icon: MousePointer, description: '' },
 ];
 
 export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceCreate, onScrollToBlock }) => {
@@ -95,6 +96,13 @@ export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceC
             </button>
           );
         })}
+      </div>
+
+      <div className="mt-8 p-4 bg-gradient-dark rounded-lg border border-white/10">
+        <h3 className="text-sm font-medium text-foreground mb-2">💡 Pro Tip</h3>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Drag blocks to reorder them, or click to add instantly. Each block can be edited inline for maximum speed.
+        </p>
       </div>
     </div>
   );
