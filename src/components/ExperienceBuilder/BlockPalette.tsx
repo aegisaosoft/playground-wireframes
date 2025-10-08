@@ -96,13 +96,6 @@ export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceC
           );
         })}
       </div>
-
-      <div className="mt-8 p-4 bg-gradient-dark rounded-lg border border-white/10">
-        <h3 className="text-sm font-medium text-foreground mb-2">💡 Pro Tip</h3>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          Drag blocks to reorder them, or click to add instantly. Each block can be edited inline for maximum speed.
-        </p>
-      </div>
     </div>
   );
 };
