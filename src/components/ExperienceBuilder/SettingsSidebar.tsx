@@ -1,14 +1,12 @@
-import React from 'react';
-import { Switch } from '@/components/ui/switch';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Globe, Lock, Link2, Lightbulb } from 'lucide-react';
+import { Lightbulb, ChevronDown, ChevronUp } from 'lucide-react';
 import { PaymentsCard } from '@/components/PaymentsCard';
 import { HostSelector, HostData } from './HostSelector';
 import { TeamManagement, TeamMember } from './TeamManagement';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface SettingsSidebarProps {
-  isPublic: boolean;
-  onToggleVisibility: (isPublic: boolean) => void;
   selectedHost: HostData;
   onHostChange: (host: HostData) => void;
   teamMembers: TeamMember[];
@@ -18,8 +16,6 @@ interface SettingsSidebarProps {
 }
 
 export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
-  isPublic,
-  onToggleVisibility,
   selectedHost,
   onHostChange,
   teamMembers,
@@ -27,23 +23,21 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   onRemoveTeamMember,
   onUpdateTeamMemberRole,
 }) => {
-  return (
-    <div className="w-80 bg-black/20 border-l border-white/10 p-6">
-      <h2 className="text-lg font-semibold text-foreground mb-6 flex items-center gap-2">
-        <div className="w-2 h-2 bg-neon-yellow rounded-full animate-pulse" />
-        Settings & Tips
-      </h2>
+  const [tipsOpen, setTipsOpen] = useState(false);
 
-      {/* Host Selection */}
-      <div className="mb-8">
+  return (
+    <div className="w-72 bg-black/20 border-l border-white/10 p-6 space-y-6">
+      {/* Team & Permissions - Merged Section */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
+          Team & Permissions
+        </h3>
+        
         <HostSelector 
           selectedHost={selectedHost}
           onHostChange={onHostChange}
         />
-      </div>
-
-      {/* Team Management */}
-      <div className="mb-8">
+        
         <TeamManagement
           teamMembers={teamMembers}
           onAddMember={onAddTeamMember}
@@ -52,121 +46,66 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
         />
       </div>
 
-      {/* Visibility Toggle */}
-      <div className="space-y-4 mb-8">
-        <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              {isPublic ? (
-                <Globe className="w-4 h-4 text-neon-green" />
-              ) : (
-                <Lock className="w-4 h-4 text-muted-foreground" />
-              )}
-              <span className="font-medium text-foreground">
-                {isPublic ? 'Public' : 'Private'}
-              </span>
-            </div>
-            <Switch
-              checked={isPublic}
-              onCheckedChange={onToggleVisibility}
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {isPublic 
-              ? 'Anyone can discover and view this experience'
-              : 'Only you and people you share the link with can see this experience'
-            }
-          </p>
-        </div>
-
-        {isPublic && (
-          <div className="p-4 bg-neon-green/10 border border-neon-green/20 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Link2 className="w-4 h-4 text-neon-green" />
-              <span className="font-medium text-neon-green text-sm">Share Link</span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full bg-white/5 border-white/10 text-foreground hover:bg-white/10 text-xs"
-            >
-              Copy Public Link
-            </Button>
-          </div>
-        )}
-
-        {!isPublic && (
-          <div className="p-4 bg-neon-cyan/10 border border-neon-cyan/20 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Link2 className="w-4 h-4 text-neon-cyan" />
-              <span className="font-medium text-neon-cyan text-sm">Private Link</span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full bg-white/5 border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10 text-xs"
-              onClick={() => {
-                const privateSlug = `private-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-                const privateUrl = `${window.location.origin}/experience/private/${privateSlug}`;
-                navigator.clipboard.writeText(privateUrl);
-              }}
-            >
-              Copy Private Link
-            </Button>
-          </div>
-        )}
-      </div>
+      {/* Divider */}
+      <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
       {/* Payments Section */}
-      <div className="mb-8">
+      <div>
         <PaymentsCard variant="sidebar" />
       </div>
 
-      {/* Tips Section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Lightbulb className="w-4 h-4 text-neon-yellow" />
-          <h3 className="font-medium text-foreground">Building Tips</h3>
-        </div>
+      {/* Divider */}
+      <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-        <div className="space-y-3">
-          <div className="p-3 bg-gradient-dark rounded-lg border border-white/10">
-            <h4 className="text-sm font-medium text-foreground mb-1">
-              📸 Great Photos
-            </h4>
+      {/* Collapsible Tips Section */}
+      <Collapsible open={tipsOpen} onOpenChange={setTipsOpen}>
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="ghost"
+            className="w-full justify-between text-sm font-medium text-muted-foreground hover:text-foreground p-0"
+          >
+            <div className="flex items-center gap-2">
+              <Lightbulb className="w-4 h-4 text-neon-yellow" />
+              <span>Building Tips</span>
+            </div>
+            {tipsOpen ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </Button>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent className="mt-4 space-y-3">
+          <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+            <h4 className="text-sm font-medium text-foreground mb-1">📸 Great Photos</h4>
             <p className="text-xs text-muted-foreground">
               Use high-quality images that showcase the experience location and vibe.
             </p>
           </div>
 
-          <div className="p-3 bg-gradient-dark rounded-lg border border-white/10">
-            <h4 className="text-sm font-medium text-foreground mb-1">
-              📅 Clear Schedule
-            </h4>
+          <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+            <h4 className="text-sm font-medium text-foreground mb-1">📅 Clear Schedule</h4>
             <p className="text-xs text-muted-foreground">
               Break down daily agendas so guests know what to expect each day.
             </p>
           </div>
 
-          <div className="p-3 bg-gradient-dark rounded-lg border border-white/10">
-            <h4 className="text-sm font-medium text-foreground mb-1">
-              💰 Smart Pricing
-            </h4>
+          <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+            <h4 className="text-sm font-medium text-foreground mb-1">💰 Smart Pricing</h4>
             <p className="text-xs text-muted-foreground">
               Offer early bird discounts and limit quantities to create urgency.
             </p>
           </div>
 
-          <div className="p-3 bg-gradient-dark rounded-lg border border-white/10">
-            <h4 className="text-sm font-medium text-foreground mb-1">
-              ❓ Answer Questions
-            </h4>
+          <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+            <h4 className="text-sm font-medium text-foreground mb-1">❓ Answer Questions</h4>
             <p className="text-xs text-muted-foreground">
               Use FAQ to address common concerns about food, accommodation, etc.
             </p>
           </div>
-        </div>
-      </div>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 };
