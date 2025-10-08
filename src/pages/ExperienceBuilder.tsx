@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { TopBar } from '@/components/ExperienceBuilder/TopBar';
+import { AddBlockButton } from '@/components/ExperienceBuilder/AddBlockButton';
 import { Canvas } from '@/components/ExperienceBuilder/Canvas';
 import { SettingsSidebar } from '@/components/ExperienceBuilder/SettingsSidebar';
 import { HostData } from '@/components/ExperienceBuilder/HostSelector';
@@ -11,6 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Mic, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { isSingletonBlock, isRepeatableBlock } from '@/utils/blockSummaries';
 
 const ExperienceBuilder = () => {
   const [blocks, setBlocks] = useState<Block[]>([
@@ -55,6 +57,7 @@ const ExperienceBuilder = () => {
 
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
+  const [collapsedBlocks, setCollapsedBlocks] = useState<Set<string>>(new Set());
   const blockRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
   
   const { toast } = useToast();
@@ -174,39 +177,63 @@ const ExperienceBuilder = () => {
     setShowVoiceModal(true);
   };
 
-  const scrollToBlockType = useCallback((type: BlockType) => {
-    // Find existing block of this type
-    const existingBlock = blocks.find(block => block.type === type);
-    
-    if (existingBlock) {
-      // Scroll to existing block
-      const blockElement = blockRefsMap.current.get(existingBlock.id);
-      if (blockElement) {
-        blockElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setHighlightedBlockId(existingBlock.id);
-        setTimeout(() => setHighlightedBlockId(null), 2000);
-      }
-    } else {
-      // Create new block and scroll to it
-      const newBlock: Block = {
-        id: `${type}-${Date.now()}`,
-        type,
-        data: getDefaultBlockData(type),
-        order: blocks.length,
-      };
-      setBlocks(prev => [...prev, newBlock]);
+  const handleBlockPaletteClick = useCallback((type: BlockType) => {
+    // Check if it's a singleton block
+    if (isSingletonBlock(type)) {
+      // Find existing block of this type
+      const existingBlock = blocks.find(block => block.type === type);
       
-      // Wait for next render to scroll
-      setTimeout(() => {
-        const blockElement = blockRefsMap.current.get(newBlock.id);
+      if (existingBlock) {
+        // Scroll to and highlight existing block
+        const blockElement = blockRefsMap.current.get(existingBlock.id);
         if (blockElement) {
           blockElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          setHighlightedBlockId(newBlock.id);
+          setHighlightedBlockId(existingBlock.id);
+          
+          // Expand if collapsed
+          setCollapsedBlocks(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(existingBlock.id);
+            return newSet;
+          });
+          
           setTimeout(() => setHighlightedBlockId(null), 2000);
+          
+          // Show toast
+          const blockLabels: Record<string, string> = {
+            title: 'Experience Name',
+            dates: 'Dates',
+            location: 'Location',
+            tickets: 'Tickets'
+          };
+          toast({
+            description: `Scrolled to existing ${blockLabels[type]} block`,
+            duration: 2000,
+          });
         }
-      }, 100);
+        return;
+      }
     }
-  }, [blocks]);
+    
+    // Add new block at the end
+    const newBlock: Block = {
+      id: `${type}-${Date.now()}`,
+      type,
+      data: getDefaultBlockData(type),
+      order: blocks.length,
+    };
+    setBlocks(prev => [...prev, newBlock]);
+    
+    // Scroll to new block after render
+    setTimeout(() => {
+      const blockElement = blockRefsMap.current.get(newBlock.id);
+      if (blockElement) {
+        blockElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setHighlightedBlockId(newBlock.id);
+        setTimeout(() => setHighlightedBlockId(null), 2000);
+      }
+    }, 100);
+  }, [blocks, toast]);
 
   const addBlock = useCallback((type: BlockType) => {
     const newBlock: Block = {
@@ -234,13 +261,23 @@ const ExperienceBuilder = () => {
 
   const duplicateBlock = useCallback((id: string) => {
     const blockToDuplicate = blocks.find(block => block.id === id);
-    if (blockToDuplicate) {
+    if (blockToDuplicate && isRepeatableBlock(blockToDuplicate.type)) {
       const newBlock: Block = {
         ...blockToDuplicate,
         id: `${blockToDuplicate.type}-${Date.now()}`,
         order: blocks.length,
       };
       setBlocks(prev => [...prev, newBlock]);
+      
+      // Scroll to new block
+      setTimeout(() => {
+        const blockElement = blockRefsMap.current.get(newBlock.id);
+        if (blockElement) {
+          blockElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setHighlightedBlockId(newBlock.id);
+          setTimeout(() => setHighlightedBlockId(null), 2000);
+        }
+      }, 100);
     }
   }, [blocks]);
 
@@ -304,6 +341,18 @@ const ExperienceBuilder = () => {
     );
   }, []);
 
+  const toggleBlockCollapse = useCallback((id: string) => {
+    setCollapsedBlocks(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#0b0b12] flex flex-col">
       {/* Voice Banner */}
@@ -333,9 +382,11 @@ const ExperienceBuilder = () => {
         </Card>
       )}
 
-      <TopBar
+      <TopBar 
         onSaveDraft={handleSaveDraft}
         onPublish={handlePublish}
+        isPublic={isPublic}
+        onToggleVisibility={setIsPublic}
       />
       
       <div className="flex-1 flex overflow-hidden">
@@ -347,13 +398,11 @@ const ExperienceBuilder = () => {
           onReorderBlocks={reorderBlocks}
           blockRefsMap={blockRefsMap}
           highlightedBlockId={highlightedBlockId}
-          onAddBlock={scrollToBlockType}
-          onVoiceCreate={handleVoiceCreate}
+          collapsedBlocks={collapsedBlocks}
+          onToggleCollapse={toggleBlockCollapse}
         />
         
         <SettingsSidebar
-          isPublic={isPublic}
-          onToggleVisibility={setIsPublic}
           selectedHost={selectedHost}
           onHostChange={setSelectedHost}
           teamMembers={teamMembers}
@@ -362,6 +411,12 @@ const ExperienceBuilder = () => {
           onUpdateTeamMemberRole={handleUpdateTeamMemberRole}
         />
       </div>
+
+      {/* Floating Add Block Button */}
+      <AddBlockButton 
+        onAddBlock={handleBlockPaletteClick}
+        excludeTypes={blocks.filter(b => isSingletonBlock(b.type)).map(b => b.type)}
+      />
 
       {/* Voice Experience Modal */}
       <VoiceExperienceModal 
