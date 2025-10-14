@@ -9,7 +9,6 @@ export type BlockType =
   | 'tickets'
   | 'gallery'
   | 'faq'
-  | 'cta'
   | 'resources'
   | 'logistics';
 

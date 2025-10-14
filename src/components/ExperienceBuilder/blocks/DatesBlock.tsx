@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { DateRange } from 'react-day-picker';
 
 interface DatesBlockProps {
   data: { startDate: Date | null; endDate: Date | null };
@@ -14,71 +15,58 @@ interface DatesBlockProps {
 export const DatesBlock: React.FC<DatesBlockProps> = ({ data, onChange }) => {
   const today = new Date();
   
+  const dateRange: DateRange | undefined = data.startDate || data.endDate 
+    ? { from: data.startDate || undefined, to: data.endDate || undefined }
+    : undefined;
+
+  const handleRangeSelect = (range: DateRange | undefined) => {
+    onChange({
+      startDate: range?.from || null,
+      endDate: range?.to || null,
+    });
+  };
+
+  const formatDateRange = () => {
+    if (!data.startDate && !data.endDate) return 'Select dates';
+    if (data.startDate && !data.endDate) return format(data.startDate, 'PPP');
+    if (data.startDate && data.endDate) {
+      return `${format(data.startDate, 'MMM d')} – ${format(data.endDate, 'MMM d, yyyy')}`;
+    }
+    return 'Select dates';
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-4">
         <CalendarIcon className="w-4 h-4 text-neon-orange" />
         <label className="text-sm font-medium text-neutral-300 uppercase tracking-wider">Dates</label>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Start Date */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-neutral-400">Start Date</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal bg-white/5 border-white/10 text-foreground hover:bg-white/10 focus:border-neon-pink/50",
-                  !data.startDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {data.startDate ? format(data.startDate, "PPP") : "Pick start date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-card border-white/10" align="start">
-              <Calendar
-                mode="single"
-                selected={data.startDate || undefined}
-                onSelect={(date) => onChange({ ...data, startDate: date || null })}
-                disabled={(date) => date < today}
-                initialFocus
-                className="pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        {/* End Date */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-neutral-400">End Date</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal bg-white/5 border-white/10 text-foreground hover:bg-white/10 focus:border-neon-pink/50",
-                  !data.endDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {data.endDate ? format(data.endDate, "PPP") : "Pick end date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-card border-white/10" align="start">
-              <Calendar
-                mode="single"
-                selected={data.endDate || undefined}
-                onSelect={(date) => onChange({ ...data, endDate: date || null })}
-                disabled={(date) => date < (data.startDate || today)}
-                initialFocus
-                className="pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
+      
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              "w-full justify-start text-left font-normal bg-white/5 border-white/10 text-foreground hover:bg-white/10 focus:border-neon-pink/50",
+              !data.startDate && !data.endDate && "text-muted-foreground"
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {formatDateRange()}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0 bg-card border-white/10" align="start">
+          <Calendar
+            mode="range"
+            selected={dateRange}
+            onSelect={handleRangeSelect}
+            numberOfMonths={2}
+            disabled={(date) => date < today}
+            initialFocus
+            className="pointer-events-auto"
+          />
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };
