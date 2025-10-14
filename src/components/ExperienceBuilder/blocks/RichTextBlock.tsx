@@ -1,5 +1,6 @@
 import React from 'react';
 import { Textarea } from '@/components/ui/textarea';
+import { Mic } from 'lucide-react';
 
 interface RichTextBlockProps {
   data: { content: string };
@@ -9,7 +10,16 @@ interface RichTextBlockProps {
 export const RichTextBlock: React.FC<RichTextBlockProps> = ({ data, onChange }) => {
   return (
     <div className="space-y-3">
-      <label className="text-sm font-medium text-muted-foreground">Description</label>
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium text-muted-foreground">Description</label>
+        <button
+          type="button"
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Mic className="w-3.5 h-3.5" />
+          <span>Record</span>
+        </button>
+      </div>
       <Textarea
         value={data.content}
         onChange={(e) => onChange({ content: e.target.value })}
