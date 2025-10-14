@@ -1,84 +1,88 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { DateRange } from 'react-day-picker';
 
 interface DatesBlockProps {
-  data: { startDate: Date | null; endDate: Date | null };
-  onChange: (data: { startDate: Date | null; endDate: Date | null }) => void;
+  data: { startDate: string | null; endDate: string | null };
+  onChange: (data: { startDate: string | null; endDate: string | null }) => void;
 }
 
 export const DatesBlock: React.FC<DatesBlockProps> = ({ data, onChange }) => {
-  const today = new Date();
-  
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
-        <CalendarIcon className="w-4 h-4 text-neon-orange" />
-        <label className="text-sm font-medium text-neutral-300 uppercase tracking-wider">Dates</label>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Start Date */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-neutral-400">Start Date</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal bg-white/5 border-white/10 text-foreground hover:bg-white/10 focus:border-neon-pink/50",
-                  !data.startDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {data.startDate ? format(data.startDate, "PPP") : "Pick start date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-card border-white/10" align="start">
-              <Calendar
-                mode="single"
-                selected={data.startDate || undefined}
-                onSelect={(date) => onChange({ ...data, startDate: date || null })}
-                disabled={(date) => date < today}
-                initialFocus
-                className="pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+  const [date, setDate] = useState<DateRange | undefined>(() => {
+    if (data.startDate && data.endDate) {
+      return {
+        from: new Date(data.startDate),
+        to: new Date(data.endDate),
+      };
+    }
+    return undefined;
+  });
 
-        {/* End Date */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-neutral-400">End Date</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal bg-white/5 border-white/10 text-foreground hover:bg-white/10 focus:border-neon-pink/50",
-                  !data.endDate && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {data.endDate ? format(data.endDate, "PPP") : "Pick end date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-card border-white/10" align="start">
-              <Calendar
-                mode="single"
-                selected={data.endDate || undefined}
-                onSelect={(date) => onChange({ ...data, endDate: date || null })}
-                disabled={(date) => date < (data.startDate || today)}
-                initialFocus
-                className="pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
+  const handleDateChange = (newDate: DateRange | undefined) => {
+    setDate(newDate);
+    if (newDate?.from && newDate?.to) {
+      onChange({
+        startDate: newDate.from.toISOString(),
+        endDate: newDate.to.toISOString(),
+      });
+    } else if (newDate?.from) {
+      onChange({
+        startDate: newDate.from.toISOString(),
+        endDate: null,
+      });
+    } else {
+      onChange({
+        startDate: null,
+        endDate: null,
+      });
+    }
+  };
+
+  const formatDateRange = () => {
+    if (date?.from) {
+      if (date.to) {
+        return `${format(date.from, 'MMMM d')} – ${format(date.to, 'MMMM d, yyyy')}`;
+      }
+      return format(date.from, 'MMMM d, yyyy');
+    }
+    return 'Select dates';
+  };
+
+  return (
+    <div className="space-y-3">
+      <label className="text-sm font-medium text-muted-foreground">Dates</label>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className={cn(
+              'w-full justify-start text-left font-normal h-12 text-base bg-white/5 border-white/10 hover:bg-white/10',
+              !date && 'text-muted-foreground'
+            )}
+          >
+            <CalendarIcon className="mr-3 h-5 w-5" />
+            <span className={cn(date?.from && 'text-foreground font-medium')}>
+              {formatDateRange()}
+            </span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="range"
+            defaultMonth={date?.from}
+            selected={date}
+            onSelect={handleDateChange}
+            numberOfMonths={2}
+            initialFocus
+            className="pointer-events-auto"
+          />
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };

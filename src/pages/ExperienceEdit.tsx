@@ -27,28 +27,34 @@ const mockHostedExperiences = [
     privateSlug: null,
     blocks: [
       {
+        id: 'image-default',
+        type: 'image' as BlockType,
+        data: { url: '', alt: '' },
+        order: 0,
+      },
+      {
         id: 'title-default',
         type: 'title' as BlockType,
         data: { text: 'Creative Writing Workshop' },
-        order: 0,
+        order: 1,
       },
       {
         id: 'dates-default', 
         type: 'dates' as BlockType,
         data: { startDate: '2024-05-01', endDate: '2024-05-08' },
-        order: 1,
+        order: 2,
       },
       {
         id: 'location-default',
         type: 'location' as BlockType, 
-        data: { city: 'Portland', country: 'USA' },
-        order: 2,
+        data: { location: 'Portland, USA' },
+        order: 3,
       },
       {
-        id: 'richText-1',
+        id: 'richText-default',
         type: 'richText' as BlockType,
         data: { content: 'Join us for an intensive creative writing workshop where you\'ll develop your craft and connect with fellow writers.' },
-        order: 3,
+        order: 4,
       }
     ]
   },
@@ -63,22 +69,34 @@ const mockHostedExperiences = [
     privateSlug: 'private-1703847362-k9n2m8x4p',
     blocks: [
       {
+        id: 'image-default',
+        type: 'image' as BlockType,
+        data: { url: '', alt: '' },
+        order: 0,
+      },
+      {
         id: 'title-default',
         type: 'title' as BlockType,
         data: { text: 'Photography Masterclass' },
-        order: 0,
+        order: 1,
       },
       {
         id: 'dates-default', 
         type: 'dates' as BlockType,
         data: { startDate: '2024-06-15', endDate: '2024-06-22' },
-        order: 1,
+        order: 2,
       },
       {
         id: 'location-default',
         type: 'location' as BlockType, 
-        data: { city: 'San Francisco', country: 'USA' },
-        order: 2,
+        data: { location: 'San Francisco, USA' },
+        order: 3,
+      },
+      {
+        id: 'richText-default',
+        type: 'richText' as BlockType,
+        data: { content: '' },
+        order: 4,
       }
     ]
   }
@@ -183,7 +201,7 @@ const ExperienceEdit = () => {
 
   const deleteBlock = useCallback((id: string) => {
     // Prevent deletion of core blocks
-    const coreBlocks = ['title-default', 'dates-default', 'location-default'];
+    const coreBlocks = ['image-default', 'title-default', 'dates-default', 'location-default', 'richText-default'];
     if (coreBlocks.includes(id)) return;
     
     setBlocks(prev => prev.filter(block => block.id !== id));
@@ -255,10 +273,16 @@ const ExperienceEdit = () => {
 
     const newBlocks: Block[] = [
       {
+        id: 'image-default',
+        type: 'image',
+        data: { url: '', alt: '' },
+        order: 0,
+      },
+      {
         id: 'title-default',
         type: 'title',
         data: { text: draft.title },
-        order: 0,
+        order: 1,
       },
       {
         id: 'dates-default',
@@ -267,20 +291,25 @@ const ExperienceEdit = () => {
           startDate: draft.dates.startDate, 
           endDate: draft.dates.endDate 
         },
-        order: 1,
+        order: 2,
       },
       {
         id: 'location-default',
         type: 'location',
         data: { 
-          city: draft.location.city, 
-          country: draft.location.country 
+          location: `${draft.location.city}, ${draft.location.country}` 
         },
-        order: 2,
+        order: 3,
+      },
+      {
+        id: 'richText-default',
+        type: 'richText',
+        data: { content: draft.description || '' },
+        order: 4,
       },
     ];
 
-    let blockOrder = 3;
+    let blockOrder = 5;
 
     if (draft.description) {
       newBlocks.push({
@@ -382,7 +411,7 @@ function getDefaultBlockData(type: BlockType): any {
     case 'dates':
       return { startDate: null, endDate: null };
     case 'location':
-      return { city: '', country: '' };
+      return { location: '' };
     case 'image':
       return { url: '', alt: '' };
     case 'richText':
