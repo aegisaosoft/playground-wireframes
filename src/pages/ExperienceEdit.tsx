@@ -303,7 +303,6 @@ const ExperienceEdit = () => {
       });
     });
 
-
     if (draft.ticketTiers.length > 0) {
       newBlocks.push({
         id: `tickets-${Date.now()}`,
@@ -312,6 +311,13 @@ const ExperienceEdit = () => {
         order: blockOrder++,
       });
     }
+
+    newBlocks.push({
+      id: `cta-${Date.now()}`,
+      type: 'cta',
+      data: { text: draft.ctaText, style: 'primary' },
+      order: blockOrder++,
+    });
 
     setBlocks(newBlocks);
     setShowVoiceModal(false);
@@ -391,6 +397,8 @@ function getDefaultBlockData(type: BlockType): any {
       return { images: [] };
     case 'faq':
       return { items: [{ question: 'What should I bring?', answer: 'Just yourself and an open mind!' }] };
+    case 'cta':
+      return { text: 'Book Your Spot', style: 'primary' };
     case 'resources':
       return { resources: [] };
     case 'logistics':

@@ -16,34 +16,22 @@ import { useToast } from '@/hooks/use-toast';
 const ExperienceBuilder = () => {
   const [blocks, setBlocks] = useState<Block[]>([
     {
-      id: 'image-default',
-      type: 'image',
-      data: { url: '', alt: '' },
-      order: 0,
-    },
-    {
       id: 'title-default',
       type: 'title',
       data: { text: '' },
-      order: 1,
+      order: 0,
     },
     {
       id: 'dates-default', 
       type: 'dates',
       data: { startDate: null, endDate: null },
-      order: 2,
+      order: 1,
     },
     {
       id: 'location-default',
       type: 'location', 
-      data: { location: '' },
-      order: 3,
-    },
-    {
-      id: 'richText-default',
-      type: 'richText',
-      data: { content: '' },
-      order: 4,
+      data: { city: '', country: '' },
+      order: 2,
     },
   ]);
   const [isPublic, setIsPublic] = useState(false);
@@ -102,16 +90,10 @@ const ExperienceBuilder = () => {
     // Create new blocks array starting with core blocks
     const newBlocks: Block[] = [
       {
-        id: 'image-default',
-        type: 'image',
-        data: { url: '', alt: '' },
-        order: 0,
-      },
-      {
         id: 'title-default',
         type: 'title',
         data: { text: draft.title },
-        order: 1,
+        order: 0,
       },
       {
         id: 'dates-default',
@@ -120,27 +102,30 @@ const ExperienceBuilder = () => {
           startDate: draft.dates.startDate, 
           endDate: draft.dates.endDate 
         },
-        order: 2,
+        order: 1,
       },
       {
         id: 'location-default',
         type: 'location',
         data: { 
-          location: `${draft.location.city}, ${draft.location.country}`
+          city: draft.location.city, 
+          country: draft.location.country 
         },
-        order: 3,
+        order: 2,
       },
     ];
 
-    let blockOrder = 4;
+    let blockOrder = 3;
 
-    // Add description as rich text
-    newBlocks.push({
-      id: 'richText-default',
-      type: 'richText',
-      data: { content: draft.description || '' },
-      order: blockOrder++,
-    });
+    // Add description as rich text if available
+    if (draft.description) {
+      newBlocks.push({
+        id: `richText-${Date.now()}`,
+        type: 'richText',
+        data: { content: draft.description },
+        order: blockOrder++,
+      });
+    }
 
     // Add agenda days
     draft.agendaDays.forEach((day, index) => {
@@ -164,6 +149,14 @@ const ExperienceBuilder = () => {
         order: blockOrder++,
       });
     }
+
+    // Add CTA
+    newBlocks.push({
+      id: `cta-${Date.now()}`,
+      type: 'cta',
+      data: { text: draft.ctaText, style: 'primary' },
+      order: blockOrder++,
+    });
 
     setBlocks(newBlocks);
     toast({
@@ -234,7 +227,7 @@ const ExperienceBuilder = () => {
 
   const deleteBlock = useCallback((id: string) => {
     // Prevent deletion of core blocks
-    const coreBlocks = ['image-default', 'title-default', 'dates-default', 'location-default', 'richText-default'];
+    const coreBlocks = ['title-default', 'dates-default', 'location-default'];
     if (coreBlocks.includes(id)) return;
     
     setBlocks(prev => prev.filter(block => block.id !== id));
@@ -392,7 +385,7 @@ function getDefaultBlockData(type: BlockType): any {
     case 'dates':
       return { startDate: null, endDate: null };
     case 'location':
-      return { location: '' };
+      return { city: '', country: '' };
     case 'image':
       return { url: '', alt: '' };
     case 'richText':
@@ -407,6 +400,8 @@ function getDefaultBlockData(type: BlockType): any {
       return { images: [] };
     case 'faq':
       return { items: [{ question: 'What should I bring?', answer: 'Just yourself and an open mind!' }] };
+    case 'cta':
+      return { text: 'Book Your Spot', style: 'primary' };
     case 'resources':
       return { resources: [] };
     case 'logistics':

@@ -11,7 +11,7 @@ import { AgendaDayBlock } from './blocks/AgendaDayBlock';
 import { TicketsBlock } from './blocks/TicketsBlock';
 import { GalleryBlock } from './blocks/GalleryBlock';
 import { FaqBlock } from './blocks/FaqBlock';
-
+import { CtaBlock } from './blocks/CtaBlock';
 import { ResourcesBlock } from './blocks/ResourcesBlock';
 import { LogisticsBlock } from './blocks/LogisticsBlock';
 import { Sparkles } from 'lucide-react';
@@ -62,6 +62,8 @@ export const Canvas: React.FC<CanvasProps> = ({
         return <GalleryBlock {...props} />;
       case 'faq':
         return <FaqBlock {...props} />;
+      case 'cta':
+        return <CtaBlock {...props} />;
       case 'resources':
         return <ResourcesBlock {...props} />;
       case 'logistics':
