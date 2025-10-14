@@ -39,7 +39,7 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
   }, [block.id, blockRefsMap]);
   
   // Core blocks that cannot be deleted
-  const coreBlocks = ['title-default', 'dates-default', 'location-default'];
+  const coreBlocks = ['image-default', 'title-default', 'dates-default', 'location-default', 'richText-default'];
   const isDeletable = !coreBlocks.includes(block.id);
 
   const blockTypeLabels = {
