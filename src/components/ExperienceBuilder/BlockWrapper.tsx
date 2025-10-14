@@ -125,14 +125,6 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
       {!coreBlocks.includes(block.id) && (
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div 
-              className="w-4 h-4 text-muted-foreground cursor-grab hover:text-neon-pink transition-colors active:cursor-grabbing"
-              draggable
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            >
-              <GripVertical className="w-4 h-4" />
-            </div>
             <div className="flex items-center gap-1">
               <span className="text-sm font-medium text-foreground">
                 {blockTypeLabels[block.type]}
