@@ -10,7 +10,6 @@ interface LocationBlockProps {
 export const LocationBlock: React.FC<LocationBlockProps> = ({ data, onChange }) => {
   return (
     <div className="space-y-3">
-      <label className="text-sm font-medium text-muted-foreground">Location</label>
       <div className="relative">
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input

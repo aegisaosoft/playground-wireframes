@@ -17,7 +17,6 @@ export const TitleBlock: React.FC<TitleBlockProps> = ({ data, onChange }) => {
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-muted-foreground">Experience Name</label>
       <input
         ref={inputRef}
         value={data.text}

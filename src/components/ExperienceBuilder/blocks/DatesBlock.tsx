@@ -55,7 +55,6 @@ export const DatesBlock: React.FC<DatesBlockProps> = ({ data, onChange }) => {
 
   return (
     <div className="space-y-3">
-      <label className="text-sm font-medium text-muted-foreground">Dates</label>
       <Popover>
         <PopoverTrigger asChild>
           <Button

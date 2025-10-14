@@ -10,8 +10,7 @@ interface RichTextBlockProps {
 export const RichTextBlock: React.FC<RichTextBlockProps> = ({ data, onChange }) => {
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-muted-foreground">Description</label>
+      <div className="flex items-center justify-end">
         <button
           type="button"
           className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
