@@ -20,9 +20,6 @@ export const LocationBlock: React.FC<LocationBlockProps> = ({ data, onChange }) 
           className="pl-10 h-12 text-base bg-white/5 border-white/10 text-foreground placeholder:text-muted-foreground focus:ring-neon-cyan/50"
         />
       </div>
-      <p className="text-xs text-muted-foreground">
-        Enter the city, venue, or full address where this experience takes place
-      </p>
     </div>
   );
 };

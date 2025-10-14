@@ -16,9 +16,6 @@ export const RichTextBlock: React.FC<RichTextBlockProps> = ({ data, onChange }) 
         placeholder="Tell people what this experience is about..."
         className="min-h-[200px] bg-white/5 border-white/10 text-foreground placeholder:text-muted-foreground resize-y focus:ring-neon-orange/50 text-base leading-relaxed"
       />
-      <p className="text-xs text-muted-foreground">
-        Describe what makes this experience unique and what participants can expect
-      </p>
     </div>
   );
 };
