@@ -10,7 +10,6 @@ import { HostProfileWrapper } from "./components/HostProfileWrapper";
 import { BrandPageWrapper } from "./components/BrandPageWrapper";
 import RetreatPage from "./pages/RetreatPage";
 import ExperienceBuilder from "./pages/ExperienceBuilder";
-import ExperienceBuilderChat from "./pages/ExperienceBuilderChat";
 import ExperienceDetail from "./pages/ExperienceDetail";
 import ExperiencePortal from "./pages/ExperiencePortal";
 import Experiences from "./pages/Experiences";
@@ -33,8 +32,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout><Index /></Layout>} />
-          <Route path="/create" element={<ExperienceBuilderChat />} />
-          <Route path="/create-classic" element={<Layout><ExperienceBuilder /></Layout>} />
+          <Route path="/create" element={<Layout><ExperienceBuilder /></Layout>} />
           <Route path="/experiences" element={<Layout><Experiences /></Layout>} />
           <Route path="/community" element={<Layout><Community /></Layout>} />
           <Route path="/experience/:experienceId" element={<Layout><ExperienceDetail /></Layout>} />
