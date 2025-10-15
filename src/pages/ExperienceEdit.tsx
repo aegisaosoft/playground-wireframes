@@ -55,6 +55,12 @@ const mockHostedExperiences = [
         type: 'richText' as BlockType,
         data: { content: 'Join us for an intensive creative writing workshop where you\'ll develop your craft and connect with fellow writers.' },
         order: 4,
+      },
+      {
+        id: 'tickets-default',
+        type: 'tickets' as BlockType,
+        data: { tiers: [{ name: 'Standard', price: 500, quantity: 20 }] },
+        order: 5,
       }
     ]
   },
@@ -97,6 +103,12 @@ const mockHostedExperiences = [
         type: 'richText' as BlockType,
         data: { content: '' },
         order: 4,
+      },
+      {
+        id: 'tickets-default',
+        type: 'tickets' as BlockType,
+        data: { tiers: [{ name: 'Standard', price: 500, quantity: 20 }] },
+        order: 5,
       }
     ]
   }

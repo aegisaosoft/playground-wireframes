@@ -29,12 +29,12 @@ const essentialBlocks = [
   { type: 'dates' as BlockType, label: 'Dates', icon: Calendar },
   { type: 'location' as BlockType, label: 'Location', icon: MapPin },
   { type: 'richText' as BlockType, label: 'Description', icon: FileText },
+  { type: 'tickets' as BlockType, label: 'Tickets', icon: Ticket },
 ];
 
 const additionalBlocks = [
   { type: 'highlights' as BlockType, label: 'Highlights', icon: Stars },
   { type: 'agendaDay' as BlockType, label: 'Agenda', icon: Clock },
-  { type: 'tickets' as BlockType, label: 'Tickets', icon: Ticket },
   { type: 'logistics' as BlockType, label: 'Logistics', icon: MapPin },
   { type: 'gallery' as BlockType, label: 'Gallery', icon: Grid3X3 },
   { type: 'faq' as BlockType, label: 'FAQ', icon: HelpCircle },
