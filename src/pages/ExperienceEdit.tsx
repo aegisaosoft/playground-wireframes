@@ -468,7 +468,7 @@ function getDefaultBlockData(type: BlockType): any {
     case 'highlights':
       return { highlights: [] };
     case 'agendaDay':
-      return { date: null, items: [{ time: '09:00', activity: 'Welcome & Introductions' }] };
+      return { date: null, scheduleByDate: {} };
     case 'tickets':
       return { tiers: [{ name: 'Standard', price: 500, quantity: 20 }] };
     case 'gallery':
