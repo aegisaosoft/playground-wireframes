@@ -262,93 +262,105 @@ const ExperienceDetail = () => {
           Back
         </Button>
 
-        {/* Hero Section - 4:3 ratio with bottom gradient */}
-        <div className="relative rounded-3xl overflow-hidden mb-8" style={{ aspectRatio: '4/3' }}>
-          <img 
-            src={experience.image} 
-            alt={experience.title}
-            className="w-full h-full object-cover"
-          />
-          {/* Soft bottom gradient for readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-          
-          {/* Hero Content - Lower-left alignment */}
-          <div className="absolute bottom-8 left-8 right-8 max-w-3xl">
-            <div className="flex items-center gap-3 mb-3">
-              <Badge className={`${categoryColors[experience.category.color]} font-medium`}>
-                {experience.category.name}
-              </Badge>
-              <Badge variant="secondary" className="bg-background/80 text-foreground">
-                {experience.duration}
-              </Badge>
-            </div>
+        {/* Hero Section - Split Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          {/* Left: Banner Image */}
+          <div className="relative rounded-2xl overflow-hidden" style={{ aspectRatio: '4/3' }}>
+            <img 
+              src={experience.image} 
+              alt={experience.title}
+              className="w-full h-full object-cover"
+            />
             
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
-              {experience.title}
-            </h1>
-            
-            <div className="flex items-center gap-6 text-white/90">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
-                <span>{experience.location}</span>
+            {/* Owner Edit Control - Top left of image */}
+            {isOwner && (
+              <div className="absolute top-4 left-4">
+                <Button 
+                  onClick={() => navigate(`/experiences/${experience.id}/edit`)}
+                  size="sm"
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
               </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
-                <span>{experience.dates}</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Owner Edit Control - Top right */}
-          {isOwner && (
-            <div className="absolute top-8 left-8">
+            )}
+
+            {/* Action Buttons - Top right of image */}
+            <div className="absolute top-4 right-4 flex gap-2">
               <Button 
-                onClick={() => navigate(`/experiences/${experience.id}/edit`)}
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm"
+                size="sm" 
+                onClick={() => navigate(`/experience/portal/${experience.id}`)}
+                className="bg-neon-green hover:bg-neon-green/90 text-background font-medium"
               >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Experience
+                Enter Portal
+              </Button>
+              <Button size="sm" variant="secondary" className="bg-background/80 hover:bg-background/90">
+                <Heart className="w-4 h-4" />
+              </Button>
+              <Button 
+                size="sm" 
+                variant="secondary" 
+                className="bg-background/80 hover:bg-background/90"
+                onClick={handleCopyLink}
+              >
+                <Copy className="w-4 h-4" />
               </Button>
             </div>
-          )}
+          </div>
 
-          {/* Action Buttons */}
-          <div className="absolute top-8 right-8 flex gap-3">
-            {/* Mock approved user - in real app, check user's approval status */}
-            <Button 
-              size="sm" 
-              onClick={() => navigate(`/experience/portal/${experience.id}`)}
-              className="bg-neon-green hover:bg-neon-green/90 text-background font-medium"
-            >
-              Enter Portal
-            </Button>
-            <Button size="sm" variant="secondary" className="bg-background/80 hover:bg-background/90">
-              <Heart className="w-4 h-4" />
-            </Button>
-            <Button 
-              size="sm" 
-              variant="secondary" 
-              className="bg-background/80 hover:bg-background/90"
-              onClick={handleCopyLink}
-              title="Copy experience link"
-              aria-label="Copy experience link"
-            >
-              <Copy className="w-4 h-4" />
-            </Button>
+          {/* Right: Key Information */}
+          <div className="flex flex-col justify-center space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 flex-wrap">
+                <Badge className={`${categoryColors[experience.category.color]} font-medium`}>
+                  {experience.category.name}
+                </Badge>
+                <Badge variant="secondary" className="bg-card text-foreground border border-border">
+                  {experience.duration}
+                </Badge>
+              </div>
+
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground leading-tight">
+                {experience.title}
+              </h1>
+
+              <div className="flex flex-col gap-3 text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-neon-cyan" />
+                  <span className="text-lg">{experience.location}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-neon-yellow" />
+                  <span className="text-lg">{experience.dates}</span>
+                </div>
+              </div>
+
+              <p className="text-gray-400 text-lg leading-relaxed">
+                {experience.description}
+              </p>
+            </div>
+
+            {/* Organizer Card - Compact */}
+            <div className="bg-card border border-border rounded-lg p-4">
+              <div className="flex items-center gap-4">
+                <img 
+                  src={experience.organizer.avatar} 
+                  alt={experience.organizer.name}
+                  className="w-12 h-12 rounded-full"
+                />
+                <div>
+                  <div className="text-sm text-muted-foreground">Hosted by</div>
+                  <div className="font-medium text-foreground">{experience.organizer.name}</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Description */}
-            <section>
-              <h2 className="text-2xl font-bold text-foreground mb-4">About This Experience</h2>
-              <p className="text-gray-400 leading-relaxed text-lg">
-                {experience.description}
-              </p>
-            </section>
-
             {/* Highlights */}
             <section>
               <h2 className="text-2xl font-bold text-foreground mb-4">What You'll Do</h2>
@@ -420,27 +432,6 @@ const ExperienceDetail = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Organizer */}
-            <div className="bg-card border border-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4">Hosted by</h3>
-              <div className="flex items-center gap-4 mb-4">
-                <img 
-                  src={experience.organizer.avatar} 
-                  alt={experience.organizer.name}
-                  className="w-12 h-12 rounded-full"
-                />
-                <div>
-                  <div className="font-medium text-foreground">{experience.organizer.name}</div>
-                  <Button variant="link" className="p-0 h-auto text-neon-cyan text-sm">
-                    View Profile
-                  </Button>
-                </div>
-              </div>
-              <p className="text-sm text-gray-400">
-                {experience.organizer.bio}
-              </p>
-            </div>
-
             {/* Ticket Tiers */}
             <div className="bg-card border border-gray-800 rounded-lg p-6">
               <TicketTierDisplay 
