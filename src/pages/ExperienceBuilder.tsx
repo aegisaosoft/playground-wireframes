@@ -198,6 +198,37 @@ const ExperienceBuilder = () => {
     setShowVoiceModal(true);
   };
 
+  // Define block order as they appear in palette
+  const blockOrder: BlockType[] = [
+    'image',
+    'title', 
+    'dates',
+    'location',
+    'richText',
+    'tickets',
+    'highlights',
+    'agendaDay',
+    'logistics',
+    'gallery',
+    'faq',
+    'resources',
+    'cta'
+  ];
+
+  const getInsertPosition = useCallback((type: BlockType) => {
+    const typeOrder = blockOrder.indexOf(type);
+    if (typeOrder === -1) return blocks.length;
+    
+    // Find the correct position based on block order
+    for (let i = blocks.length - 1; i >= 0; i--) {
+      const currentBlockOrder = blockOrder.indexOf(blocks[i].type);
+      if (currentBlockOrder !== -1 && currentBlockOrder < typeOrder) {
+        return i + 1;
+      }
+    }
+    return 0;
+  }, [blocks]);
+
   const scrollToBlockType = useCallback((type: BlockType) => {
     // Find existing block of this type
     const existingBlock = blocks.find(block => block.type === type);
@@ -211,14 +242,20 @@ const ExperienceBuilder = () => {
         setTimeout(() => setHighlightedBlockId(null), 2000);
       }
     } else {
-      // Create new block and scroll to it
+      // Create new block at correct position
+      const insertPosition = getInsertPosition(type);
       const newBlock: Block = {
         id: `${type}-${Date.now()}`,
         type,
         data: getDefaultBlockData(type),
-        order: blocks.length,
+        order: insertPosition,
       };
-      setBlocks(prev => [...prev, newBlock]);
+      
+      setBlocks(prev => {
+        const newBlocks = [...prev];
+        newBlocks.splice(insertPosition, 0, newBlock);
+        return newBlocks.map((block, index) => ({ ...block, order: index }));
+      });
       
       // Wait for next render to scroll
       setTimeout(() => {
@@ -230,7 +267,7 @@ const ExperienceBuilder = () => {
         }
       }, 100);
     }
-  }, [blocks]);
+  }, [blocks, getInsertPosition]);
 
   const addBlock = useCallback((type: BlockType) => {
     const newBlock: Block = {
