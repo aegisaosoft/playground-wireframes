@@ -6,8 +6,18 @@ import { Upload, X } from 'lucide-react';
 import { ImageCropModal } from '../ImageCropModal';
 
 interface ImageBlockProps {
-  data: { url: string; alt: string };
-  onChange: (data: { url: string; alt: string }) => void;
+  data: { 
+    url: string; 
+    alt: string; 
+    file?: File | null;  // ✅ The actual file object for uploading
+    hideOverlays?: boolean;  // ✅ Whether to hide overlays
+  };
+  onChange: (data: { 
+    url: string; 
+    alt: string; 
+    file?: File | null; 
+    hideOverlays?: boolean; 
+  }) => void;
 }
 
 export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
