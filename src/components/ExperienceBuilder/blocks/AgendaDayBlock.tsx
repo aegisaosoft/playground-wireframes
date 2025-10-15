@@ -15,9 +15,10 @@ interface AgendaItem {
 interface AgendaDayBlockProps {
   data: { date: Date | null; items: AgendaItem[] };
   onChange: (data: { date: Date | null; items: AgendaItem[] }) => void;
+  dateRange?: { startDate: Date | null; endDate: Date | null };
 }
 
-export const AgendaDayBlock: React.FC<AgendaDayBlockProps> = ({ data, onChange }) => {
+export const AgendaDayBlock: React.FC<AgendaDayBlockProps> = ({ data, onChange, dateRange }) => {
   const addItem = () => {
     const newItems = [...data.items, { time: '09:00', activity: 'New Activity' }];
     onChange({ ...data, items: newItems });
@@ -62,6 +63,10 @@ export const AgendaDayBlock: React.FC<AgendaDayBlockProps> = ({ data, onChange }
               mode="single"
               selected={data.date || undefined}
               onSelect={(date) => onChange({ ...data, date: date || null })}
+              disabled={(date) => {
+                if (!dateRange?.startDate || !dateRange?.endDate) return false;
+                return date < dateRange.startDate || date > dateRange.endDate;
+              }}
               initialFocus
               className="pointer-events-auto"
             />
