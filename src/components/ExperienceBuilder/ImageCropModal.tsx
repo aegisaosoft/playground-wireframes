@@ -24,9 +24,9 @@ export const ImageCropModal: React.FC<ImageCropModalProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
-  // 4:3 aspect ratio dimensions
-  const CANVAS_WIDTH = 800;
-  const CANVAS_HEIGHT = 600;
+  // 4:3 aspect ratio dimensions (scaled down for better modal fit)
+  const CANVAS_WIDTH = 640;
+  const CANVAS_HEIGHT = 480;
 
   useEffect(() => {
     if (imageUrl && isOpen) {
@@ -154,7 +154,7 @@ export const ImageCropModal: React.FC<ImageCropModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Crop Image to 4:3 Ratio</DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -162,7 +162,7 @@ export const ImageCropModal: React.FC<ImageCropModalProps> = ({
           </p>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 pb-4">
           <div className="flex justify-center bg-black/50 rounded-lg p-4">
             <canvas
               ref={canvasRef}
