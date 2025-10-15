@@ -22,7 +22,7 @@ export const TitleBlock: React.FC<TitleBlockProps> = ({ data, onChange }) => {
         value={data.text}
         onChange={(e) => onChange({ text: e.target.value })}
         className="w-full bg-transparent border-0 border-b-2 border-white/20 focus:border-neon-pink/50 rounded-none p-0 pb-2 text-2xl md:text-3xl font-bold placeholder:text-muted-foreground/60 focus:outline-none text-foreground transition-colors"
-        placeholder="Give your experience a name"
+        placeholder="Experience name"
       />
     </div>
   );
