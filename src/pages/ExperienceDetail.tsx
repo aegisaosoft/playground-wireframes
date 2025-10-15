@@ -262,18 +262,19 @@ const ExperienceDetail = () => {
           Back
         </Button>
 
-        {/* Hero Section */}
-        <div className="relative rounded-3xl overflow-hidden mb-8">
+        {/* Hero Section - 4:3 ratio with bottom gradient */}
+        <div className="relative rounded-3xl overflow-hidden mb-8" style={{ aspectRatio: '4/3' }}>
           <img 
             src={experience.image} 
             alt={experience.title}
-            className="w-full h-[400px] object-cover"
+            className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          {/* Soft bottom gradient for readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           
-          {/* Hero Content */}
-          <div className="absolute bottom-8 left-8 right-8">
-            <div className="flex items-center gap-4 mb-4">
+          {/* Hero Content - Lower-left alignment */}
+          <div className="absolute bottom-8 left-8 right-8 max-w-3xl">
+            <div className="flex items-center gap-3 mb-3">
               <Badge className={`${categoryColors[experience.category.color]} font-medium`}>
                 {experience.category.name}
               </Badge>
@@ -282,36 +283,34 @@ const ExperienceDetail = () => {
               </Badge>
             </div>
             
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                  {experience.title}
-                </h1>
-                
-                <div className="flex items-center gap-6 text-white/90">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-5 h-5" />
-                    <span>{experience.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5" />
-                    <span>{experience.dates}</span>
-                  </div>
-                </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+              {experience.title}
+            </h1>
+            
+            <div className="flex items-center gap-6 text-white/90">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-5 h-5" />
+                <span>{experience.location}</span>
               </div>
-              
-              {/* Owner Edit Control */}
-              {isOwner && (
-                <Button 
-                  onClick={() => navigate(`/experiences/${experience.id}/edit`)}
-                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm"
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Experience
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                <span>{experience.dates}</span>
+              </div>
             </div>
           </div>
+          
+          {/* Owner Edit Control - Top right */}
+          {isOwner && (
+            <div className="absolute top-8 left-8">
+              <Button 
+                onClick={() => navigate(`/experiences/${experience.id}/edit`)}
+                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-sm"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Experience
+              </Button>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="absolute top-8 right-8 flex gap-3">

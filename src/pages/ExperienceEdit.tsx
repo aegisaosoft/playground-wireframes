@@ -462,7 +462,7 @@ function getDefaultBlockData(type: BlockType): any {
     case 'location':
       return { location: '' };
     case 'image':
-      return { url: '', alt: '' };
+      return { url: '', alt: '', hideOverlays: false };
     case 'richText':
       return { content: 'Tell your story here...' };
     case 'highlights':

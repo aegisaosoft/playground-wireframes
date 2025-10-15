@@ -1,15 +1,24 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Upload, X } from 'lucide-react';
+import { ImageCropModal } from '../ImageCropModal';
 
 interface ImageBlockProps {
-  data: { url: string; alt: string };
-  onChange: (data: { url: string; alt: string }) => void;
+  data: { 
+    url: string; 
+    alt: string;
+    hideOverlays?: boolean;
+  };
+  onChange: (data: { url: string; alt: string; hideOverlays?: boolean }) => void;
 }
 
 export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [tempImageUrl, setTempImageUrl] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = useCallback(async (file: File) => {
@@ -21,15 +30,20 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
     setIsUploading(true);
     
     try {
-      // Create object URL for preview
+      // Create object URL and open crop modal
       const objectUrl = URL.createObjectURL(file);
-      onChange({ ...data, url: objectUrl });
+      setTempImageUrl(objectUrl);
+      setShowCropModal(true);
     } catch (error) {
       console.error('Error uploading file:', error);
       alert('Error uploading file');
     } finally {
       setIsUploading(false);
     }
+  }, []);
+
+  const handleCropComplete = useCallback((croppedUrl: string) => {
+    onChange({ ...data, url: croppedUrl });
   }, [data, onChange]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -72,6 +86,25 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
 
   return (
     <div className="space-y-4">
+      {/* Hide Overlays Toggle */}
+      {data.url && (
+        <div className="flex items-center justify-between p-4 bg-black/20 rounded-lg border border-white/10">
+          <div className="space-y-1">
+            <Label htmlFor="hide-overlays" className="text-sm font-medium text-foreground">
+              Hide system overlays on banner
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Turn this on if your banner already contains text/branding
+            </p>
+          </div>
+          <Switch
+            id="hide-overlays"
+            checked={data.hideOverlays || false}
+            onCheckedChange={(checked) => onChange({ ...data, hideOverlays: checked })}
+          />
+        </div>
+      )}
+
       {!data.url ? (
         <div
           onDrop={handleDrop}
@@ -98,7 +131,7 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
           </div>
         </div>
       ) : (
-        <div className="relative w-full h-96 bg-black/20 rounded-xl border border-white/10 overflow-hidden group">
+        <div className="relative w-full bg-black/20 rounded-xl border border-white/10 overflow-hidden group" style={{ aspectRatio: '4/3' }}>
           <img
             src={data.url}
             alt={data.alt || 'Cover image'}
@@ -142,6 +175,19 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
           <p className="text-sm text-muted-foreground">Uploading image...</p>
         </div>
       )}
+
+      <ImageCropModal
+        isOpen={showCropModal}
+        onClose={() => {
+          setShowCropModal(false);
+          if (tempImageUrl) {
+            URL.revokeObjectURL(tempImageUrl);
+            setTempImageUrl('');
+          }
+        }}
+        imageUrl={tempImageUrl}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 };

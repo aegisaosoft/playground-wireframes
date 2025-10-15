@@ -40,11 +40,12 @@ export const RetreatCard = ({ image, location, date, title, onClick, isSaved, on
       className="group relative bg-card border border-border rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-neon-pink/50 hover:scale-105 hover:shadow-neon"
       onClick={onClick}
     >
-      <div className="relative overflow-hidden">
+      {/* Image - 4:3 ratio with center crop */}
+      <div className="relative overflow-hidden" style={{ aspectRatio: '4/3' }}>
         <img
           src={image}
           alt={title}
-          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+          className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-300"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
         
