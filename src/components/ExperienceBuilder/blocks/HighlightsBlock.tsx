@@ -13,6 +13,10 @@ export const HighlightsBlock: React.FC<HighlightsBlockProps> = ({ data, onChange
   const [newHighlight, setNewHighlight] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  // Ensure data.highlights is always an array (defensive programming)
+  const highlights = data.highlights || [];
+  const aiSuggestions = data.aiSuggestions || [];
+
   // Mock AI suggestions - in production this would call an AI service
   const generateAISuggestions = () => {
     const suggestions = [
@@ -27,10 +31,10 @@ export const HighlightsBlock: React.FC<HighlightsBlockProps> = ({ data, onChange
 
   useEffect(() => {
     // Show AI suggestions if we have no highlights yet
-    if (data.highlights.length === 0 && !data.aiSuggestions) {
+    if (highlights.length === 0 && aiSuggestions.length === 0) {
       const suggestions = generateAISuggestions();
       onChange({
-        ...data,
+        highlights: highlights,
         aiSuggestions: suggestions
       });
       setShowSuggestions(true);
@@ -39,35 +43,32 @@ export const HighlightsBlock: React.FC<HighlightsBlockProps> = ({ data, onChange
 
   const addHighlight = () => {
     if (newHighlight.trim()) {
-      const updatedHighlights = [...data.highlights, newHighlight.trim()];
+      const updatedHighlights = [...highlights, newHighlight.trim()];
       onChange({ 
-        ...data, 
         highlights: updatedHighlights,
-        aiSuggestions: data.aiSuggestions 
+        aiSuggestions: aiSuggestions 
       });
       setNewHighlight('');
     }
   };
 
   const removeHighlight = (index: number) => {
-    const updatedHighlights = data.highlights.filter((_, i) => i !== index);
+    const updatedHighlights = highlights.filter((_, i) => i !== index);
     onChange({ 
-      ...data, 
       highlights: updatedHighlights,
-      aiSuggestions: data.aiSuggestions 
+      aiSuggestions: aiSuggestions 
     });
   };
 
   const addSuggestion = (suggestion: string) => {
-    const updatedHighlights = [...data.highlights, suggestion];
-    const remainingSuggestions = data.aiSuggestions?.filter(s => s !== suggestion);
+    const updatedHighlights = [...highlights, suggestion];
+    const remainingSuggestions = aiSuggestions.filter(s => s !== suggestion);
     onChange({ 
-      ...data, 
       highlights: updatedHighlights,
       aiSuggestions: remainingSuggestions 
     });
     
-    if (remainingSuggestions?.length === 0) {
+    if (remainingSuggestions.length === 0) {
       setShowSuggestions(false);
     }
   };
@@ -75,7 +76,7 @@ export const HighlightsBlock: React.FC<HighlightsBlockProps> = ({ data, onChange
   const dismissSuggestions = () => {
     setShowSuggestions(false);
     onChange({
-      ...data,
+      highlights: highlights,
       aiSuggestions: []
     });
   };
@@ -88,7 +89,7 @@ export const HighlightsBlock: React.FC<HighlightsBlockProps> = ({ data, onChange
       </div>
 
       {/* AI Suggestions */}
-      {showSuggestions && data.aiSuggestions && data.aiSuggestions.length > 0 && (
+      {showSuggestions && aiSuggestions.length > 0 && (
         <div className="bg-gradient-to-r from-neon-purple/10 to-neon-cyan/10 border border-neon-purple/20 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -105,7 +106,7 @@ export const HighlightsBlock: React.FC<HighlightsBlockProps> = ({ data, onChange
             </Button>
           </div>
           <div className="flex flex-wrap gap-2">
-            {data.aiSuggestions.map((suggestion, index) => (
+            {aiSuggestions.map((suggestion, index) => (
               <Badge
                 key={index}
                 variant="secondary"
@@ -123,11 +124,11 @@ export const HighlightsBlock: React.FC<HighlightsBlockProps> = ({ data, onChange
       )}
 
       {/* Current Highlights */}
-      {data.highlights.length > 0 && (
+      {highlights.length > 0 && (
         <div className="space-y-3">
           <h4 className="text-sm font-medium text-muted-foreground">Current Highlights</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {data.highlights.map((highlight, index) => (
+            {highlights.map((highlight, index) => (
               <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-card border border-gray-800 group">
                 <div className="w-2 h-2 bg-neon-pink rounded-full" />
                 <span className="text-gray-300 flex-1">{highlight}</span>

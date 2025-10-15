@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { communityService, CommunityIdea } from '@/services/community.service';
 import { Plus, Bell } from 'lucide-react';
 import { MoodBoard } from '@/components/Community/MoodBoard';
 import { FollowingFeed } from '@/components/Community/FollowingFeed';
@@ -11,7 +13,31 @@ import { SuggestIdeaModal } from '@/components/Community/SuggestIdeaModal';
 const Community = () => {
   const [activeTab, setActiveTab] = useState('mood-board');
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
+  const [ideas, setIdeas] = useState<CommunityIdea[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [hasNewUpdates, setHasNewUpdates] = useState(true); // Mock notification state
+  const { toast } = useToast();
+
+  const fetchIdeas = async () => {
+    try {
+      setIsLoading(true);
+      const data = await communityService.getIdeas();
+      setIdeas(data);
+    } catch (error) {
+      console.error('Failed to fetch community ideas:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load community ideas",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchIdeas();
+  }, [toast]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80">
@@ -60,7 +86,7 @@ const Community = () => {
           </div>
 
           <TabsContent value="mood-board" className="mt-0">
-            <MoodBoard />
+            <MoodBoard ideas={ideas} isLoading={isLoading} onRefresh={() => window.location.reload()} />
           </TabsContent>
 
           <TabsContent value="following" className="mt-0">
@@ -72,6 +98,7 @@ const Community = () => {
       <SuggestIdeaModal 
         isOpen={isSuggestModalOpen}
         onClose={() => setIsSuggestModalOpen(false)}
+        onSuccess={fetchIdeas}
       />
     </div>
   );

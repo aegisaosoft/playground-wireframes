@@ -6,16 +6,21 @@ import { Grid3X3, Plus, Trash2, Image as ImageIcon, Upload, X } from 'lucide-rea
 interface GalleryImage {
   url: string;
   alt: string;
+  file?: File | null;  // ✅ Store the actual File object
+  id?: string;  // ✅ Database ID for existing images (for deletion)
 }
 
 interface GalleryBlockProps {
   data: { images: GalleryImage[] };
   onChange: (data: { images: GalleryImage[] }) => void;
+  experienceId?: string;  // ✅ Experience ID for deleting images from backend
+  onDeleteImage?: (imageId: string) => Promise<void>;  // ✅ Callback for deleting from backend
 }
 
-export const GalleryBlock: React.FC<GalleryBlockProps> = ({ data, onChange }) => {
+export const GalleryBlock: React.FC<GalleryBlockProps> = ({ data, onChange, experienceId, onDeleteImage }) => {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState<{ [key: number]: boolean }>({});
+  const [isDeleting, setIsDeleting] = useState<{ [key: number]: boolean }>({});
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
   const handleFileUpload = useCallback(async (file: File, index: number) => {
@@ -29,14 +34,28 @@ export const GalleryBlock: React.FC<GalleryBlockProps> = ({ data, onChange }) =>
     try {
       // Create object URL for preview
       const objectUrl = URL.createObjectURL(file);
-      updateImage(index, 'url', objectUrl);
+      
+      console.log('📸 GalleryBlock: Storing file for gallery image', index, ':', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type
+      });
+      
+      // ✅ Store BOTH the preview URL AND the File object
+      const newImages = [...data.images];
+      newImages[index] = { 
+        ...newImages[index], 
+        url: objectUrl,
+        file: file  // ✅ Store the actual File object
+      };
+      onChange({ images: newImages });
     } catch (error) {
       console.error('Error uploading file:', error);
       alert('Error uploading file');
     } finally {
       setIsUploading(prev => ({ ...prev, [index]: false }));
     }
-  }, []);
+  }, [data.images, onChange]);
 
   const handleDrop = useCallback((e: React.DragEvent, index: number) => {
     e.preventDefault();
@@ -66,17 +85,38 @@ export const GalleryBlock: React.FC<GalleryBlockProps> = ({ data, onChange }) =>
   }, [handleFileUpload]);
 
   const addImage = () => {
-    const newImages = [...data.images, { url: '', alt: '' }];
+    console.log('➕ GalleryBlock: Adding new image slot');
+    const newImages = [...data.images, { url: '', alt: '', file: null }];
     onChange({ images: newImages });
   };
 
-  const removeImage = (index: number) => {
-    // Clean up object URL if it exists
+  const removeImage = async (index: number) => {
     const image = data.images[index];
+    console.log('🗑️ GalleryBlock: Removing gallery image', index, 'Image ID:', image.id);
+    
+    // If image has an ID, it's saved in the database - delete from backend
+    if (image.id && experienceId && onDeleteImage) {
+      try {
+        setIsDeleting(prev => ({ ...prev, [index]: true }));
+        console.log('🗑️ Deleting image from backend:', image.id);
+        await onDeleteImage(image.id);
+        console.log('✅ Image deleted from backend successfully');
+      } catch (error) {
+        console.error('❌ Failed to delete image from backend:', error);
+        alert('Failed to delete image from server');
+        setIsDeleting(prev => ({ ...prev, [index]: false }));
+        return; // Don't remove from UI if backend deletion failed
+      } finally {
+        setIsDeleting(prev => ({ ...prev, [index]: false }));
+      }
+    }
+    
+    // Clean up object URL if it exists
     if (image.url.startsWith('blob:')) {
       URL.revokeObjectURL(image.url);
     }
     
+    // Remove from local state
     const newImages = data.images.filter((_, i) => i !== index);
     onChange({ images: newImages });
     
@@ -197,14 +237,21 @@ export const GalleryBlock: React.FC<GalleryBlockProps> = ({ data, onChange }) =>
                   </div>
                 )}
 
+                {isDeleting[index] && (
+                  <div className="text-center py-2">
+                    <p className="text-xs text-destructive">Deleting image...</p>
+                  </div>
+                )}
+
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => removeImage(index)}
+                  disabled={isDeleting[index]}
                   className="text-destructive hover:text-destructive hover:bg-destructive/20 w-full"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
-                  Remove Image
+                  {isDeleting[index] ? 'Deleting...' : 'Remove Image'}
                 </Button>
               </div>
             </div>

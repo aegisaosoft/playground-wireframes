@@ -1,7 +1,9 @@
-import { MapPin, Eye, EyeOff } from 'lucide-react';
+import { MapPin, Eye, EyeOff, Navigation, Maximize2, Minimize2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ExperiencePortalData } from '@/types/experiencePortal';
+import { useState, useEffect } from 'react';
 
 interface PortalOverviewProps {
   data: ExperiencePortalData;
@@ -9,6 +11,20 @@ interface PortalOverviewProps {
 }
 
 export const PortalOverview = ({ data, isReadOnly = false }: PortalOverviewProps) => {
+  const [isMapExpanded, setIsMapExpanded] = useState(false);
+
+  // Handle ESC key to close expanded map
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMapExpanded) {
+        setIsMapExpanded(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [isMapExpanded]);
+
   return (
     <div className="space-y-6">
       {/* Summary */}
@@ -105,18 +121,152 @@ export const PortalOverview = ({ data, isReadOnly = false }: PortalOverviewProps
       {/* Location Preview */}
       <Card className="bg-white/5 border-white/10 rounded-2xl">
         <CardHeader>
-          <CardTitle className="text-foreground">Location Preview</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-foreground">Location Preview</CardTitle>
+            {data.logistics?.address && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setIsMapExpanded(true)}
+                className="text-neon-cyan hover:text-neon-cyan/80 hover:bg-neon-cyan/10"
+              >
+                <Maximize2 className="w-4 h-4 mr-2" />
+                Expand Map
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="h-48 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center border border-gray-700 shadow-lg">
-            <div className="text-center">
-              <MapPin className="w-10 h-10 text-neon-cyan mx-auto mb-2" />
-              <p className="text-foreground font-medium">{data.location}</p>
-              <p className="text-sm text-muted-foreground">Interactive map coming soon</p>
+          {data.logistics?.address ? (
+            <div className="space-y-3">
+              {/* Location Display */}
+              <div className="flex items-center gap-2 mb-3">
+                <MapPin className="w-5 h-5 text-neon-cyan" />
+                <div>
+                  <p className="text-foreground font-medium">{data.location}</p>
+                  <p className="text-xs text-muted-foreground">{data.logistics.address}</p>
+                </div>
+              </div>
+              
+              {/* Google Map */}
+              <div className="rounded-lg overflow-hidden border border-gray-700 shadow-lg">
+                <iframe
+                  width="100%"
+                  height="300"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(data.logistics.address)}&zoom=14`}
+                  title="Experience Location"
+                  className="w-full"
+                />
+                <div className="bg-gray-900/50 border-t border-gray-700 p-2 flex items-center justify-between">
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.logistics.address)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-neon-cyan hover:text-neon-cyan/80 flex items-center gap-1 transition-colors"
+                  >
+                    <Navigation className="w-3 h-3" />
+                    Open in Google Maps
+                  </a>
+                  <a
+                    href={`https://maps.apple.com/?q=${encodeURIComponent(data.logistics.address)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-neon-purple hover:text-neon-purple/80 flex items-center gap-1 transition-colors"
+                  >
+                    <Navigation className="w-3 h-3" />
+                    Open in Apple Maps
+                  </a>
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="h-48 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center border border-gray-700 shadow-lg">
+              <div className="text-center">
+                <MapPin className="w-10 h-10 text-neon-cyan mx-auto mb-2" />
+                <p className="text-foreground font-medium">{data.location}</p>
+                <p className="text-sm text-muted-foreground">Map preview will be available when address is added</p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Fullscreen Map Modal */}
+      {isMapExpanded && data.logistics?.address && (
+        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="h-full flex flex-col">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-white/10 p-4">
+              <div className="max-w-7xl mx-auto flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <MapPin className="w-6 h-6 text-neon-cyan" />
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground">{data.location}</h2>
+                    <p className="text-sm text-muted-foreground">{data.logistics.address}</p>
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setIsMapExpanded(false)}
+                  className="text-foreground hover:text-neon-cyan hover:bg-neon-cyan/10"
+                >
+                  <Minimize2 className="w-5 h-5 mr-2" />
+                  Close Map
+                </Button>
+              </div>
+            </div>
+
+            {/* Map */}
+            <div className="flex-1 relative">
+              <iframe
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+                src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(data.logistics.address)}&zoom=15`}
+                title="Experience Location - Full Screen"
+                className="w-full h-full"
+              />
+            </div>
+
+            {/* Footer */}
+            <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-white/10 p-4">
+              <div className="max-w-7xl mx-auto flex items-center justify-between">
+                <div className="flex gap-4">
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.logistics.address)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-neon-cyan hover:text-neon-cyan/80 flex items-center gap-2 transition-colors"
+                  >
+                    <Navigation className="w-4 h-4" />
+                    Open in Google Maps
+                  </a>
+                  <a
+                    href={`https://maps.apple.com/?q=${encodeURIComponent(data.logistics.address)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-neon-purple hover:text-neon-purple/80 flex items-center gap-2 transition-colors"
+                  >
+                    <Navigation className="w-4 h-4" />
+                    Open in Apple Maps
+                  </a>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Press <kbd className="px-2 py-1 bg-gray-700 rounded text-xs">ESC</kbd> to close
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

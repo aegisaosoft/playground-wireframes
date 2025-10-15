@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Megaphone, Plus, Pin, PinOff, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,9 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { announcementsService } from '@/services/announcements.service';
 import { Announcement } from '@/types/experiencePortal';
 
 interface PortalAnnouncementsProps {
+  experienceId: string;
   userRole: 'organizer' | 'co-host' | 'attendee' | 'pending';
 }
 
@@ -37,34 +40,98 @@ const mockAnnouncements: Announcement[] = [
   }
 ];
 
-export const PortalAnnouncements = ({ userRole }: PortalAnnouncementsProps) => {
-  const [announcements, setAnnouncements] = useState<Announcement[]>(mockAnnouncements);
+export const PortalAnnouncements = ({ experienceId, userRole }: PortalAnnouncementsProps) => {
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [newAnnouncement, setNewAnnouncement] = useState({
     title: '',
     content: ''
   });
+  const { toast } = useToast();
 
   const isHost = userRole === 'organizer' || userRole === 'co-host';
   const unreadCount = announcements.filter(a => !a.isRead).length;
 
-  const handleCreateAnnouncement = () => {
-    if (!newAnnouncement.title || !newAnnouncement.content) return;
-
-    const announcement: Announcement = {
-      id: Date.now().toString(),
-      title: newAnnouncement.title,
-      content: newAnnouncement.content,
-      authorId: 'current-user',
-      authorName: 'You',
-      createdAt: new Date(),
-      isPinned: false,
-      isRead: true
+  // Load announcements from API
+  useEffect(() => {
+    const loadAnnouncements = async () => {
+      try {
+        console.log('📢 Loading announcements for experience:', experienceId);
+        setIsLoading(true);
+        
+        const data = await announcementsService.getExperienceAnnouncements(experienceId);
+        
+        // Transform API data to match UI expectations
+        const transformedAnnouncements = data.map((ann: any) => ({
+          id: ann.id,
+          title: ann.title,
+          content: ann.message,
+          authorId: ann.authorId,
+          authorName: ann.authorName,
+          createdAt: new Date(ann.createdAt),
+          isPinned: ann.isImportant, // Map isImportant to isPinned
+          isRead: false // Default to unread
+        }));
+        
+        console.log('✅ Announcements loaded:', transformedAnnouncements);
+        setAnnouncements(transformedAnnouncements);
+      } catch (error) {
+        console.error('❌ Error loading announcements:', error);
+        // Silent fail - just show empty announcements
+        setAnnouncements([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    setAnnouncements(prev => [announcement, ...prev]);
-    setNewAnnouncement({ title: '', content: '' });
-    setIsCreating(false);
+    loadAnnouncements();
+  }, [experienceId]);
+
+  const handleCreateAnnouncement = async () => {
+    if (!newAnnouncement.title || !newAnnouncement.content) return;
+
+    try {
+      console.log('📤 Creating announcement:', newAnnouncement);
+      
+      const created = await announcementsService.createAnnouncement({
+        experienceId: experienceId,
+        title: newAnnouncement.title,
+        message: newAnnouncement.content,
+        isImportant: false
+      });
+
+      // Add to list
+      const announcement: Announcement = {
+        id: created.id,
+        title: created.title,
+        content: created.message,
+        authorId: created.authorId,
+        authorName: created.authorName,
+        createdAt: new Date(created.createdAt),
+        isPinned: created.isImportant,
+        isRead: true
+      };
+
+      setAnnouncements(prev => [announcement, ...prev]);
+      setNewAnnouncement({ title: '', content: '' });
+      setIsCreating(false);
+      
+      toast({
+        title: "Announcement Posted",
+        description: "Your announcement has been shared with attendees.",
+      });
+      
+      console.log('✅ Announcement created:', announcement);
+      
+    } catch (error) {
+      console.error('❌ Error creating announcement:', error);
+      toast({
+        title: "Error",
+        description: "Failed to post announcement. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const togglePin = (id: string) => {

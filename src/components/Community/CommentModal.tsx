@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +13,8 @@ import {
   Heart,
   MoreHorizontal
 } from 'lucide-react';
+import { communityService } from '@/services/community.service';
+import { useToast } from '@/hooks/use-toast';
 
 interface Comment {
   id: string;
@@ -20,7 +22,7 @@ interface Comment {
   userName: string;
   userAvatar?: string;
   content: string;
-  timestamp: Date;
+  timestamp: Date | string;  // ✅ API returns string, convert to Date when needed
   likes: number;
   isLiked: boolean;
   replies?: Comment[];
@@ -88,12 +90,77 @@ const mockComments: Comment[] = [
 ];
 
 export const CommentModal = ({ isOpen, onClose, idea, update }: CommentModalProps) => {
-  const [comments, setComments] = useState<Comment[]>(mockComments);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmitComment = () => {
+  // Fetch comments when modal opens
+  useEffect(() => {
+    const fetchComments = async () => {
+      if (!isOpen || !idea) return;
+      
+      try {
+        setIsLoading(true);
+        console.log('📥 Fetching comments for idea:', idea.id);
+        
+        const fetchedComments = await communityService.getIdeaComments(idea.id);
+        
+        console.log('✅ Fetched comments:', fetchedComments);
+        setComments(fetchedComments as Comment[]);
+      } catch (error) {
+        console.error('❌ Failed to fetch comments:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load comments",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchComments();
+  }, [isOpen, idea, toast]);
+
+  const handleSubmitComment = async () => {
+    if (!newComment.trim() || !idea) return;
+
+    try {
+      setIsSubmitting(true);
+      console.log('📤 Posting comment to idea:', idea.id);
+      
+      // Call API to create comment
+      const createdComment = await communityService.createComment(idea.id, {
+        content: newComment.trim()
+      });
+      
+      console.log('✅ Comment created:', createdComment);
+
+      // Add to local state
+      setComments(prev => [...prev, createdComment as Comment]);
+      setNewComment('');
+      
+      toast({
+        title: "Comment Posted!",
+        description: "Your comment has been added.",
+      });
+    } catch (error) {
+      console.error('❌ Failed to post comment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to post comment. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmitCommentOld = () => {
     if (!newComment.trim()) return;
 
     const comment: Comment = {
@@ -164,9 +231,10 @@ export const CommentModal = ({ isOpen, onClose, idea, update }: CommentModalProp
     }
   };
 
-  const formatTimeAgo = (date: Date) => {
+  const formatTimeAgo = (date: Date | string) => {
     const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    const commentDate = typeof date === 'string' ? new Date(date) : date;
+    const diffInMinutes = Math.floor((now.getTime() - commentDate.getTime()) / (1000 * 60));
     
     if (diffInMinutes < 1) return 'just now';
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
@@ -215,12 +283,12 @@ export const CommentModal = ({ isOpen, onClose, idea, update }: CommentModalProp
             <div className="flex justify-end">
               <Button
                 onClick={handleSubmitComment}
-                disabled={!newComment.trim()}
+                disabled={!newComment.trim() || isSubmitting}
                 size="sm"
                 className="bg-neon-cyan text-background hover:bg-neon-cyan/90 disabled:opacity-50"
               >
                 <Send className="w-4 h-4 mr-2" />
-                Comment
+                {isSubmitting ? 'Posting...' : 'Comment'}
               </Button>
             </div>
           </div>
@@ -228,7 +296,18 @@ export const CommentModal = ({ isOpen, onClose, idea, update }: CommentModalProp
           {/* Comments list */}
           <ScrollArea className="max-h-[400px]">
             <div className="space-y-4 pr-4">
-              {comments.map((comment) => (
+              {isLoading ? (
+                <div className="text-center py-8 text-white/60">
+                  <MessageCircle className="w-8 h-8 mx-auto mb-2 animate-pulse" />
+                  Loading comments...
+                </div>
+              ) : comments.length === 0 ? (
+                <div className="text-center py-8 text-white/60">
+                  <MessageCircle className="w-8 h-8 mx-auto mb-2" />
+                  No comments yet. Be the first to comment!
+                </div>
+              ) : (
+                comments.map((comment) => (
                 <div key={comment.id} className="space-y-3">
                   {/* Main comment */}
                   <div className="flex gap-3">
@@ -358,13 +437,7 @@ export const CommentModal = ({ isOpen, onClose, idea, update }: CommentModalProp
                     </div>
                   </div>
                 </div>
-              ))}
-              
-              {comments.length === 0 && (
-                <div className="text-center py-8 text-white/60">
-                  <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No comments yet. Be the first to share your thoughts!</p>
-                </div>
+              ))
               )}
             </div>
           </ScrollArea>

@@ -1,58 +1,52 @@
+import { useState, useEffect } from "react";
 import ExperienceCard from "./ExperienceCard";
 import { Button } from "@/components/ui/button";
-import retreatBali from "@/assets/retreat-bali.jpg";
-import retreatCostaRica from "@/assets/retreat-costa-rica.jpg";
-import retreatTulum from "@/assets/retreat-tulum.jpg";
-import retreatPortugal from "@/assets/retreat-portugal.jpg";
-import retreatSwitzerland from "@/assets/retreat-switzerland.jpg";
-import retreatGreece from "@/assets/retreat-greece.jpg";
+import { experiencesService } from "@/services/experiences.service";
 
-const experiences = [
-  {
-    id: 1,
-    title: "Desert Code Camp",
-    location: "Joshua Tree, CA",
-    duration: "5 days",
-    description: "Build your startup under the stars. Code by day, campfire talks by night.",
-    highlights: [
-      "Star-gazing sessions",
-      "Sunrise yoga",
-      "Technical workshops"
-    ],
-    image: retreatBali,
-    category: { name: "Hacker House", color: "pink" as const }
-  },
-  {
-    id: 2,
-    title: "Tokyo Street Tech",
-    location: "Shibuya, Japan",
-    duration: "7 days",
-    description: "Immerse in Tokyo's underground tech scene. Street art meets code.",
-    highlights: [
-      "Underground tech tours",
-      "Local maker spaces",
-      "Neon district exploration"
-    ],
-    image: retreatCostaRica,
-    category: { name: "Creative Collective", color: "cyan" as const }
-  },
-  {
-    id: 3,
-    title: "Bali Builder Retreat",
-    location: "Canggu, Bali",
-    duration: "14 days",
-    description: "Tropical productivity paradise. Build your next big thing by the beach.",
-    highlights: [
-      "Beachside coworking",
-      "Sunset surfing",
-      "Meditation sessions"
-    ],
-    image: retreatTulum,
-    category: { name: "Digital Nomad Hub", color: "yellow" as const }
-  }
-];
+const categoryColorMap: Record<string, "pink" | "cyan" | "yellow" | "purple" | "green" | "orange"> = {
+  tech: "cyan",
+  wellness: "green",
+  business: "purple",
+  adventure: "orange",
+  culinary: "yellow",
+  creative: "pink"
+};
 
 const ExperiencesSection = () => {
+  const [experiences, setExperiences] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchExperiences = async () => {
+      try {
+        const data = await experiencesService.getAll();
+        
+        // Transform API data for ExperienceCard component
+        const transformedData = data.slice(0, 3).map((exp: any) => ({
+          id: exp.id,
+          title: exp.title,
+          location: exp.location || 'TBA',
+          duration: exp.dates || 'TBA',
+          description: exp.description || exp.shortDescription || '',
+          highlights: exp.highlights || [],
+          image: exp.image || exp.featuredImageUrl || null,
+          category: {
+            name: exp.category || 'Experience',
+            color: categoryColorMap[exp.categorySlug] || 'pink'
+          }
+        }));
+        
+        setExperiences(transformedData);
+      } catch (error) {
+        console.error('Failed to fetch experiences for homepage:', error);
+        setExperiences([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchExperiences();
+  }, []);
   return (
     <section className="py-20 px-6">
       <div className="max-w-7xl mx-auto">
@@ -73,12 +67,22 @@ const ExperiencesSection = () => {
 
         {/* Experience Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {experiences.map((experience) => (
-            <ExperienceCard
-              key={experience.id}
-              {...experience}
-            />
-          ))}
+          {isLoading ? (
+            <div className="col-span-full text-center py-12">
+              <p className="text-muted-foreground">Loading experiences...</p>
+            </div>
+          ) : experiences.length > 0 ? (
+            experiences.map((experience) => (
+              <ExperienceCard
+                key={experience.id}
+                {...experience}
+              />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-muted-foreground">No experiences available yet. Check back soon!</p>
+            </div>
+          )}
         </div>
 
         {/* Bottom CTA */}

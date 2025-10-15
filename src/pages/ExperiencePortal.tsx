@@ -13,6 +13,7 @@ import { PortalSchedule } from '@/components/ExperiencePortal/PortalSchedule';
 import { PortalResources } from '@/components/ExperiencePortal/PortalResources';
 import { PortalAnnouncements } from '@/components/ExperiencePortal/PortalAnnouncements';
 import { PortalLogistics } from '@/components/ExperiencePortal/PortalLogistics';
+import { experiencesService } from '@/services/experiences.service';
 
 // Mock data - in real app, this would come from Supabase
 const getMockExperienceData = (experienceId: string): ExperiencePortalData => ({
@@ -96,12 +97,105 @@ const ExperiencePortal = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isChatMuted, setIsChatMuted] = useState(false);
   const [unreadCount, setUnreadCount] = useState(3);
+  const [experienceData, setExperienceData] = useState<ExperiencePortalData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!experienceId) {
+  // Load experience from API
+  useEffect(() => {
+    const loadExperience = async () => {
+      if (!experienceId) {
+        navigate('/experiences');
+        return;
+      }
+
+      try {
+        console.log('📥 Loading experience for portal:', experienceId);
+        setIsLoading(true);
+        
+        const data = await experiencesService.getById(experienceId);
+        
+        console.log('✅ Portal experience loaded:', data);
+        
+        // Transform to portal data structure with REAL data from API
+        const portalData: ExperiencePortalData = {
+          experienceId: data.id,
+          title: data.title,
+          location: data.location,
+          dates: data.startDate && data.endDate 
+            ? `${new Date(data.startDate).toLocaleDateString()} - ${new Date(data.endDate).toLocaleDateString()}`
+            : 'Dates TBA',
+          image: data.image || data.featuredImageUrl || '/placeholder.svg',
+          description: data.description,
+          // ✅ Use real highlights from API
+          highlights: data.highlights || [],
+          organizer: {
+            id: data.hostId,
+            name: data.hostName,
+            email: '',
+            avatar: '/placeholder.svg',
+            bio: 'Experience host',
+            role: 'organizer'
+          },
+          attendees: [],
+          userRole: 'attendee',
+          isApproved: true,
+          // ✅ Use real agenda from API
+          agenda: data.agenda || [],
+          ticketTier: {
+            name: 'Standard',
+            price: (data.price || 0) / 100
+          },
+          visibility: data.status === 'published' ? 'public' : 'private',
+          // ✅ Use real logistics from API (with fallbacks)
+          logistics: {
+            address: data.address || data.location || 'Address to be announced',
+            meetupInstructions: data.meetupInstructions || 'Details will be shared closer to the event.',
+            checkInNotes: data.checkInNotes || 'Please arrive 15 minutes early.',
+            emergencyContact: {
+              name: data.emergencyContactName || data.hostName,
+              phone: data.emergencyContactPhone || ''
+            },
+            additionalInfo: data.additionalInfo || ''
+          }
+        };
+        
+        console.log('📊 Portal data transformed:', {
+          agenda: portalData.agenda,
+          highlights: portalData.highlights,
+          gallery: portalData.gallery,
+          logistics: portalData.logistics
+        });
+        
+        setExperienceData(portalData);
+        
+      } catch (error) {
+        console.error('❌ Error loading portal experience:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load experience portal.",
+          variant: "destructive"
+        });
+        navigate('/experiences');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadExperience();
+  }, [experienceId, navigate, toast]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-foreground">Loading portal...</p>
+      </div>
+    );
+  }
+
+  if (!experienceData) {
     return <div>Experience not found</div>;
   }
 
-  const experienceData = getMockExperienceData(experienceId);
   const isHost = experienceData.userRole === 'organizer' || experienceData.userRole === 'co-host';
 
   const handleCopyPrivateLink = () => {
@@ -270,7 +364,7 @@ const ExperiencePortal = () => {
           {/* Right Rail */}
           <div className="space-y-6">
             {/* Announcements */}
-            <PortalAnnouncements userRole={experienceData.userRole} />
+            <PortalAnnouncements experienceId={experienceData.experienceId} userRole={experienceData.userRole} />
             
             {/* Logistics */}
             <PortalLogistics 

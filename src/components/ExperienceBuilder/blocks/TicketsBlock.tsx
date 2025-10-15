@@ -12,20 +12,39 @@ interface TicketsBlockProps {
 }
 
 export const TicketsBlock: React.FC<TicketsBlockProps> = ({ data, onChange }) => {
+  // Debug logging
+  React.useEffect(() => {
+    console.log('🎫 TicketsBlock received data:', data);
+    console.log('🎫 Number of tiers:', data.tiers?.length || 0);
+    console.log('🎫 Tiers:', data.tiers);
+  }, [data]);
+
   // Initialize with default required fields if empty
   const initializeData = () => {
+    console.log('🔧 Initializing TicketsBlock data...');
+    console.log('   Current tiers:', data.tiers);
+    console.log('   Current applicationForm:', data.applicationForm);
+    
+    // Only initialize if we need to add default fields
     if (!data.applicationForm?.fields || data.applicationForm.fields.length === 0) {
+      console.log('   Adding default application form fields');
       onChange({
         ...data,
+        tiers: data.tiers || [], // Preserve existing tiers
         applicationForm: {
           fields: [...defaultRequiredFields]
         }
       });
+    } else {
+      console.log('   Application form already initialized, skipping');
     }
   };
 
   React.useEffect(() => {
-    initializeData();
+    // Only run initialization if data exists
+    if (data) {
+      initializeData();
+    }
   }, []);
 
   const addTier = () => {

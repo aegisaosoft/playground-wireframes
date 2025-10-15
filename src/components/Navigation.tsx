@@ -64,6 +64,7 @@ export const Navigation = ({
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('auth_token');
     navigate('/');
   };
 
@@ -159,6 +160,25 @@ export const Navigation = ({
               onClick={() => setIsAuthModalOpen(true)}
             >
               Get Early Access
+            </Button>
+          )}
+
+          {/* Auth control (top-right): Login or Logout */}
+          {user ? (
+            <Button
+              variant="outline"
+              className="bg-transparent border-white/20 text-foreground hover:bg-white/10"
+              onClick={handleLogout}
+            >
+              Log out
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              className="bg-transparent border-white/20 text-foreground hover:bg-white/10"
+              onClick={() => setIsAuthModalOpen(true)}
+            >
+              Log in
             </Button>
           )}
         </div>

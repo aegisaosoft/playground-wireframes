@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useAuthCallback } from "@/hooks/useAuthCallback";
 import Index from "./pages/Index";
 import { Layout } from "./components/Layout";
 import { HostProfileWrapper } from "./components/HostProfileWrapper";
@@ -24,12 +25,18 @@ import MyAccount from "./pages/MyAccount";
 
 const queryClient = new QueryClient();
 
+const AuthCallbackHandler = () => {
+  useAuthCallback();
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <AuthCallbackHandler />
         <Routes>
           <Route path="/" element={<Layout><Index /></Layout>} />
           <Route path="/create" element={<Layout><ExperienceBuilder /></Layout>} />

@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { VoiceOnboardingModal } from "@/components/VoiceOnboarding";
+import { authService } from "@/services/auth.service";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -29,40 +31,17 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
     setIsLoading(true);
 
     try {
-      const endpoint = isSignUp ? '/api/signup' : '/api/login';
-      const body = isSignUp 
-        ? { email, password }
-        : { email, password };
-
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock successful response - check if user exists
-      const existingUser = localStorage.getItem('user');
-      const isFirstSignIn = isSignUp || !existingUser;
-      const user = { 
-        name: email.split('@')[0], 
-        email,
-        profile: existingUser ? JSON.parse(existingUser).profile : undefined
-      };
-      
-      // Store user in localStorage
-      localStorage.setItem('user', JSON.stringify(user));
-      
       if (isSignUp) {
-        // For signup, show voice onboarding modal
+        const res = await authService.signUp({ email, password, name: email.split('@')[0] });
+        // Store user + token already handled in service; show onboarding
         setShowVoiceOnboarding(true);
       } else {
-        // For login, proceed normally and redirect to profile
-        onLogin(user, false);
+        const res = await authService.login({ email, password });
+        localStorage.setItem('user', JSON.stringify(res.user));
+        localStorage.setItem('auth_token', res.token);
+        onLogin({ name: res.user.name, email: res.user.email }, false);
         onClose();
-        
-        toast({
-          title: "Welcome back!",
-          description: "You've been logged in successfully.",
-        });
-        
-        // Navigate to profile section for returning users
+        toast({ title: "Welcome back!", description: "You've been logged in successfully." });
         navigate('/account');
       }
       
@@ -71,55 +50,20 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       setPassword("");
       setConfirmPassword("");
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
+      const msg = isSignUp ? "Sign up failed. Check details and try again." : "Invalid email or password.";
+      toast({ title: "Authentication error", description: msg, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    try {
-      // Simulate Google login
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const existingUser = localStorage.getItem('user');
-      const isFirstSignIn = !existingUser;
-      const user = { 
-        name: "Google User", 
-        email: "user@gmail.com",
-        profile: existingUser ? JSON.parse(existingUser).profile : undefined
-      };
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      // For Google login, check if it's a new user and show onboarding
-      if (isFirstSignIn) {
-        setShowVoiceOnboarding(true);
-      } else {
-        onLogin(user, false);
-        onClose();
-        
-        toast({
-          title: "Welcome back!",
-          description: "You've been logged in with Google.",
-        });
-        
-        // Navigate to profile section for returning users
-        navigate('/account');
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Google login failed. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Supabase instance not available - use email/password login instead
+    toast({
+      title: "Google Login Not Available",
+      description: "Please use email/password login. Google OAuth requires Supabase configuration.",
+      variant: "default",
+    });
   };
 
   const handleVoiceOnboardingComplete = (profileData: any) => {

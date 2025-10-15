@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { useVoiceRecognition } from '@/hooks/useVoiceRecognition';
 
 interface VoiceExperienceCaptureProps {
   onComplete: (recording: any, transcript: string) => void;
@@ -37,6 +38,17 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { toast } = useToast();
+  
+  // Use real voice recognition
+  const {
+    isListening: isVoiceRecognitionActive,
+    transcript: liveTranscript,
+    startListening: startVoiceRecognition,
+    stopListening: stopVoiceRecognition,
+    resetTranscript: resetVoiceTranscript,
+    isSupported: isVoiceSupported,
+    error: voiceError
+  } = useVoiceRecognition({ continuous: true, interimResults: true });
 
   useEffect(() => {
     checkMicrophonePermission();
@@ -44,6 +56,17 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
       cleanup();
     };
   }, []);
+
+  // Show voice recognition errors
+  useEffect(() => {
+    if (voiceError && isVoiceRecognitionActive) {
+      toast({
+        title: "Voice Recognition Issue",
+        description: voiceError,
+        variant: "destructive",
+      });
+    }
+  }, [voiceError, isVoiceRecognitionActive, toast]);
 
   const cleanup = () => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -89,7 +112,9 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
 
       mediaRecorderRef.current.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        const mockTranscript = "I want to create a 7-day hacker house experience in Lisbon, Portugal from October 15th to 22nd. It's for developers, entrepreneurs, and remote workers who want to collaborate on projects. The vibe should be innovative and social. Day 1 we'll have a welcome dinner at 6pm and networking until 8pm. Day 2 starts with morning standup at 9am, then focus work sessions, ending with demo presentations at 6pm. For pricing, early bird tickets are 799 euros for 10 spots, and standard tickets are 899 euros for 15 spots. This should be a public experience with the call-to-action 'Join the House'.";
+        
+        // Use real transcript from voice recognition (with fallback to mock for demo)
+        const capturedTranscript = liveTranscript || "I want to create a 7-day hacker house experience in Lisbon, Portugal from October 15th to 22nd. It's for developers, entrepreneurs, and remote workers who want to collaborate on projects. The vibe should be innovative and social. Day 1 we'll have a welcome dinner at 6pm and networking until 8pm. Day 2 starts with morning standup at 9am, then focus work sessions, ending with demo presentations at 6pm. For pricing, early bird tickets are 799 euros for 10 spots, and standard tickets are 899 euros for 15 spots. This should be a public experience with the call-to-action 'Join the House'.";
         
         stream.getTracks().forEach(track => track.stop());
         
@@ -97,15 +122,25 @@ export const VoiceExperienceCapture: React.FC<VoiceExperienceCaptureProps> = ({ 
         setAccumulatedRecordings(prev => [...prev, { audioBlob, duration, timestamp: new Date() }]);
         
         // Append transcript and show editor
-        setTranscript(prev => prev ? `${prev}\n\n${mockTranscript}` : mockTranscript);
+        setTranscript(prev => prev ? `${prev}\n\n${capturedTranscript}` : capturedTranscript);
         setShowTranscriptEditor(true);
         setInputMode('voice');
+        
+        // Stop voice recognition
+        stopVoiceRecognition();
+        
+        console.log('🎤 Voice recognition captured:', liveTranscript ? 'REAL TRANSCRIPT' : 'FALLBACK TO MOCK');
       };
 
       mediaRecorderRef.current.start();
       setRecordingState('recording');
       startTimer();
       startAudioAnalysis();
+      
+      // Start voice recognition
+      resetVoiceTranscript();
+      startVoiceRecognition();
+      console.log('🎤 Starting voice recognition...');
       
     } catch (err) {
       setError('Failed to start recording. Please try again.');

@@ -2,7 +2,8 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Folder, Plus, Trash2, GripVertical } from 'lucide-react';
+import { Folder, Plus, Trash2, GripVertical, ExternalLink } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface ResourceItem {
   id: string;
@@ -18,6 +19,49 @@ interface ResourcesBlockProps {
 }
 
 export const ResourcesBlock: React.FC<ResourcesBlockProps> = ({ data, onChange }) => {
+  const { toast } = useToast();
+
+  const isValidUrl = (urlString: string): boolean => {
+    if (!urlString || urlString.trim() === '') {
+      return false;
+    }
+    
+    try {
+      const url = new URL(urlString);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch (err) {
+      return false;
+    }
+  };
+
+  const openResource = (resource: ResourceItem) => {
+    if (!resource.url || resource.url.trim() === '') {
+      toast({
+        title: "No URL provided",
+        description: "Please enter a URL for this resource first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!isValidUrl(resource.url)) {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid URL starting with http:// or https://",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Open in new window
+    window.open(resource.url, '_blank', 'noopener,noreferrer');
+    
+    toast({
+      title: "Resource opened",
+      description: `Opened ${resource.title || 'resource'} in a new window.`,
+    });
+  };
+
   const addResource = () => {
     const newResource: ResourceItem = {
       id: `resource-${Date.now()}`,
@@ -115,24 +159,45 @@ export const ResourcesBlock: React.FC<ResourcesBlockProps> = ({ data, onChange }
           <div className="p-6 bg-gradient-dark rounded-lg border border-white/10">
             <div className="text-sm font-medium text-foreground mb-3">Preview:</div>
             <div className="space-y-2">
-              {data.resources.map((resource) => (
-                <div key={resource.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                  <Folder className="w-4 h-4 text-neon-cyan" />
-                  <div className="flex-1">
-                    <div className="text-foreground font-medium">
-                      {resource.title || 'Untitled Resource'}
-                    </div>
-                    {resource.description && (
-                      <div className="text-muted-foreground text-sm">
-                        {resource.description}
+              {data.resources.map((resource) => {
+                const hasUrl = resource.url && resource.url.trim() !== '';
+                const urlIsValid = hasUrl && isValidUrl(resource.url);
+                
+                return (
+                  <div key={resource.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg group hover:bg-white/10 transition-colors">
+                    <Folder className="w-4 h-4 text-neon-cyan" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-foreground font-medium truncate">
+                        {resource.title || 'Untitled Resource'}
                       </div>
-                    )}
+                      {resource.description && (
+                        <div className="text-muted-foreground text-sm truncate">
+                          {resource.description}
+                        </div>
+                      )}
+                      {hasUrl && (
+                        <div className={`text-xs truncate ${urlIsValid ? 'text-neon-cyan' : 'text-red-400'}`}>
+                          {urlIsValid ? '✓ Valid URL' : '✗ Invalid URL'}
+                        </div>
+                      )}
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => openResource(resource)}
+                      disabled={!hasUrl}
+                      className={`${
+                        urlIsValid 
+                          ? 'border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10' 
+                          : 'border-white/10 text-muted-foreground hover:text-foreground'
+                      } ${!hasUrl ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-1" />
+                      Open
+                    </Button>
                   </div>
-                  <Button size="sm" variant="outline" className="border-white/10 text-foreground">
-                    Open
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

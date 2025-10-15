@@ -7,20 +7,27 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { TagInput } from '@/components/TagInput';
 import { X, Lightbulb, MapPin, Calendar, Users, Hash } from 'lucide-react';
+import { communityService } from '@/services/community.service';
+import { useToast } from '@/hooks/use-toast';
 
 interface SuggestIdeaModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void; // Callback to refresh ideas list
 }
 
-export const SuggestIdeaModal = ({ isOpen, onClose }: SuggestIdeaModalProps) => {
+export const SuggestIdeaModal = ({ isOpen, onClose, onSuccess }: SuggestIdeaModalProps) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     title: '',
+    description: '',
     location: '',
     tentativeDates: '',
     desiredPeople: '',
-    tags: [] as string[]
+    tags: [] as string[],
+    isAnonymous: false
   });
 
   const handleNext = () => {
@@ -33,29 +40,65 @@ export const SuggestIdeaModal = ({ isOpen, onClose }: SuggestIdeaModalProps) => 
     setCurrentStep(1);
   };
 
-  const handleSubmit = () => {
-    // Here you would typically submit the idea to your backend
-    console.log('Submitting idea:', formData);
-    
-    // Reset form and close modal
-    setFormData({
-      title: '',
-      location: '',
-      tentativeDates: '',
-      desiredPeople: '',
-      tags: []
-    });
-    setCurrentStep(1);
-    onClose();
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      console.log('Submitting idea:', formData);
+      
+      // Call API to create idea
+      await communityService.createIdea({
+        title: formData.title,
+        description: formData.description,
+        location: formData.location,
+        tentativeDates: formData.tentativeDates,
+        desiredPeople: formData.desiredPeople,
+        tags: formData.tags.join(','), // Convert array to comma-separated string
+        isAnonymous: formData.isAnonymous
+      });
+      
+      toast({
+        title: "Idea Posted!",
+        description: "Your suggestion has been added to the community board.",
+      });
+      
+      // Reset form and close modal
+      setFormData({
+        title: '',
+        description: '',
+        location: '',
+        tentativeDates: '',
+        desiredPeople: '',
+        tags: [],
+        isAnonymous: false
+      });
+      setCurrentStep(1);
+      onClose();
+      
+      // Trigger refresh
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (error) {
+      console.error('Failed to submit idea:', error);
+      toast({
+        title: "Error",
+        description: "Failed to post your idea. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
     setFormData({
       title: '',
+      description: '',
       location: '',
       tentativeDates: '',
       desiredPeople: '',
-      tags: []
+      tags: [],
+      isAnonymous: false
     });
     setCurrentStep(1);
     onClose();
@@ -218,9 +261,10 @@ export const SuggestIdeaModal = ({ isOpen, onClose }: SuggestIdeaModalProps) => 
               ) : (
                 <Button
                   onClick={handleSubmit}
-                  className="bg-gradient-to-r from-neon-cyan to-neon-purple text-background hover:opacity-90 font-semibold"
+                  disabled={isSubmitting}
+                  className="bg-gradient-to-r from-neon-cyan to-neon-purple text-background hover:opacity-90 font-semibold disabled:opacity-50"
                 >
-                  Post Idea
+                  {isSubmitting ? 'Posting...' : 'Post Idea'}
                 </Button>
               )}
             </div>

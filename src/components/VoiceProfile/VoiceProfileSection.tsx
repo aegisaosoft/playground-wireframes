@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { TagInput } from '@/components/TagInput';
 import { VoiceOnboardingModal } from '@/components/VoiceOnboarding';
-import { Mic, Edit, RotateCcw, User, Save, X } from 'lucide-react';
+import { Mic, MicOff, Edit, RotateCcw, User, Save, X } from 'lucide-react';
 import { ExtractedProfileData } from '@/types/voiceOnboarding';
+import { useVoiceRecognition } from '@/hooks/useVoiceRecognition';
+import { useToast } from '@/hooks/use-toast';
 
 interface VoiceProfileSectionProps {
   profileData?: ExtractedProfileData & { transcript?: string };
@@ -19,6 +21,7 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
 }) => {
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const { toast } = useToast();
   
   // All edit states in one object
   const [editedData, setEditedData] = useState<ExtractedProfileData>({
@@ -28,6 +31,35 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
     preferredLocations: [],
     experienceTypes: []
   });
+
+  // Voice recognition for bio field
+  const {
+    isListening,
+    transcript,
+    startListening,
+    stopListening,
+    resetTranscript,
+    isSupported: isVoiceSupported,
+    error: voiceError
+  } = useVoiceRecognition({ continuous: true, interimResults: true });
+
+  // Update bio when voice transcript changes
+  useEffect(() => {
+    if (transcript && isListening) {
+      setEditedData(prev => ({ ...prev, bio: transcript }));
+    }
+  }, [transcript, isListening]);
+
+  // Show voice error notifications
+  useEffect(() => {
+    if (voiceError) {
+      toast({
+        title: "Voice Recognition Error",
+        description: voiceError,
+        variant: "destructive",
+      });
+    }
+  }, [voiceError, toast]);
 
   const handleVoiceComplete = (data: ExtractedProfileData) => {
     onUpdateProfile?.(data);
@@ -44,6 +76,17 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
       experienceTypes: profileData?.experienceTypes || []
     });
     setIsEditMode(true);
+    resetTranscript(); // Clear any previous voice input
+  };
+
+  const handleToggleVoice = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      // Reset transcript when starting fresh
+      resetTranscript();
+      startListening();
+    }
   };
 
   const handleSave = () => {
@@ -142,14 +185,49 @@ export const VoiceProfileSection: React.FC<VoiceProfileSectionProps> = ({
           {/* Bio */}
           {profileData.bio && (
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Bio</h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-neutral-300 uppercase tracking-wide">Bio</h4>
+                {isEditMode && isVoiceSupported && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleToggleVoice}
+                    disabled={!isVoiceSupported}
+                    className={`${
+                      isListening 
+                        ? 'border-red-500 text-red-500 bg-red-500/10 animate-pulse' 
+                        : 'border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10'
+                    }`}
+                  >
+                    {isListening ? (
+                      <>
+                        <MicOff className="w-3 h-3 mr-2" />
+                        Stop Recording
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-3 h-3 mr-2" />
+                        Voice Input
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
               {isEditMode ? (
-                <Textarea 
-                  value={editedData.bio}
-                  onChange={(e) => setEditedData(prev => ({ ...prev, bio: e.target.value }))}
-                  placeholder="Tell us about yourself..."
-                  className="min-h-[120px] bg-white/5 border-white/10 text-foreground resize-none"
-                />
+                <div className="space-y-2">
+                  <Textarea 
+                    value={editedData.bio}
+                    onChange={(e) => setEditedData(prev => ({ ...prev, bio: e.target.value }))}
+                    placeholder="Tell us about yourself..."
+                    className="min-h-[120px] bg-white/5 border-white/10 text-foreground resize-none"
+                  />
+                  {isListening && (
+                    <div className="flex items-center gap-2 text-xs text-red-400">
+                      <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
+                      <span>Listening... Speak to update your bio</span>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <p className="text-foreground leading-relaxed">{profileData.bio}</p>
               )}

@@ -87,6 +87,9 @@ export const TicketTierDisplay: React.FC<TicketTierDisplayProps> = ({
     return null;
   }
 
+  // Debug logging
+  console.log('🎫 TicketTierDisplay rendering with tiers:', tiers);
+
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center gap-2 mb-4">
@@ -96,6 +99,7 @@ export const TicketTierDisplay: React.FC<TicketTierDisplayProps> = ({
       
       <div className="grid gap-4">
         {tiers.map((tier) => {
+          console.log(`🎫 Rendering tier: ${tier.name}, price_cents: ${tier.price_cents}`);
           const isPaid = tier.price_cents > 0;
           const isLoading = loadingTier === tier.id;
           const canPurchase = isPaid && hostPayoutsEnabled;

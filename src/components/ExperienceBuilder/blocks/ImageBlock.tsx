@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Image as ImageIcon, Upload, X } from 'lucide-react';
 
 interface ImageBlockProps {
-  data: { url: string; alt: string };
-  onChange: (data: { url: string; alt: string }) => void;
+  data: { url: string; alt: string; file?: File | null };
+  onChange: (data: { url: string; alt: string; file?: File | null }) => void;
 }
 
 export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
@@ -24,7 +24,20 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
     try {
       // Create object URL for preview
       const objectUrl = URL.createObjectURL(file);
-      onChange({ ...data, url: objectUrl });
+      
+      console.log('📸 ImageBlock: Storing file for upload:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        previewUrl: objectUrl
+      });
+      
+      // Store BOTH the preview URL AND the File object
+      onChange({ 
+        ...data, 
+        url: objectUrl,
+        file: file  // ✅ Store the actual File object for upload
+      });
     } catch (error) {
       console.error('Error uploading file:', error);
       alert('Error uploading file');
@@ -64,7 +77,8 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
     if (data.url.startsWith('blob:')) {
       URL.revokeObjectURL(data.url);
     }
-    onChange({ ...data, url: '' });
+    console.log('🗑️ ImageBlock: Removing image');
+    onChange({ ...data, url: '', file: null });
   }, [data, onChange]);
 
   const openFileDialog = () => {

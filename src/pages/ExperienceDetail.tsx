@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, MapPin, Calendar, Clock, Users, Heart, Share2, Edit, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { TicketTierDisplay } from "@/components/TicketTierDisplay";
 import { useToast } from "@/hooks/use-toast";
+import { experiencesService } from "@/services/experiences.service";
 import retreatBali from "@/assets/retreat-bali.jpg";
 import retreatCostaRica from "@/assets/retreat-costa-rica.jpg";
 import retreatTulum from "@/assets/retreat-tulum.jpg";
@@ -205,11 +207,131 @@ const ExperienceDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-
-  const experience = experiences.find(exp => exp.id === parseInt(experienceId || '0'));
   
-  // Mock: Check if current user owns this experience
-  const isOwner = true; // In real app: compare experience.organizer.id with current user ID
+  const [experience, setExperience] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isOwner, setIsOwner] = useState(false);
+
+  // Load experience from API
+  useEffect(() => {
+    const loadExperience = async () => {
+      if (!experienceId) {
+        navigate('/experiences');
+        return;
+      }
+
+      try {
+        console.log('📥 Loading experience details:', experienceId);
+        setIsLoading(true);
+        
+        // Fetch experience from API
+        const data = await experiencesService.getById(experienceId);
+        
+        console.log('✅ Experience details loaded:', data);
+        console.log('📊 Full data from API:', {
+          title: data.title,
+          description: data.description,
+          location: data.location,
+          city: data.city,
+          country: data.country,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          price: data.price || data.basePriceCents,
+          category: data.category,
+          status: data.status,
+          hostName: data.hostName
+        });
+        
+        // Use only real data from database (no mock data)
+        const transformedExperience = {
+          ...data,
+          // Organizer from database
+          organizer: {
+            name: data.hostName || 'Host',
+            avatar: '/placeholder.svg',
+            bio: 'Experience host'
+          },
+          // Category from database
+          category: {
+            name: data.category || 'Uncategorized',
+            color: 'cyan'
+          },
+          // Format dates from database
+          dates: data.startDate && data.endDate 
+            ? `${new Date(data.startDate).toLocaleDateString()} - ${new Date(data.endDate).toLocaleDateString()}`
+            : 'Dates TBA',
+          duration: data.startDate && data.endDate
+            ? `${Math.ceil((new Date(data.endDate).getTime() - new Date(data.startDate).getTime()) / (1000 * 60 * 60 * 24))} days`
+            : 'TBA',
+          // Use real image from database or placeholder
+          image: data.featuredImageUrl || data.image || '/placeholder.svg',
+          // Use real data from database
+          agenda: data.agenda ? (typeof data.agenda === 'string' ? JSON.parse(data.agenda) : data.agenda) : [],
+          highlights: data.highlights || [],
+          gallery: data.gallery || [], // ✅ Load from API
+          faq: data.faq || [],
+          resources: data.resources || [],
+          // Sort ticket tiers by price (ascending: free first, then by price)
+          ticketTiers: (data.ticketTiers || [])
+            .map((tier: any) => ({
+              ...tier,
+              price_cents: tier.priceCents || tier.price_cents || (tier.price ? tier.price * 100 : 0)
+            }))
+            .sort((a: any, b: any) => a.price_cents - b.price_cents),
+          // Logistics information
+          meetupInstructions: data.meetupInstructions || '',
+          checkInNotes: data.checkInNotes || '',
+          emergencyContactName: data.emergencyContactName || '',
+          emergencyContactPhone: data.emergencyContactPhone || '',
+          additionalInfo: data.additionalInfo || ''
+        };
+        
+        console.log('🎨 Displaying experience:', {
+          title: transformedExperience.title,
+          description: transformedExperience.description,
+          image: transformedExperience.image,
+          dates: transformedExperience.dates,
+          location: transformedExperience.location
+        });
+        console.log('✨ Highlights from API:', data.highlights);
+        console.log('❓ FAQ from API:', data.faq);
+        console.log('📂 Resources from API:', data.resources);
+        console.log('🖼️ Gallery from API:', data.gallery);
+        console.log('🗺️ Logistics from API:', {
+          meetupInstructions: data.meetupInstructions,
+          checkInNotes: data.checkInNotes,
+          emergencyContactName: data.emergencyContactName,
+          emergencyContactPhone: data.emergencyContactPhone,
+          additionalInfo: data.additionalInfo
+        });
+        console.log('✨ Highlights after transformation:', transformedExperience.highlights);
+        console.log('🎫 Ticket Tiers from API:', data.ticketTiers);
+        console.log('🎫 Ticket Tiers after transformation:', transformedExperience.ticketTiers);
+        
+        setExperience(transformedExperience);
+        
+        // Check if current user owns this experience
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          setIsOwner(data.hostId === user.id);
+        }
+        
+      } catch (error) {
+        console.error('❌ Error loading experience:', error);
+        toast({
+          title: "Experience Not Found",
+          description: "The experience you're looking for doesn't exist.",
+          variant: "destructive",
+        });
+        navigate('/experiences');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadExperience();
+  }, [experienceId, navigate, toast]);
   
   const handleCopyLink = () => {
     const url = window.location.href;
@@ -237,6 +359,16 @@ const ExperienceDetail = () => {
       navigate('/account?tab=hosting');
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-6 py-20 text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-4">Loading experience...</h1>
+        </div>
+      </div>
+    );
+  }
 
   if (!experience) {
     return (
@@ -351,19 +483,22 @@ const ExperienceDetail = () => {
             </section>
 
             {/* Highlights */}
-            <section>
-              <h2 className="text-2xl font-bold text-foreground mb-4">What You'll Do</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {experience.highlights.map((highlight, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-card border border-gray-800">
-                    <div className="w-2 h-2 bg-neon-pink rounded-full" />
-                    <span className="text-gray-300">{highlight}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
+            {experience.highlights && experience.highlights.length > 0 && (
+              <section>
+                <h2 className="text-2xl font-bold text-foreground mb-4">What You'll Do</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {experience.highlights.map((highlight, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-card border border-gray-800">
+                      <div className="w-2 h-2 bg-neon-pink rounded-full" />
+                      <span className="text-gray-300">{highlight}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Agenda */}
+            {experience.agenda && experience.agenda.length > 0 && (
             <section>
               <h2 className="text-2xl font-bold text-foreground mb-4">Schedule</h2>
               <div className="space-y-6">
@@ -389,23 +524,33 @@ const ExperienceDetail = () => {
                 ))}
               </div>
             </section>
+            )}
 
             {/* Gallery */}
+            {experience.gallery && experience.gallery.length > 0 && (
             <section>
               <h2 className="text-2xl font-bold text-foreground mb-4">Gallery</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {experience.gallery.map((image, index) => (
-                  <img 
-                    key={index}
-                    src={image} 
-                    alt={`${experience.title} gallery ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg"
-                  />
+                {experience.gallery.map((image: any, index: number) => (
+                  <div key={image.id || index} className="relative group">
+                    <img 
+                      src={image.url || image} 
+                      alt={image.alt || `${experience.title} gallery ${index + 1}`}
+                      className="w-full h-48 object-cover rounded-lg hover:opacity-90 transition-opacity"
+                    />
+                    {image.alt && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs p-2 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                        {image.alt}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             </section>
+            )}
 
             {/* FAQ */}
+            {experience.faq && experience.faq.length > 0 && (
             <section>
               <h2 className="text-2xl font-bold text-foreground mb-4">Frequently Asked Questions</h2>
               <div className="space-y-4">
@@ -417,6 +562,48 @@ const ExperienceDetail = () => {
                 ))}
               </div>
             </section>
+            )}
+
+            {/* Resources */}
+            {experience.resources && experience.resources.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-bold text-foreground mb-4">Resources</h2>
+              <div className="space-y-3">
+                {experience.resources.map((resource, index) => (
+                  <a 
+                    key={index}
+                    href={resource.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-4 p-4 bg-card border border-gray-800 rounded-lg hover:border-neon-cyan transition-colors group"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-neon-cyan/10 flex items-center justify-center text-neon-cyan group-hover:bg-neon-cyan/20 transition-colors">
+                      {resource.type === 'file' ? (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground group-hover:text-neon-cyan transition-colors">
+                        {resource.title}
+                      </h3>
+                      {resource.description && (
+                        <p className="text-sm text-gray-400 mt-1">{resource.description}</p>
+                      )}
+                    </div>
+                    <svg className="w-5 h-5 text-gray-400 group-hover:text-neon-cyan transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                ))}
+              </div>
+            </section>
+            )}
           </div>
 
           {/* Sidebar */}

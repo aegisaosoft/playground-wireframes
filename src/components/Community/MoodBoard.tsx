@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,8 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { CommentModal } from './CommentModal';
+import { communityService } from '@/services/community.service';
+import { useToast } from '@/hooks/use-toast';
 
 export interface IdeaCard {
   id: string;
@@ -98,20 +100,63 @@ const mockIdeas: IdeaCard[] = [
   }
 ];
 
-export const MoodBoard = () => {
-  const [ideas, setIdeas] = useState<IdeaCard[]>(mockIdeas);
-  const [selectedIdeaId, setSelectedIdeaId] = useState<string | null>(null);
+interface MoodBoardProps {
+  ideas?: IdeaCard[];
+  isLoading?: boolean;
+  onRefresh?: () => void;
+}
 
-  const handleInterest = (ideaId: string) => {
-    setIdeas(prev => prev.map(idea => 
-      idea.id === ideaId 
-        ? { 
-            ...idea, 
-            isInterested: !idea.isInterested,
-            interestCount: idea.isInterested ? idea.interestCount - 1 : idea.interestCount + 1
-          }
-        : idea
-    ));
+export const MoodBoard = ({ ideas: propIdeas, isLoading = false, onRefresh }: MoodBoardProps) => {
+  const [ideas, setIdeas] = useState<IdeaCard[]>(propIdeas || mockIdeas);
+  const [selectedIdeaId, setSelectedIdeaId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  // Update local state when prop changes
+  useEffect(() => {
+    if (propIdeas) {
+      setIdeas(propIdeas);
+    }
+  }, [propIdeas]);
+
+  const handleInterest = async (ideaId: string) => {
+    console.log('🔵 Interest button clicked for idea:', ideaId);
+    
+    try {
+      console.log('📤 Calling API to toggle interest...');
+      
+      // Call API to toggle interest
+      const result = await communityService.toggleInterest(ideaId);
+      
+      console.log('✅ API response:', result);
+      
+      // Update local state with response from server
+      setIdeas(prev => prev.map(idea => 
+        idea.id === ideaId 
+          ? { 
+              ...idea, 
+              isInterested: result.isInterested,
+              interestCount: result.interestCount
+            }
+          : idea
+      ));
+      
+      // Show success feedback
+      toast({
+        title: result.isInterested ? "Interest Added! 👍" : "Interest Removed",
+        description: result.message,
+      });
+      
+      console.log('✅ Interest toggled successfully');
+    } catch (error: any) {
+      console.error('❌ Failed to toggle interest:', error);
+      console.error('❌ Error details:', error.response || error.message);
+      
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update interest. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSave = (ideaId: string) => {
@@ -182,13 +227,13 @@ export const MoodBoard = () => {
 
               {/* Tags */}
               <div className="flex flex-wrap gap-2">
-                {idea.tags.map((tag) => (
+                {idea.tags && idea.tags.split(',').filter((tag: string) => tag.trim()).map((tag: string) => (
                   <Badge 
-                    key={tag} 
+                    key={tag.trim()} 
                     variant="secondary"
                     className="bg-white/10 text-white/80 border-white/20 hover:bg-white/20 transition-colors text-xs"
                   >
-                    {tag}
+                    {tag.trim()}
                   </Badge>
                 ))}
               </div>

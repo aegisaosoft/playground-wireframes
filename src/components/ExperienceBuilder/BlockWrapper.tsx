@@ -38,8 +38,8 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
     };
   }, [block.id, blockRefsMap]);
   
-  // Core blocks that cannot be deleted
-  const coreBlocks = ['title-default', 'dates-default', 'location-default'];
+  // Core blocks that cannot be deleted (title is now separate, not in blocks array)
+  const coreBlocks = ['dates-default', 'location-default'];
   const isDeletable = !coreBlocks.includes(block.id);
 
   const blockTypeLabels = {
@@ -55,7 +55,7 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
     cta: 'Call to Action',
   };
 
-  const isLastCoreBlock = ['title-default', 'dates-default', 'location-default'].includes(block.id) && 
+  const isLastCoreBlock = ['dates-default', 'location-default'].includes(block.id) && 
     block.id === 'location-default';
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -89,8 +89,24 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+    const dragIndexStr = e.dataTransfer.getData('text/plain');
+    const dragIndex = parseInt(dragIndexStr);
     const hoverIndex = dragOver === 'top' ? index : index + 1;
+    
+    console.log('🎯 Drop event:', {
+      dragIndexStr,
+      dragIndex,
+      isNaN: isNaN(dragIndex),
+      hoverIndex,
+      currentBlockId: block.id
+    });
+    
+    // Validate dragIndex
+    if (isNaN(dragIndex)) {
+      console.error('❌ Invalid dragIndex (NaN) - ignoring drop');
+      setDragOver(null);
+      return;
+    }
     
     if (dragIndex !== hoverIndex && dragIndex !== hoverIndex - 1) {
       onReorder(dragIndex, hoverIndex > dragIndex ? hoverIndex - 1 : hoverIndex);
@@ -103,12 +119,19 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
     <div
       ref={ref}
       className={`group relative transition-all duration-300 ${
-        isDragging ? 'opacity-50' : ''
+        // Title block can NEVER be dragging or invisible
+        isDragging && block.id !== 'title-default' ? 'opacity-50' : ''
       } ${dragOver ? 'scale-105' : ''} ${
         isHighlighted 
           ? 'ring-2 ring-neon-pink shadow-[0_0_30px_rgba(255,71,209,0.5)] animate-pulse' 
           : ''
       }`}
+      style={block.id === 'title-default' ? {
+        visibility: 'visible',
+        opacity: 1,
+        display: 'block',
+        minHeight: 'auto'
+      } : undefined}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -121,43 +144,51 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
         <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-neon-purple rounded-full z-10" />
       )}
 
-      {/* Block Header - Only show for non-core blocks */}
-      {!coreBlocks.includes(block.id) && (
-        <div className="flex items-center justify-between mb-3">
+      {/* Block Header */}
+      {!['dates-default', 'location-default'].includes(block.id) && (
+        <div className={`flex items-center justify-between mb-3 ${
+          block.id === 'title-default' ? 'pb-2 border-b border-neon-pink/20' : ''
+        }`}>
           <div className="flex items-center gap-2">
-            <div 
-              className="w-4 h-4 text-muted-foreground cursor-grab hover:text-neon-pink transition-colors active:cursor-grabbing"
-              draggable
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-            >
-              <GripVertical className="w-4 h-4" />
-            </div>
+            {block.id !== 'title-default' && (
+              <div 
+                className="w-4 h-4 text-muted-foreground cursor-grab hover:text-neon-pink transition-colors active:cursor-grabbing"
+                draggable
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+              >
+                <GripVertical className="w-4 h-4" />
+              </div>
+            )}
             <div className="flex items-center gap-1">
-              <span className="text-sm font-medium text-foreground">
-                {blockTypeLabels[block.type]}
+              <span className={`text-sm font-medium ${
+                block.id === 'title-default' ? 'text-neon-pink uppercase tracking-wider' : 'text-foreground'
+              }`}>
+                {block.id === 'title-default' ? '✨ ' : ''}{blockTypeLabels[block.type]}{block.id === 'title-default' ? ' (Required)' : ''}
               </span>
             </div>
           </div>
           
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onDuplicate}
-              className="h-8 w-8 p-0 hover:bg-white/10 hover:text-neon-cyan"
-            >
-              <Copy className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onDelete}
-              className="h-8 w-8 p-0 hover:bg-destructive/20 hover:text-destructive"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
+          {isDeletable && block.id !== 'title-default' && (
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDuplicate}
+                className="h-8 w-8 p-0 hover:bg-white/10 hover:text-neon-cyan"
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDelete}
+                className="h-8 w-8 p-0 hover:bg-destructive/20 hover:text-destructive"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
       )}
 

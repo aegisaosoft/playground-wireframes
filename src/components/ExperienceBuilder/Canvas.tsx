@@ -18,22 +18,30 @@ import { Sparkles } from 'lucide-react';
 
 interface CanvasProps {
   blocks: Block[];
+  titleData: { text: string; category: string };
+  onUpdateTitleData: (data: { text: string; category: string }) => void;
   onUpdateBlock: (id: string, data: any) => void;
   onDeleteBlock: (id: string) => void;
   onDuplicateBlock: (id: string) => void;
   onReorderBlocks: (dragIndex: number, hoverIndex: number) => void;
   blockRefsMap: React.MutableRefObject<Map<string, HTMLDivElement>>;
   highlightedBlockId: string | null;
+  experienceId?: string;  // ✅ For deleting gallery images
+  onDeleteGalleryImage?: (imageId: string) => Promise<void>;  // ✅ Delete callback
 }
 
 export const Canvas: React.FC<CanvasProps> = ({
   blocks,
+  titleData,
+  onUpdateTitleData,
   onUpdateBlock,
   onDeleteBlock,
   onDuplicateBlock,
   onReorderBlocks,
   blockRefsMap,
   highlightedBlockId,
+  experienceId,
+  onDeleteGalleryImage,
 }) => {
   const renderBlock = (block: Block) => {
     const props = {
@@ -59,7 +67,7 @@ export const Canvas: React.FC<CanvasProps> = ({
       case 'tickets':
         return <TicketsBlock {...props} />;
       case 'gallery':
-        return <GalleryBlock {...props} />;
+        return <GalleryBlock {...props} experienceId={experienceId} onDeleteImage={onDeleteGalleryImage} />;
       case 'faq':
         return <FaqBlock {...props} />;
       case 'cta':
@@ -69,7 +77,21 @@ export const Canvas: React.FC<CanvasProps> = ({
       case 'logistics':
         return <LogisticsBlock {...props} />;
       default:
-        return <div>Unknown block type</div>;
+        console.error('❌ Unknown block type encountered:', {
+          blockId: block.id,
+          blockType: block.type,
+          blockTypeOf: typeof block.type,
+          fullBlock: block
+        });
+        return (
+          <div className="p-4 bg-red-500/10 border border-red-500 rounded-lg">
+            <p className="text-red-400 font-semibold">Unknown block type: {String(block.type)}</p>
+            <p className="text-xs text-gray-400 mt-2">Block ID: {block.id}</p>
+            <pre className="text-xs mt-2 text-gray-500 overflow-auto">
+              {JSON.stringify(block, null, 2)}
+            </pre>
+          </div>
+        );
     }
   };
 
@@ -91,10 +113,47 @@ export const Canvas: React.FC<CanvasProps> = ({
     );
   }
 
+  // Sort blocks by order (title is now separate and always rendered first)
+  const sortedBlocks = [...blocks].sort((a, b) => a.order - b.order);
+  
+  console.log('📊 Canvas state:', {
+    titleData: titleData,
+    totalBlocks: blocks.length,
+    blockTypes: blocks.map(b => b.type),
+    detailedBlocks: sortedBlocks.map((b, idx) => ({
+      index: idx,
+      id: b.id,
+      type: b.type,
+      typeOf: typeof b.type,
+      order: b.order
+    }))
+  });
+
   return (
     <div className="flex-1 overflow-y-auto bg-gradient-dark p-8">
       <div className="max-w-4xl mx-auto">
-        {blocks.map((block, index) => (
+        {/* 🛡️ TITLE BLOCK - ALWAYS VISIBLE AND FIRST */}
+        <div 
+          className="mb-8 p-6 bg-gradient-to-r from-neon-pink/10 via-transparent to-neon-pink/10 rounded-lg border border-neon-pink/20"
+          style={{ 
+            visibility: 'visible', 
+            opacity: 1,
+            display: 'block'
+          }}
+        >
+          <div className="mb-4 pb-2 border-b border-neon-pink/20">
+            <span className="text-sm font-medium text-neon-pink uppercase tracking-wider">
+              ✨ Title (Required - Always Visible)
+            </span>
+          </div>
+          <TitleBlock 
+            data={titleData} 
+            onChange={onUpdateTitleData} 
+          />
+        </div>
+        
+        {/* OTHER BLOCKS */}
+        {sortedBlocks.map((block, index) => (
           <BlockWrapper
             key={block.id}
             block={block}
