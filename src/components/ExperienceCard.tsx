@@ -48,20 +48,19 @@ const ExperienceCard = ({
       onClick={handleClick}
     >
       {/* Image */}
-      {image ? (
-        <div className="relative h-64 overflow-hidden">
-          <img 
-            src={image} 
-            alt={title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-          />
-          
-          {/* Category badge */}
-          <div className="absolute top-4 left-4">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${categoryColors[category.color]}`}>
-              {category.name}
-            </span>
-          </div>
+      <div className="relative h-64 overflow-hidden">
+        <img 
+          src={image} 
+          alt={title}
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+        />
+        
+        {/* Category badge */}
+        <div className="absolute top-4 left-4">
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${categoryColors[category.color]}`}>
+            {category.name}
+          </span>
+        </div>
 
           {/* Duration badge */}
           <div className="absolute top-4 right-4">

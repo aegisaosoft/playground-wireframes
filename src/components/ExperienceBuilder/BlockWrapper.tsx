@@ -38,8 +38,8 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
     };
   }, [block.id, blockRefsMap]);
   
-  // Core blocks that cannot be deleted (title is now separate, not in blocks array)
-  const coreBlocks = ['dates-default', 'location-default'];
+  // Core blocks that cannot be deleted
+  const coreBlocks = ['title-default', 'dates-default', 'location-default'];
   const isDeletable = !coreBlocks.includes(block.id);
 
   const blockTypeLabels = {
@@ -150,16 +150,14 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
           block.id === 'title-default' ? 'pb-2 border-b border-neon-pink/20' : ''
         }`}>
           <div className="flex items-center gap-2">
-            {block.id !== 'title-default' && (
-              <div 
-                className="w-4 h-4 text-muted-foreground cursor-grab hover:text-neon-pink transition-colors active:cursor-grabbing"
-                draggable
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-              >
-                <GripVertical className="w-4 h-4" />
-              </div>
-            )}
+            <div 
+              className="w-4 h-4 text-muted-foreground cursor-grab hover:text-neon-pink transition-colors active:cursor-grabbing"
+              draggable
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <GripVertical className="w-4 h-4" />
+            </div>
             <div className="flex items-center gap-1">
               <span className={`text-sm font-medium ${
                 block.id === 'title-default' ? 'text-neon-pink uppercase tracking-wider' : 'text-foreground'

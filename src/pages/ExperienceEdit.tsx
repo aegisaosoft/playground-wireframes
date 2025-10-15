@@ -28,28 +28,40 @@ const mockHostedExperiences = [
     privateSlug: null,
     blocks: [
       {
+        id: 'image-default',
+        type: 'image' as BlockType,
+        data: { url: '', alt: '' },
+        order: 0,
+      },
+      {
         id: 'title-default',
         type: 'title' as BlockType,
         data: { text: 'Creative Writing Workshop' },
-        order: 0,
+        order: 1,
       },
       {
         id: 'dates-default', 
         type: 'dates' as BlockType,
         data: { startDate: '2024-05-01', endDate: '2024-05-08' },
-        order: 1,
+        order: 2,
       },
       {
         id: 'location-default',
         type: 'location' as BlockType, 
-        data: { city: 'Portland', country: 'USA' },
-        order: 2,
+        data: { location: 'Portland, USA' },
+        order: 3,
       },
       {
-        id: 'richText-1',
+        id: 'richText-default',
         type: 'richText' as BlockType,
         data: { content: 'Join us for an intensive creative writing workshop where you\'ll develop your craft and connect with fellow writers.' },
-        order: 3,
+        order: 4,
+      },
+      {
+        id: 'tickets-default',
+        type: 'tickets' as BlockType,
+        data: { tiers: [{ name: 'Standard', price: 500, quantity: 20 }] },
+        order: 5,
       }
     ]
   },
@@ -64,22 +76,40 @@ const mockHostedExperiences = [
     privateSlug: 'private-1703847362-k9n2m8x4p',
     blocks: [
       {
+        id: 'image-default',
+        type: 'image' as BlockType,
+        data: { url: '', alt: '' },
+        order: 0,
+      },
+      {
         id: 'title-default',
         type: 'title' as BlockType,
         data: { text: 'Photography Masterclass' },
-        order: 0,
+        order: 1,
       },
       {
         id: 'dates-default', 
         type: 'dates' as BlockType,
         data: { startDate: '2024-06-15', endDate: '2024-06-22' },
-        order: 1,
+        order: 2,
       },
       {
         id: 'location-default',
         type: 'location' as BlockType, 
-        data: { city: 'San Francisco', country: 'USA' },
-        order: 2,
+        data: { location: 'San Francisco, USA' },
+        order: 3,
+      },
+      {
+        id: 'richText-default',
+        type: 'richText' as BlockType,
+        data: { content: '' },
+        order: 4,
+      },
+      {
+        id: 'tickets-default',
+        type: 'tickets' as BlockType,
+        data: { tiers: [{ name: 'Standard', price: 500, quantity: 20 }] },
+        order: 5,
       }
     ]
   }
@@ -430,6 +460,37 @@ const ExperienceEdit = () => {
     loadExperience();
   }, [experienceId, navigate, toast]);
 
+  // Define block order as they appear in palette
+  const blockOrder: BlockType[] = [
+    'image',
+    'title', 
+    'dates',
+    'location',
+    'richText',
+    'tickets',
+    'highlights',
+    'agendaDay',
+    'logistics',
+    'gallery',
+    'faq',
+    'resources',
+    'cta'
+  ];
+
+  const getInsertPosition = useCallback((type: BlockType) => {
+    const typeOrder = blockOrder.indexOf(type);
+    if (typeOrder === -1) return blocks.length;
+    
+    // Find the correct position based on block order
+    for (let i = blocks.length - 1; i >= 0; i--) {
+      const currentBlockOrder = blockOrder.indexOf(blocks[i].type);
+      if (currentBlockOrder !== -1 && currentBlockOrder < typeOrder) {
+        return i + 1;
+      }
+    }
+    return 0;
+  }, [blocks]);
+
   const scrollToBlockType = useCallback((type: BlockType) => {
     // Find existing block of this type
     const existingBlock = blocks.find(block => block.type === type);
@@ -443,14 +504,20 @@ const ExperienceEdit = () => {
         setTimeout(() => setHighlightedBlockId(null), 2000);
       }
     } else {
-      // Create new block and scroll to it
+      // Create new block at correct position
+      const insertPosition = getInsertPosition(type);
       const newBlock: Block = {
         id: `${type}-${Date.now()}`,
         type,
         data: getDefaultBlockData(type),
-        order: blocks.length,
+        order: insertPosition,
       };
-      setBlocks(prev => [...prev, newBlock]);
+      
+      setBlocks(prev => {
+        const newBlocks = [...prev];
+        newBlocks.splice(insertPosition, 0, newBlock);
+        return newBlocks.map((block, index) => ({ ...block, order: index }));
+      });
       
       // Wait for next render to scroll
       setTimeout(() => {
@@ -462,7 +529,7 @@ const ExperienceEdit = () => {
         }
       }, 100);
     }
-  }, [blocks]);
+  }, [blocks, getInsertPosition]);
 
   const addBlock = useCallback((type: BlockType) => {
     const newBlock: Block = {
@@ -482,7 +549,7 @@ const ExperienceEdit = () => {
 
   const deleteBlock = useCallback((id: string) => {
     // Prevent deletion of core blocks
-    const coreBlocks = ['title-default', 'dates-default', 'location-default'];
+    const coreBlocks = ['image-default', 'title-default', 'dates-default', 'location-default', 'richText-default'];
     if (coreBlocks.includes(id)) return;
     
     setBlocks(prev => prev.filter(block => block.id !== id));
@@ -1055,10 +1122,16 @@ const ExperienceEdit = () => {
 
     const newBlocks: Block[] = [
       {
+        id: 'image-default',
+        type: 'image',
+        data: { url: '', alt: '' },
+        order: 0,
+      },
+      {
         id: 'title-default',
         type: 'title',
         data: { text: draft.title },
-        order: 0,
+        order: 1,
       },
       {
         id: 'dates-default',
@@ -1067,20 +1140,25 @@ const ExperienceEdit = () => {
           startDate: draft.dates.startDate, 
           endDate: draft.dates.endDate 
         },
-        order: 1,
+        order: 2,
       },
       {
         id: 'location-default',
         type: 'location',
         data: { 
-          city: draft.location.city, 
-          country: draft.location.country 
+          location: `${draft.location.city}, ${draft.location.country}` 
         },
-        order: 2,
+        order: 3,
+      },
+      {
+        id: 'richText-default',
+        type: 'richText',
+        data: { content: draft.description || '' },
+        order: 4,
       },
     ];
 
-    let blockOrder = 3;
+    let blockOrder = 5;
 
     if (draft.description) {
       newBlocks.push({
@@ -1186,15 +1264,15 @@ function getDefaultBlockData(type: BlockType): any {
     case 'dates':
       return { startDate: null, endDate: null };
     case 'location':
-      return { city: '', country: '' };
+      return { location: '' };
     case 'image':
-      return { url: '', alt: '', file: null };
+      return { url: '', alt: '' };
     case 'richText':
       return { content: 'Tell your story here...' };
     case 'highlights':
       return { highlights: [] };
     case 'agendaDay':
-      return { date: null, items: [{ time: '09:00', activity: 'Welcome & Introductions' }] };
+      return { date: null, scheduleByDate: {} };
     case 'tickets':
       return { tiers: [{ name: 'Standard', price: 500, quantity: 20 }] };
     case 'gallery':

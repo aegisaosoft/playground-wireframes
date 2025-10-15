@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BlockType } from '@/types/experienceBuilder';
 import { Button } from '@/components/ui/button';
 import { 
@@ -13,7 +13,9 @@ import {
   Folder,
   Mic,
   Sparkles,
-  MapPin
+  MapPin,
+  Calendar,
+  Plus
 } from 'lucide-react';
 
 interface BlockPaletteProps {
@@ -22,20 +24,47 @@ interface BlockPaletteProps {
   onScrollToBlock: (type: BlockType) => void;
 }
 
-const blockItems = [
-  { type: 'image' as BlockType, label: 'Cover Image', icon: Image, description: '' },
-  { type: 'richText' as BlockType, label: 'Description', icon: FileText, description: '' },
-  { type: 'highlights' as BlockType, label: 'Highlights', icon: Stars, description: '' },
-  { type: 'agendaDay' as BlockType, label: 'Agenda', icon: Clock, description: '' },
-  { type: 'tickets' as BlockType, label: 'Tickets', icon: Ticket, description: '' },
-  { type: 'logistics' as BlockType, label: 'Logistics & Info', icon: MapPin, description: '' },
-  { type: 'gallery' as BlockType, label: 'Gallery', icon: Grid3X3, description: '' },
-  { type: 'faq' as BlockType, label: 'FAQ', icon: HelpCircle, description: '' },
-  { type: 'resources' as BlockType, label: 'Resources', icon: Folder, description: '' },
-  { type: 'cta' as BlockType, label: 'Call to Action', icon: MousePointer, description: '' },
+const essentialBlocks = [
+  { type: 'image' as BlockType, label: 'Cover Image', icon: Image },
+  { type: 'dates' as BlockType, label: 'Dates', icon: Calendar },
+  { type: 'location' as BlockType, label: 'Location', icon: MapPin },
+  { type: 'richText' as BlockType, label: 'Description', icon: FileText },
+  { type: 'tickets' as BlockType, label: 'Tickets', icon: Ticket },
+];
+
+const additionalBlocks = [
+  { type: 'highlights' as BlockType, label: 'Highlights', icon: Stars },
+  { type: 'agendaDay' as BlockType, label: 'Agenda', icon: Clock },
+  { type: 'logistics' as BlockType, label: 'Logistics', icon: MapPin },
+  { type: 'gallery' as BlockType, label: 'Gallery', icon: Grid3X3 },
+  { type: 'faq' as BlockType, label: 'FAQ', icon: HelpCircle },
 ];
 
 export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceCreate, onScrollToBlock }) => {
+  const [showMore, setShowMore] = useState(false);
+
+  const renderBlockButton = (item: { type: BlockType; label: string; icon: any }) => {
+    const IconComponent = item.icon;
+    return (
+      <button
+        key={item.type}
+        onClick={() => onScrollToBlock(item.type)}
+        className="w-full p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-neon-pink/30 hover:shadow-neon/20 transition-all duration-200 text-left group"
+      >
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 bg-gradient-neon rounded-md flex items-center justify-center group-hover:shadow-neon/40">
+            <IconComponent className="w-4 h-4 text-black" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-foreground font-medium group-hover:text-neon-pink transition-colors">
+              {item.label}
+            </div>
+          </div>
+        </div>
+      </button>
+    );
+  };
+
   return (
     <div className="w-80 bg-black/20 border-r border-white/10 p-6">
       {/* Voice Creation Button */}
@@ -70,39 +99,32 @@ export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceC
       </h2>
       
       <div className="space-y-2">
-        {blockItems.map((item) => {
-          const IconComponent = item.icon;
-          return (
-            <button
-              key={item.type}
-              onClick={() => onScrollToBlock(item.type)}
-              className="w-full p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-neon-pink/30 hover:shadow-neon/20 transition-all duration-200 text-left group"
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-gradient-neon rounded-md flex items-center justify-center group-hover:shadow-neon/40">
-                  <IconComponent className="w-4 h-4 text-black" />
-                </div>
-                 <div className="flex-1 min-w-0">
-                   <div className="text-foreground font-medium group-hover:text-neon-pink transition-colors">
-                     {item.label}
-                   </div>
-                   {item.description && (
-                     <div className="text-muted-foreground text-sm mt-1">
-                       {item.description}
-                     </div>
-                   )}
-                 </div>
+        {/* Essential blocks */}
+        {essentialBlocks.map(renderBlockButton)}
+        
+        {/* Add More button */}
+        <button
+          onClick={() => setShowMore(!showMore)}
+          className="w-full p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-neon-cyan/30 transition-all duration-200 text-left group"
+        >
+          <div className="flex items-center gap-3">
+            <div className={`w-8 h-8 bg-gradient-to-br from-neon-cyan to-neon-purple rounded-md flex items-center justify-center transition-transform duration-200 ${showMore ? 'rotate-45' : ''}`}>
+              <Plus className="w-4 h-4 text-black" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-foreground font-medium group-hover:text-neon-cyan transition-colors">
+                Add more
               </div>
-            </button>
-          );
-        })}
-      </div>
+            </div>
+          </div>
+        </button>
 
-      <div className="mt-8 p-4 bg-gradient-dark rounded-lg border border-white/10">
-        <h3 className="text-sm font-medium text-foreground mb-2">💡 Pro Tip</h3>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          Drag blocks to reorder them, or click to add instantly. Each block can be edited inline for maximum speed.
-        </p>
+        {/* Additional blocks (collapsible) */}
+        {showMore && (
+          <div className="space-y-2 pt-2">
+            {additionalBlocks.map(renderBlockButton)}
+          </div>
+        )}
       </div>
     </div>
   );

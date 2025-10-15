@@ -13,25 +13,59 @@ interface AgendaItem {
 }
 
 interface AgendaDayBlockProps {
-  data: { date: Date | null; items: AgendaItem[] };
-  onChange: (data: { date: Date | null; items: AgendaItem[] }) => void;
+  data: { 
+    date: Date | null; 
+    scheduleByDate: { [dateString: string]: AgendaItem[] };
+  };
+  onChange: (data: { 
+    date: Date | null; 
+    scheduleByDate: { [dateString: string]: AgendaItem[] };
+  }) => void;
+  dateRange?: { startDate: Date | null; endDate: Date | null };
 }
 
-export const AgendaDayBlock: React.FC<AgendaDayBlockProps> = ({ data, onChange }) => {
+export const AgendaDayBlock: React.FC<AgendaDayBlockProps> = ({ data, onChange, dateRange }) => {
+  // Get current date's items
+  const currentDateString = data.date ? format(data.date, 'yyyy-MM-dd') : null;
+  const currentItems = currentDateString && data.scheduleByDate?.[currentDateString] 
+    ? data.scheduleByDate[currentDateString] 
+    : [{ time: '09:00', activity: 'Welcome & Introductions' }];
+
   const addItem = () => {
-    const newItems = [...data.items, { time: '09:00', activity: 'New Activity' }];
-    onChange({ ...data, items: newItems });
+    if (!currentDateString) return;
+    const newItems = [...currentItems, { time: '09:00', activity: 'New Activity' }];
+    onChange({ 
+      ...data, 
+      scheduleByDate: { 
+        ...data.scheduleByDate, 
+        [currentDateString]: newItems 
+      } 
+    });
   };
 
   const removeItem = (index: number) => {
-    const newItems = data.items.filter((_, i) => i !== index);
-    onChange({ ...data, items: newItems });
+    if (!currentDateString) return;
+    const newItems = currentItems.filter((_, i) => i !== index);
+    onChange({ 
+      ...data, 
+      scheduleByDate: { 
+        ...data.scheduleByDate, 
+        [currentDateString]: newItems 
+      } 
+    });
   };
 
   const updateItem = (index: number, field: keyof AgendaItem, value: string) => {
-    const newItems = [...data.items];
+    if (!currentDateString) return;
+    const newItems = [...currentItems];
     newItems[index] = { ...newItems[index], [field]: value };
-    onChange({ ...data, items: newItems });
+    onChange({ 
+      ...data, 
+      scheduleByDate: { 
+        ...data.scheduleByDate, 
+        [currentDateString]: newItems 
+      } 
+    });
   };
 
   return (
@@ -62,6 +96,10 @@ export const AgendaDayBlock: React.FC<AgendaDayBlockProps> = ({ data, onChange }
               mode="single"
               selected={data.date || undefined}
               onSelect={(date) => onChange({ ...data, date: date || null })}
+              disabled={(date) => {
+                if (!dateRange?.startDate || !dateRange?.endDate) return false;
+                return date < dateRange.startDate || date > dateRange.endDate;
+              }}
               initialFocus
               className="pointer-events-auto"
             />
@@ -71,7 +109,7 @@ export const AgendaDayBlock: React.FC<AgendaDayBlockProps> = ({ data, onChange }
 
       {/* Agenda Items */}
       <div className="space-y-3">
-        {data.items.map((item, index) => (
+        {currentItems.map((item, index) => (
           <div key={index} className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-lg">
             <Input
               value={item.time}

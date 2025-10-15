@@ -166,10 +166,6 @@ export const HighlightsBlock: React.FC<HighlightsBlockProps> = ({ data, onChange
           </Button>
         </div>
       </div>
-
-      <div className="text-sm text-muted-foreground">
-        Create short, engaging highlights that capture what makes this experience special. These will help potential participants quickly understand what they'll gain.
-      </div>
     </div>
   );
 };

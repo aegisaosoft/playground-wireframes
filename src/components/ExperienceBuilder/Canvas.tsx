@@ -43,6 +43,13 @@ export const Canvas: React.FC<CanvasProps> = ({
   experienceId,
   onDeleteGalleryImage,
 }) => {
+  // Find the dates block to get the date range
+  const datesBlock = blocks.find(block => block.type === 'dates');
+  const dateRange = datesBlock?.data ? {
+    startDate: datesBlock.data.startDate ? new Date(datesBlock.data.startDate) : null,
+    endDate: datesBlock.data.endDate ? new Date(datesBlock.data.endDate) : null,
+  } : { startDate: null, endDate: null };
+
   const renderBlock = (block: Block) => {
     const props = {
       data: block.data,
@@ -63,7 +70,7 @@ export const Canvas: React.FC<CanvasProps> = ({
       case 'highlights':
         return <HighlightsBlock {...props} />;
       case 'agendaDay':
-        return <AgendaDayBlock {...props} />;
+        return <AgendaDayBlock {...props} dateRange={dateRange} />;
       case 'tickets':
         return <TicketsBlock {...props} />;
       case 'gallery':
