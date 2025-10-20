@@ -2,11 +2,11 @@
  * API Client for communicating with the .NET backend
  */
 
-// 
+// Read from environment variable
 const API_BASE_URL = import.meta.env.VITE_API_URL || 
   'https://goplayground-web-api-2025-cgbkabcxh6abccd6.canadacentral-01.azurewebsites.net';
 
-// 
+// Add /api to base URL
 const API_FULL_URL = `${API_BASE_URL}/api`;
 
 // Debug: Log the API base URL
@@ -67,12 +67,8 @@ class ApiClient {
   /**
    * Generic request method
    */
-  private async request<T>(
-    endpoint: string,
-    options: RequestOptions = {}
-  ): Promise<T> {
+  private async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    
     const config: RequestInit = {
       ...options,
       headers: this.buildHeaders(options.headers),
@@ -83,9 +79,7 @@ class ApiClient {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.error || errorData.message || `HTTP error! status: ${response.status}`
-        );
+        throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
       }
 
       // Handle empty responses (204 No Content)
@@ -103,4 +97,86 @@ class ApiClient {
    * GET request
    */
   async get<T>(endpoint: string, options?: RequestOptions): Promise<T> {
-    return this.request<T>(endpoint, { ...options,
+    return this.request<T>(endpoint, { ...options, method: 'GET' });
+  }
+
+  /**
+   * POST request
+   */
+  async post<T>(endpoint: string, data?: unknown, options?: RequestOptions): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  /**
+   * PUT request
+   */
+  async put<T>(endpoint: string, data?: unknown, options?: RequestOptions): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  /**
+   * PATCH request
+   */
+  async patch<T>(endpoint: string, data?: unknown, options?: RequestOptions): Promise<T> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
+
+  /**
+   * DELETE request
+   */
+  async delete<T>(endpoint: string, options?: RequestOptions): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'DELETE' });
+  }
+
+  /**
+   * Upload file(s) with FormData
+   */
+  async upload<T>(endpoint: string, formData: FormData, options?: Omit<RequestOptions, 'headers'>): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`;
+    const token = this.getAuthToken();
+    
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const config: RequestInit = {
+      ...options,
+      method: 'POST',
+      headers,
+      body: formData,
+    };
+
+    try {
+      const response = await fetch(url, config);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('File upload failed:', error);
+      throw error;
+    }
+  }
+}
+
+// Export a singleton instance
+export const apiClient = new ApiClient(API_FULL_URL);
+
+// Export the base URL for reference
+export { API_BASE_URL, API_FULL_URL };
