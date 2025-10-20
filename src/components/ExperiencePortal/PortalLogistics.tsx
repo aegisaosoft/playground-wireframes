@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { LogisticsInfo } from '@/types/experiencePortal';
+import { GoogleMapPreview } from './GoogleMapPreview';
 
 interface PortalLogisticsProps {
   logistics?: LogisticsInfo;
@@ -12,6 +13,8 @@ interface PortalLogisticsProps {
 
 export const PortalLogistics = ({ logistics, isApproved }: PortalLogisticsProps) => {
   const { toast } = useToast();
+
+  console.log('🗺️ PortalLogistics: Rendering with logistics:', logistics);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
@@ -75,22 +78,27 @@ export const PortalLogistics = ({ logistics, isApproved }: PortalLogisticsProps)
       <CardContent className="p-4 space-y-4">
         {/* Address */}
         {logistics.address && (
-          <div className="p-3 rounded-lg bg-card border border-gray-800">
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-neon-cyan flex-shrink-0 mt-0.5" />
-                <span className="font-medium text-foreground text-sm">Venue Address</span>
+          <div className="space-y-3">
+            <div className="p-3 rounded-lg bg-card border border-gray-800">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-neon-cyan flex-shrink-0 mt-0.5" />
+                  <span className="font-medium text-foreground text-sm">Venue Address</span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => copyToClipboard(logistics.address!, 'Address')}
+                  className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                >
+                  <Copy className="w-3 h-3" />
+                </Button>
               </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => copyToClipboard(logistics.address!, 'Address')}
-                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-              >
-                <Copy className="w-3 h-3" />
-              </Button>
+              <p className="text-sm text-gray-300 pl-6">{logistics.address}</p>
             </div>
-            <p className="text-sm text-gray-300 pl-6">{logistics.address}</p>
+            
+            {/* Google Maps Preview */}
+            <GoogleMapPreview address={logistics.address} />
           </div>
         )}
 

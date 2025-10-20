@@ -24,7 +24,7 @@ export interface MarkHelpfulRequest {
 
 export const reviewsService = {
   async getExperienceReviews(experienceId: string): Promise<Review[]> {
-    return apiClient.get<Review[]>(`/reviews/experience/${experienceId}`);
+    return apiClient.get<Review[]>(`/Reviews/experience/${experienceId}`);
   },
 
   async createReview(data: CreateReviewRequest): Promise<Review> {
@@ -32,6 +32,6 @@ export const reviewsService = {
   },
 
   async markReviewHelpful(reviewId: string, data: MarkHelpfulRequest): Promise<Review> {
-    return apiClient.put<Review>(`/reviews/${reviewId}/helpful`, data);
+    return apiClient.put<Review>(`/Reviews/${reviewId}/helpful`, data);
   },
 };

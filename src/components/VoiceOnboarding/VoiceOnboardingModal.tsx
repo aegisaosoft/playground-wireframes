@@ -86,10 +86,7 @@ export const VoiceOnboardingModal: React.FC<VoiceOnboardingModalProps> = ({
     }
 
     onComplete?.(finalData);
-    toast({
-      title: "Profile saved!",
-      description: "Your voice profile has been saved successfully.",
-    });
+    // Voice profile saved successfully
     onClose();
   };
 

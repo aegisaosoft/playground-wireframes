@@ -1,5 +1,6 @@
 import { Heart, MapPin, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useNotification } from '@/contexts/NotificationContext';
 
 interface RetreatCardProps {
   image: string;
@@ -17,6 +18,7 @@ interface RetreatCardProps {
 
 export const RetreatCard = ({ image, location, date, title, onClick, isSaved, onToggleSave, organizer }: RetreatCardProps) => {
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const { showInfo } = useNotification();
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -28,8 +30,7 @@ export const RetreatCard = ({ image, location, date, title, onClick, isSaved, on
   const handleSaveClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user) {
-      // Trigger login modal - for now we'll just show alert
-      alert('Please log in to save retreats');
+      showInfo('Login Required', 'Please log in to save retreats');
       return;
     }
     onToggleSave();

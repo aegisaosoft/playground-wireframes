@@ -3,53 +3,39 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Upload, X } from 'lucide-react';
-import { ImageCropModal } from '../ImageCropModal';
+import { useNotification } from '@/contexts/NotificationContext';
 
 interface ImageBlockProps {
-  data: { 
-    url: string; 
-    alt: string; 
-    file?: File | null;  // ✅ The actual file object for uploading
-    hideOverlays?: boolean;  // ✅ Whether to hide overlays
-  };
-  onChange: (data: { 
-    url: string; 
-    alt: string; 
-    file?: File | null; 
-    hideOverlays?: boolean; 
-  }) => void;
+  data: { url: string; alt: string; file?: File };
+  onChange: (data: { url: string; alt: string; file?: File }) => void;
 }
 
 export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [showCropModal, setShowCropModal] = useState(false);
-  const [tempImageUrl, setTempImageUrl] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { showError } = useNotification();
 
   const handleFileUpload = useCallback(async (file: File) => {
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      showError('Invalid File Type', 'Please select an image file');
       return;
     }
 
     setIsUploading(true);
     
     try {
-      // Create object URL and open crop modal
+      // Create object URL for preview and store the File object
       const objectUrl = URL.createObjectURL(file);
-      onChange({ ...data, url: objectUrl });
+      
+      onChange({ ...data, url: objectUrl, file: file });
     } catch (error) {
-      console.error('Error uploading file:', error);
-      alert('Error uploading file');
+      showError('Upload Failed', 'Error uploading file. Please try again.');
     } finally {
       setIsUploading(false);
     }
-  }, []);
-
-  const handleCropComplete = useCallback((croppedUrl: string) => {
-    onChange({ ...data, url: croppedUrl });
   }, [data, onChange]);
+
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -82,7 +68,6 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
     if (data.url.startsWith('blob:')) {
       URL.revokeObjectURL(data.url);
     }
-    console.log('🗑️ ImageBlock: Removing image');
     onChange({ ...data, url: '', file: null });
   }, [data, onChange]);
 
@@ -182,18 +167,6 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
         </div>
       )}
 
-      <ImageCropModal
-        isOpen={showCropModal}
-        onClose={() => {
-          setShowCropModal(false);
-          if (tempImageUrl) {
-            URL.revokeObjectURL(tempImageUrl);
-            setTempImageUrl('');
-          }
-        }}
-        imageUrl={tempImageUrl}
-        onCropComplete={handleCropComplete}
-      />
     </div>
   );
 };

@@ -137,10 +137,7 @@ export const AccountModal = ({ isOpen, onClose, user, onLogout, onUpdateUser, us
       
       onUpdateUser(updatedUser);
       
-      toast({
-        title: "Profile updated!",
-        description: "Your profile has been updated successfully.",
-      });
+      // Profile updated successfully
     } catch (error) {
       toast({
         title: "Error",
@@ -156,10 +153,6 @@ export const AccountModal = ({ isOpen, onClose, user, onLogout, onUpdateUser, us
     localStorage.removeItem('user');
     onLogout();
     onClose();
-    toast({
-      title: "Logged out",
-      description: "You have been logged out successfully.",
-    });
   };
 
   const handleProfilePicUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

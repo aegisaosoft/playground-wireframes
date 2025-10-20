@@ -83,10 +83,6 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
         onLogin(user, false);
         onClose();
         
-        toast({
-          title: "Welcome back!",
-          description: "You've been logged in successfully.",
-        });
         
         // Navigate to profile section for returning users
         navigate('/account');
@@ -98,7 +94,6 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       setConfirmPassword("");
 
     } catch (error) {
-      console.error('Auth error:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Authentication failed. Please try again.",
@@ -123,7 +118,6 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       });
       
     } catch (error) {
-      console.error('Google login error:', error);
       toast({
         title: "Error",
         description: "Google login failed. Please try again.",

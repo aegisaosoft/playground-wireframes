@@ -5,8 +5,14 @@ export interface Notification {
   type: string;
   title: string;
   message: string;
+  actionUrl?: string;
   isRead: boolean;
   createdAt: string;
+  experienceId?: string;
+  applicationId?: string;
+  ideaId?: string;
+  commentId?: string;
+  senderId?: string;
   sender?: {
     name: string;
     avatar: string;
@@ -14,6 +20,7 @@ export interface Notification {
   experience?: {
     id: string;
     title: string;
+    coverImage?: string;
   };
   application?: {
     id: string;
@@ -32,7 +39,7 @@ export const notificationsService = {
   },
 
   async markNotificationAsRead(notificationId: string): Promise<Notification> {
-    return apiClient.put<Notification>(`/notifications/${notificationId}/read`, {});
+    return apiClient.put<Notification>(`/Notifications/${notificationId}/read`, {});
   },
 
   async markAllNotificationsAsRead(): Promise<{ updatedCount: number; message: string }> {

@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Mic, X, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { experiencesService } from '@/services/experiences.service';
+import { useUser } from '@/contexts/UserContext';
 
 // Mock data - in real app, this would come from API
 const mockHostedExperiences = [
@@ -34,28 +35,22 @@ const mockHostedExperiences = [
         order: 0,
       },
       {
-        id: 'title-default',
-        type: 'title' as BlockType,
-        data: { text: 'Creative Writing Workshop' },
-        order: 1,
-      },
-      {
         id: 'dates-default', 
         type: 'dates' as BlockType,
         data: { startDate: '2024-05-01', endDate: '2024-05-08' },
-        order: 2,
+        order: 1,
       },
       {
         id: 'location-default',
         type: 'location' as BlockType, 
         data: { location: 'Portland, USA' },
-        order: 3,
+        order: 2,
       },
       {
         id: 'richText-default',
         type: 'richText' as BlockType,
         data: { content: 'Join us for an intensive creative writing workshop where you\'ll develop your craft and connect with fellow writers.' },
-        order: 4,
+        order: 3,
       },
       {
         id: 'tickets-default',
@@ -82,28 +77,22 @@ const mockHostedExperiences = [
         order: 0,
       },
       {
-        id: 'title-default',
-        type: 'title' as BlockType,
-        data: { text: 'Photography Masterclass' },
-        order: 1,
-      },
-      {
         id: 'dates-default', 
         type: 'dates' as BlockType,
         data: { startDate: '2024-06-15', endDate: '2024-06-22' },
-        order: 2,
+        order: 1,
       },
       {
         id: 'location-default',
         type: 'location' as BlockType, 
         data: { location: 'San Francisco, USA' },
-        order: 3,
+        order: 2,
       },
       {
         id: 'richText-default',
         type: 'richText' as BlockType,
         data: { content: '' },
-        order: 4,
+        order: 3,
       },
       {
         id: 'tickets-default',
@@ -119,23 +108,96 @@ const ExperienceEdit = () => {
   const { experienceId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
+  // Apply user-specific default settings
+  const applyUserDefaults = useCallback((profile: any) => {
+    if (profile.role === 'admin') {
+      setTitleData(prev => ({
+        ...prev,
+        category: 'Professional'
+      }));
+    }
+    setIsPublic(false); // Default to private for new users
+  }, []);
+
+  const prefillFromVoice = useCallback((draft: VoiceExperienceDraft) => {
+    
+    // Update title data
+    setTitleData(prev => ({
+      ...prev,
+      text: draft.title || prev.text,
+      category: draft.category || prev.category
+    }));
+    
+    // Update visibility
+    setIsPublic(draft.visibility === 'public');
+    
+    // Start with existing blocks and update core blocks with voice data
+    const newBlocks: Block[] = [...blocks];
+    
+    // Update image block
+    const imageBlockIndex = newBlocks.findIndex(b => b.id === 'image-default');
+    if (imageBlockIndex >= 0) {
+      newBlocks[imageBlockIndex] = {
+        ...newBlocks[imageBlockIndex],
+        data: { url: '', alt: '' }
+      };
+    }
+    
+    // Update dates block
+    if (draft.startDate || draft.endDate) {
+      const datesBlockIndex = newBlocks.findIndex(b => b.id === 'dates-default');
+      if (datesBlockIndex >= 0) {
+        newBlocks[datesBlockIndex] = {
+          ...newBlocks[datesBlockIndex],
+          data: {
+            startDate: draft.startDate ? new Date(draft.startDate) : null,
+            endDate: draft.endDate ? new Date(draft.endDate) : null,
+          }
+        };
+      }
+    }
+    
+    // Update location block
+    if (draft.location) {
+      const locationBlockIndex = newBlocks.findIndex(b => b.id === 'location-default');
+      if (locationBlockIndex >= 0) {
+        newBlocks[locationBlockIndex] = {
+          ...newBlocks[locationBlockIndex],
+          data: {
+            location: draft.location || ''
+          }
+        };
+      }
+    }
+    
+    // Update description block
+    if (draft.description) {
+      const descriptionBlockIndex = newBlocks.findIndex(b => b.id === 'richText-default');
+      if (descriptionBlockIndex >= 0) {
+        newBlocks[descriptionBlockIndex] = {
+          ...newBlocks[descriptionBlockIndex],
+          data: { content: draft.description }
+        };
+      }
+    }
+    
+    setBlocks(newBlocks);
+  }, [toast]);
+
   // 🛡️ TITLE BLOCK - PERSISTENT AND SEPARATE FROM OTHER BLOCKS
   const [titleData, setTitleData] = useState({ text: '', category: '' });
   
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [isPublic, setIsPublic] = useState(false);
   const [title, setTitle] = useState('');
+  const [showVoiceBanner, setShowVoiceBanner] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
+  
+  // User context
+  const { user, isLoading: isLoadingUser, isAuthenticated } = useUser();
   const [selectedHost, setSelectedHost] = useState<HostData>(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      return {
-        type: 'personal',
-        name: user.name,
-      };
-    }
+    // Initialize with default values
     return {
       type: 'personal',
       name: 'User',
@@ -146,24 +208,31 @@ const ExperienceEdit = () => {
   const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
   const blockRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
 
+  // Initialize user data when component mounts
+  useEffect(() => {
+    if (user) {
+      setSelectedHost({
+        type: 'personal',
+        name: user.name,
+      });
+    }
+  }, [user]);
+
   // ✅ Delete gallery image handler
   const handleDeleteGalleryImage = useCallback(async (imageId: string) => {
     if (!experienceId) {
       throw new Error('Experience ID is required');
     }
     
-    console.log('🗑️ Deleting gallery image:', imageId, 'from experience:', experienceId);
     
     try {
       await experiencesService.deleteImage(experienceId, imageId);
-      console.log('✅ Gallery image deleted successfully from backend');
       
       toast({
         title: "Image Deleted",
         description: "Gallery image has been removed.",
       });
     } catch (error) {
-      console.error('❌ Failed to delete gallery image:', error);
       toast({
         title: "Error",
         description: "Failed to delete image. Please try again.",
@@ -182,20 +251,10 @@ const ExperienceEdit = () => {
       }
 
       try {
-        console.log('📥 Loading experience:', experienceId);
         
         // Fetch experience from API
         const experience = await experiencesService.getById(experienceId);
         
-        console.log('✅ Experience loaded:', experience);
-        console.log('📝 Title:', experience.title);
-        console.log('📅 Dates:', experience.startDate, '-', experience.endDate);
-        console.log('📍 Location:', experience.location, experience.city, experience.country);
-        console.log('📄 Description:', experience.description);
-        console.log('📋 Agenda:', experience.agenda);
-        console.log('✨ Highlights:', experience.highlights);
-        console.log('🎫 Ticket Tiers:', experience.ticketTiers);
-        console.log('🖼️ Gallery Images from API:', experience.gallery);
         
         setTitle(experience.title || '');
         setIsPublic(experience.status === 'published');
@@ -206,8 +265,17 @@ const ExperienceEdit = () => {
           category: experience.categorySlug || experience.category || ''
         });
         
-        // Convert experience data to blocks (without title - it's now separate)
+        // Convert experience data to blocks
         const defaultBlocks: Block[] = [
+          {
+            id: 'title-default',
+            type: 'title' as BlockType,
+            data: { 
+              text: experience.title || 'Untitled Experience',
+              category: experience.categorySlug || experience.category || ''
+            },
+            order: 0,
+          },
           {
             id: 'dates-default', 
             type: 'dates' as BlockType,
@@ -215,30 +283,28 @@ const ExperienceEdit = () => {
               startDate: experience.startDate || '', 
               endDate: experience.endDate || ''
             },
-            order: 0,
+            order: 1,
           },
           {
             id: 'location-default',
             type: 'location' as BlockType, 
             data: { 
-              city: experience.city || experience.location || '',
-              country: experience.country || ''
+              location: experience.location || ''
             },
-            order: 1,
+            order: 2,
           },
           {
             id: 'richText-1',
             type: 'richText' as BlockType,
             data: { content: experience.description || '' },
-            order: 2,
+            order: 3,
           }
         ];
 
-        let blockOrder = 3;
+        let blockOrder = 4;
 
         // Add image block if featured image exists
         if (experience.featuredImageUrl) {
-          console.log('🖼️ Loading existing featured image:', experience.featuredImageUrl);
           defaultBlocks.push({
             id: 'image-default',
             type: 'image' as BlockType,
@@ -268,9 +334,7 @@ const ExperienceEdit = () => {
               });
             }
           });
-          console.log('✅ Loaded', experience.agenda.length, 'agenda day blocks');
         } else {
-          console.log('⚠️ No agenda items found in experience data');
         }
 
         // Add highlights block if highlights exist
@@ -284,9 +348,7 @@ const ExperienceEdit = () => {
             },
             order: blockOrder++
           });
-          console.log('✅ Loaded highlights block with', experience.highlights.length, 'highlights');
         } else {
-          console.log('⚠️ No highlights found in experience data');
         }
 
         // Add tickets block if ticket tiers exist
@@ -299,7 +361,6 @@ const ExperienceEdit = () => {
             quantity: tier.quantity || tier.capacity
           }));
           
-          console.log('🎫 Transformed ticket tiers for block:', tiersData);
           
           // Initialize with default application form fields so TicketsBlock doesn't overwrite tiers
           const defaultApplicationFields = [
@@ -332,9 +393,7 @@ const ExperienceEdit = () => {
             },
             order: blockOrder++
           });
-          console.log('✅ Loaded ticket tiers block with', experience.ticketTiers.length, 'tiers');
         } else {
-          console.log('⚠️ No ticket tiers found in experience data');
         }
 
         // Add FAQ block if FAQ items exist
@@ -345,7 +404,6 @@ const ExperienceEdit = () => {
             answer: item.answer || ''
           }));
           
-          console.log('❓ Transformed FAQ items for block:', faqData);
           
           defaultBlocks.push({
             id: `faq-${Date.now()}`,
@@ -355,9 +413,7 @@ const ExperienceEdit = () => {
             },
             order: blockOrder++
           });
-          console.log('✅ Loaded FAQ block with', experience.faq.length, 'items');
         } else {
-          console.log('⚠️ No FAQ items found in experience data');
         }
 
         // Add Resources block if resources exist
@@ -370,7 +426,6 @@ const ExperienceEdit = () => {
             type: item.type || 'link'
           }));
           
-          console.log('📂 Transformed resources for block:', resourcesData);
           
           defaultBlocks.push({
             id: `resources-${Date.now()}`,
@@ -380,9 +435,7 @@ const ExperienceEdit = () => {
             },
             order: blockOrder++
           });
-          console.log('✅ Loaded resources block with', experience.resources.length, 'items');
         } else {
-          console.log('⚠️ No resources found in experience data');
         }
 
         // Add Logistics block if logistics data exists
@@ -398,7 +451,6 @@ const ExperienceEdit = () => {
             additionalInfo: experience.additionalInfo || ''
           };
           
-          console.log('🗺️ Transformed logistics for block:', logisticsData);
           
           defaultBlocks.push({
             id: `logistics-${Date.now()}`,
@@ -406,19 +458,12 @@ const ExperienceEdit = () => {
             data: logisticsData,
             order: blockOrder++
           });
-          console.log('✅ Loaded logistics block');
         } else {
-          console.log('⚠️ No logistics data found in experience data');
         }
 
         // Add Gallery block if gallery images exist
-        console.log('🔍 Checking for gallery images...');
-        console.log('   experience.gallery exists:', !!experience.gallery);
-        console.log('   is array:', Array.isArray(experience.gallery));
-        console.log('   length:', experience.gallery?.length || 0);
         
         if (experience.gallery && Array.isArray(experience.gallery) && experience.gallery.length > 0) {
-          console.log('✅ Found', experience.gallery.length, 'gallery images to load');
           
           const galleryData = experience.gallery.map((img: any) => ({
             id: img.id,  // ✅ Database ID for deletion
@@ -427,7 +472,6 @@ const ExperienceEdit = () => {
             file: null  // Existing images don't have files
           }));
           
-          console.log('🖼️ Transformed gallery data for block:', galleryData);
           
           defaultBlocks.push({
             id: `gallery-${Date.now()}`,
@@ -437,17 +481,13 @@ const ExperienceEdit = () => {
             },
             order: blockOrder++
           });
-          console.log('✅ Gallery block added to defaultBlocks at position', defaultBlocks.length - 1);
         } else {
-          console.log('⚠️ No gallery images found in experience data - skipping gallery block');
         }
         
-        console.log('🧩 Created blocks:', defaultBlocks);
         
         setBlocks(defaultBlocks);
         
       } catch (error) {
-        console.error('❌ Error loading experience:', error);
         toast({
           title: "Experience not found",
           description: "The experience you're trying to edit doesn't exist or you don't have permission.",
@@ -532,13 +572,30 @@ const ExperienceEdit = () => {
   }, [blocks, getInsertPosition]);
 
   const addBlock = useCallback((type: BlockType) => {
-    const newBlock: Block = {
-      id: `${type}-${Date.now()}`,
-      type,
-      data: getDefaultBlockData(type),
-      order: blocks.length,
-    };
-    setBlocks(prev => [...prev, newBlock]);
+    setBlocks(prev => {
+      // Check if this is a core block type that should only exist once
+      const coreBlockTypes = ['title', 'dates', 'location', 'richText', 'image'];
+      
+      if (coreBlockTypes.includes(type)) {
+        // For core blocks, check if one already exists
+        const existingBlockIndex = prev.findIndex(b => b.id === `${type}-default`);
+        
+        if (existingBlockIndex >= 0) {
+          // Keep existing block unchanged
+          return prev;
+        }
+      }
+      
+      // For non-core blocks or when core block doesn't exist, create new block
+      const newBlock: Block = {
+        id: coreBlockTypes.includes(type) ? `${type}-default` : `${type}-${Date.now()}`,
+        type,
+        data: getDefaultBlockData(type),
+        order: blocks.length,
+      };
+      
+      return [...prev, newBlock];
+    });
   }, [blocks.length]);
 
   const updateBlock = useCallback((id: string, data: any) => {
@@ -568,22 +625,18 @@ const ExperienceEdit = () => {
   }, [blocks]);
 
   const reorderBlocks = useCallback((dragIndex: number, hoverIndex: number) => {
-    console.log('🔀 reorderBlocks: drag', dragIndex, 'to', hoverIndex);
     
     // ✅ VALIDATE INDICES
     if (isNaN(dragIndex) || isNaN(hoverIndex)) {
-      console.error('❌ Invalid reorder indices:', { dragIndex, hoverIndex });
       return;
     }
     
     setBlocks(prev => {
       // ✅ VALIDATE INDEX BOUNDS
       if (dragIndex < 0 || dragIndex >= prev.length) {
-        console.error('❌ dragIndex out of bounds:', { dragIndex, arrayLength: prev.length });
         return prev;
       }
       if (hoverIndex < 0 || hoverIndex >= prev.length) {
-        console.error('❌ hoverIndex out of bounds:', { hoverIndex, arrayLength: prev.length });
         return prev;
       }
       
@@ -592,7 +645,6 @@ const ExperienceEdit = () => {
       
       // ✅ VALIDATE DRAGGED BLOCK
       if (!draggedBlock) {
-        console.error('❌ draggedBlock is undefined at index:', dragIndex);
         return prev;
       }
       
@@ -606,18 +658,34 @@ const ExperienceEdit = () => {
     if (!experienceId) return;
     
     try {
-      console.log('📤 Saving draft:', experienceId);
+
+      // Validate title
+      const titleBlock = blocks.find(b => b.type === 'title');
+      const titleText = titleBlock?.data?.text || titleData.text;
       
-      const token = localStorage.getItem('auth_token');
-      const formData = new FormData();
-      
-      // Add experience data
-      formData.append('title', title || '');
-      formData.append('status', 'draft');
+      if (!titleText || titleText.trim().length < 3) {
+        toast({
+          title: "Title Required",
+          description: "Please add a title (minimum 3 characters) to save your draft",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate location
+      const locationBlock = blocks.find(b => b.type === 'location');
+      if (!locationBlock?.data?.location || locationBlock.data.location.trim().length < 3) {
+        toast({
+          title: "Location Required",
+          description: "Please add a location to your experience",
+          variant: "destructive",
+        });
+        return;
+      }
       
       // Extract data from blocks (title is now separate)
       const datesBlock = blocks.find(b => b.type === 'dates');
-      const locationBlock = blocks.find(b => b.type === 'location');
+      // locationBlock already defined above in validation
       const descriptionBlock = blocks.find(b => b.type === 'richText');
       const imageBlock = blocks.find(b => b.type === 'image');
       const agendaBlocks = blocks.filter(b => b.type === 'agendaDay');
@@ -627,34 +695,40 @@ const ExperienceEdit = () => {
       const resourcesBlock = blocks.find(b => b.type === 'resources');
       const logisticsBlock = blocks.find(b => b.type === 'logistics');
       
-      // Use titleData (separate from blocks)
-      if (titleData.text) {
-        formData.append('title', titleData.text);
+      // Use title from block or titleData as fallback
+      // titleBlock and titleText already defined above in validation
+      const titleCategory = titleBlock?.data?.category || titleData.category;
+      
+      if (titleText) {
+        formData.append('title', titleText);
       }
       
-      if (titleData.category) {
-        formData.append('categorySlug', titleData.category);
+      if (titleCategory) {
+        formData.append('categorySlug', titleCategory);
       }
       
       if (descriptionBlock?.data?.content) {
         formData.append('description', descriptionBlock.data.content);
       }
       
-      if (locationBlock?.data?.city) {
-        formData.append('location', locationBlock.data.city);
-        formData.append('city', locationBlock.data.city);
-      }
-      
-      if (locationBlock?.data?.country) {
-        formData.append('country', locationBlock.data.country);
+      if (locationBlock?.data?.location) {
+        formData.append('location', locationBlock.data.location);
+        formData.append('city', '');
+        formData.append('country', '');
       }
       
       if (datesBlock?.data?.startDate) {
-        formData.append('startDate', datesBlock.data.startDate);
+        const startDate = datesBlock.data.startDate instanceof Date ? 
+          datesBlock.data.startDate.toISOString().split('T')[0] : 
+          new Date(datesBlock.data.startDate).toISOString().split('T')[0];
+        formData.append('startDate', startDate);
       }
       
       if (datesBlock?.data?.endDate) {
-        formData.append('endDate', datesBlock.data.endDate);
+        const endDate = datesBlock.data.endDate instanceof Date ? 
+          datesBlock.data.endDate.toISOString().split('T')[0] : 
+          new Date(datesBlock.data.endDate).toISOString().split('T')[0];
+        formData.append('endDate', endDate);
       }
 
       // Transform agenda blocks to agenda items format
@@ -676,21 +750,16 @@ const ExperienceEdit = () => {
       });
 
       // Extract highlights
-      console.log('✨ Extracting highlights - highlightsBlock:', highlightsBlock);
-      console.log('✨ highlightsBlock?.data?.highlights:', highlightsBlock?.data?.highlights);
       const highlights = highlightsBlock?.data?.highlights ? 
         highlightsBlock.data.highlights.map((item: any) => item.text || item) : [];
-      console.log('✨ Extracted highlights:', highlights);
 
       // Add agenda items and highlights as JSON
       if (agendaItems.length > 0) {
         formData.append('agendaItems', JSON.stringify(agendaItems));
-        console.log('📅 Saving draft with agenda items:', agendaItems);
       }
 
       if (highlights.length > 0) {
         formData.append('highlights', JSON.stringify(highlights));
-        console.log('✨ Saving draft with highlights:', highlights);
       }
 
       // Extract and add ticket tiers
@@ -705,7 +774,6 @@ const ExperienceEdit = () => {
           displayOrder: index
         }));
         formData.append('ticketTiers', JSON.stringify(ticketTiers));
-        console.log('🎫 Saving draft with ticket tiers:', ticketTiers);
       }
 
       // Extract and add FAQ items
@@ -716,7 +784,6 @@ const ExperienceEdit = () => {
           displayOrder: index
         }));
         formData.append('faqItems', JSON.stringify(faqItems));
-        console.log('❓ Saving draft with FAQ items:', faqItems);
       }
 
       // Extract and add resources
@@ -729,7 +796,6 @@ const ExperienceEdit = () => {
           displayOrder: index
         }));
         formData.append('resources', JSON.stringify(resources));
-        console.log('📂 Saving draft with resources:', resources);
       }
 
       // Extract and add logistics data
@@ -750,46 +816,28 @@ const ExperienceEdit = () => {
         if (logistics.additionalInfo) {
           formData.append('additionalInfo', logistics.additionalInfo);
         }
-        console.log('🗺️ Saving draft with logistics:', logistics);
       }
       
       // Check for image in blocks
-      console.log('🖼️ Checking for image upload. imageBlock:', imageBlock);
-      console.log('🖼️ imageBlock?.data:', imageBlock?.data);
-      console.log('🖼️ imageBlock?.data?.file:', imageBlock?.data?.file);
       
       if (imageBlock?.data?.file) {
-        console.log('✅ Adding featured image to upload:', {
-          fileName: imageBlock.data.file.name,
-          fileSize: imageBlock.data.file.size,
-          fileType: imageBlock.data.file.type
-        });
         formData.append('featuredImage', imageBlock.data.file);
       } else {
-        console.log('⚠️ No image file found to upload');
       }
 
       // Extract and add gallery images with their alt text
       const galleryBlock = blocks.find(b => b.type === 'gallery');
-      console.log('🖼️ Checking for gallery images. galleryBlock:', galleryBlock);
       
       if (galleryBlock?.data?.images && Array.isArray(galleryBlock.data.images)) {
         // Filter images that have new files to upload
         const imagesToUpload = galleryBlock.data.images
           .filter((img: any) => img.file !== null && img.file !== undefined);
         
-        console.log('🖼️ Found', imagesToUpload.length, 'gallery images to upload');
         
         if (imagesToUpload.length > 0) {
           const galleryAlts: string[] = [];
           
           imagesToUpload.forEach((img: any, index: number) => {
-            console.log(`✅ Adding gallery image ${index + 1}:`, {
-              fileName: img.file.name,
-              fileSize: img.file.size,
-              fileType: img.file.type,
-              alt: img.alt || ''
-            });
             // Append the file
             formData.append('galleryImages', img.file, img.file.name);
             // Collect alt text
@@ -798,19 +846,13 @@ const ExperienceEdit = () => {
           
           // Send alt texts as JSON array
           formData.append('galleryAlts', JSON.stringify(galleryAlts));
-          console.log('✅ Total gallery images appended:', imagesToUpload.length);
-          console.log('✅ Gallery alt texts:', galleryAlts);
         } else {
-          console.log('⚠️ No gallery image files found to upload');
         }
       } else {
-        console.log('⚠️ No gallery block or images array found');
       }
 
       // Debug: Log all FormData entries
-      console.log('📤 FormData being sent to UPDATE endpoint:');
       for (let pair of formData.entries()) {
-        console.log(`   ${pair[0]}:`, pair[1]);
       }
       
       // Send update with all data including images
@@ -829,17 +871,10 @@ const ExperienceEdit = () => {
 
       const data = await response.json();
       
-      console.log('✅ Draft saved successfully!', data);
-      
-      toast({
-        title: "Draft Saved",
-        description: "Your changes have been saved as a draft.",
-      });
       
       setIsPublic(false);
       
     } catch (error) {
-      console.error('❌ Error saving draft:', error);
       toast({
         title: "Save Failed",
         description: "Failed to save draft. Please try again.",
@@ -852,7 +887,30 @@ const ExperienceEdit = () => {
     if (!experienceId) return;
     
     try {
-      console.log('📤 Publishing experience:', experienceId);
+
+      // Validate title
+      const titleBlock = blocks.find(b => b.type === 'title');
+      const titleText = titleBlock?.data?.text || titleData.text;
+      
+      if (!titleText || titleText.trim().length < 3) {
+        toast({
+          title: "Title Required",
+          description: "Please add a title to your experience (minimum 3 characters)",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate location
+      const locationBlock = blocks.find(b => b.type === 'location');
+      if (!locationBlock?.data?.location || locationBlock.data.location.trim().length < 3) {
+        toast({
+          title: "Location Required",
+          description: "Please add a location to your experience",
+          variant: "destructive",
+        });
+        return;
+      }
       
       const token = localStorage.getItem('auth_token');
       const formData = new FormData();
@@ -862,7 +920,7 @@ const ExperienceEdit = () => {
       
       // Extract data from blocks (title is now separate)
       const datesBlock = blocks.find(b => b.type === 'dates');
-      const locationBlock = blocks.find(b => b.type === 'location');
+      // locationBlock already defined above in validation
       const descriptionBlock = blocks.find(b => b.type === 'richText');
       const imageBlock = blocks.find(b => b.type === 'image');
       const agendaBlocks = blocks.filter(b => b.type === 'agendaDay');
@@ -872,34 +930,40 @@ const ExperienceEdit = () => {
       const resourcesBlock = blocks.find(b => b.type === 'resources');
       const logisticsBlock = blocks.find(b => b.type === 'logistics');
       
-      // Use titleData (separate from blocks)
-      if (titleData.text) {
-        formData.append('title', titleData.text);
+      // Use title from block or titleData as fallback
+      // titleBlock and titleText already defined above in validation
+      const titleCategory = titleBlock?.data?.category || titleData.category;
+      
+      if (titleText) {
+        formData.append('title', titleText);
       }
       
-      if (titleData.category) {
-        formData.append('categorySlug', titleData.category);
+      if (titleCategory) {
+        formData.append('categorySlug', titleCategory);
       }
       
       if (descriptionBlock?.data?.content) {
         formData.append('description', descriptionBlock.data.content);
       }
       
-      if (locationBlock?.data?.city) {
-        formData.append('location', locationBlock.data.city);
-        formData.append('city', locationBlock.data.city);
-      }
-      
-      if (locationBlock?.data?.country) {
-        formData.append('country', locationBlock.data.country);
+      if (locationBlock?.data?.location) {
+        formData.append('location', locationBlock.data.location);
+        formData.append('city', '');
+        formData.append('country', '');
       }
       
       if (datesBlock?.data?.startDate) {
-        formData.append('startDate', datesBlock.data.startDate);
+        const startDate = datesBlock.data.startDate instanceof Date ? 
+          datesBlock.data.startDate.toISOString().split('T')[0] : 
+          new Date(datesBlock.data.startDate).toISOString().split('T')[0];
+        formData.append('startDate', startDate);
       }
       
       if (datesBlock?.data?.endDate) {
-        formData.append('endDate', datesBlock.data.endDate);
+        const endDate = datesBlock.data.endDate instanceof Date ? 
+          datesBlock.data.endDate.toISOString().split('T')[0] : 
+          new Date(datesBlock.data.endDate).toISOString().split('T')[0];
+        formData.append('endDate', endDate);
       }
 
       // Transform agenda blocks to agenda items format
@@ -921,21 +985,16 @@ const ExperienceEdit = () => {
       });
 
       // Extract highlights
-      console.log('✨ Extracting highlights - highlightsBlock:', highlightsBlock);
-      console.log('✨ highlightsBlock?.data?.highlights:', highlightsBlock?.data?.highlights);
       const highlights = highlightsBlock?.data?.highlights ? 
         highlightsBlock.data.highlights.map((item: any) => item.text || item) : [];
-      console.log('✨ Extracted highlights:', highlights);
 
       // Add agenda items and highlights as JSON
       if (agendaItems.length > 0) {
         formData.append('agendaItems', JSON.stringify(agendaItems));
-        console.log('📅 Publishing with agenda items:', agendaItems);
       }
 
       if (highlights.length > 0) {
         formData.append('highlights', JSON.stringify(highlights));
-        console.log('✨ Publishing with highlights:', highlights);
       }
 
       // Extract and add ticket tiers
@@ -950,7 +1009,6 @@ const ExperienceEdit = () => {
           displayOrder: index
         }));
         formData.append('ticketTiers', JSON.stringify(ticketTiers));
-        console.log('🎫 Publishing with ticket tiers:', ticketTiers);
       }
 
       // Extract and add FAQ items
@@ -961,7 +1019,6 @@ const ExperienceEdit = () => {
           displayOrder: index
         }));
         formData.append('faqItems', JSON.stringify(faqItems));
-        console.log('❓ Publishing with FAQ items:', faqItems);
       }
 
       // Extract and add resources
@@ -974,7 +1031,6 @@ const ExperienceEdit = () => {
           displayOrder: index
         }));
         formData.append('resources', JSON.stringify(resources));
-        console.log('📂 Publishing with resources:', resources);
       }
 
       // Extract and add logistics data
@@ -995,46 +1051,28 @@ const ExperienceEdit = () => {
         if (logistics.additionalInfo) {
           formData.append('additionalInfo', logistics.additionalInfo);
         }
-        console.log('🗺️ Publishing with logistics:', logistics);
       }
       
       // Upload image if exists in blocks
-      console.log('🖼️ Checking for image upload (PUBLISH). imageBlock:', imageBlock);
-      console.log('🖼️ imageBlock?.data:', imageBlock?.data);
-      console.log('🖼️ imageBlock?.data?.file:', imageBlock?.data?.file);
       
       if (imageBlock?.data?.file) {
-        console.log('✅ Adding featured image to publish:', {
-          fileName: imageBlock.data.file.name,
-          fileSize: imageBlock.data.file.size,
-          fileType: imageBlock.data.file.type
-        });
         formData.append('featuredImage', imageBlock.data.file);
       } else {
-        console.log('⚠️ No image file found to upload');
       }
 
       // Extract and add gallery images with their alt text
       const galleryBlockPublish = blocks.find(b => b.type === 'gallery');
-      console.log('🖼️ Checking for gallery images (PUBLISH). galleryBlock:', galleryBlockPublish);
       
       if (galleryBlockPublish?.data?.images && Array.isArray(galleryBlockPublish.data.images)) {
         // Filter images that have new files to upload
         const imagesToUpload = galleryBlockPublish.data.images
           .filter((img: any) => img.file !== null && img.file !== undefined);
         
-        console.log('🖼️ Found', imagesToUpload.length, 'gallery images to upload');
         
         if (imagesToUpload.length > 0) {
           const galleryAlts: string[] = [];
           
           imagesToUpload.forEach((img: any, index: number) => {
-            console.log(`✅ Adding gallery image ${index + 1}:`, {
-              fileName: img.file.name,
-              fileSize: img.file.size,
-              fileType: img.file.type,
-              alt: img.alt || ''
-            });
             // Append the file
             formData.append('galleryImages', img.file, img.file.name);
             // Collect alt text
@@ -1043,19 +1081,13 @@ const ExperienceEdit = () => {
           
           // Send alt texts as JSON array
           formData.append('galleryAlts', JSON.stringify(galleryAlts));
-          console.log('✅ Total gallery images appended:', imagesToUpload.length);
-          console.log('✅ Gallery alt texts:', galleryAlts);
         } else {
-          console.log('⚠️ No gallery image files found to upload');
         }
       } else {
-        console.log('⚠️ No gallery block or images array found');
       }
 
       // Debug: Log all FormData entries
-      console.log('📤 FormData being sent to PUBLISH endpoint:');
       for (let pair of formData.entries()) {
-        console.log(`   ${pair[0]}:`, pair[1]);
       }
       
       // Send update with all data including images
@@ -1074,7 +1106,6 @@ const ExperienceEdit = () => {
 
       const data = await response.json();
       
-      console.log('✅ Experience published successfully!', data);
       
       toast({
         title: "Experience Published!",
@@ -1085,7 +1116,6 @@ const ExperienceEdit = () => {
       setIsPublic(true);
       
     } catch (error) {
-      console.error('❌ Error publishing experience:', error);
       toast({
         title: "Publish Failed",
         description: "Failed to publish experience. Please try again.",
@@ -1117,57 +1147,71 @@ const ExperienceEdit = () => {
 
   const handleVoicePrefill = useCallback((draft: VoiceExperienceDraft) => {
     // Similar to ExperienceBuilder's prefill logic
-    setTitle(draft.title);
+    setTitleData({ 
+      text: draft.title, 
+      category: '' 
+    });
     setIsPublic(draft.visibility === 'public');
 
-    const newBlocks: Block[] = [
-      {
-        id: 'image-default',
-        type: 'image',
-        data: { url: '', alt: '' },
-        order: 0,
-      },
-      {
-        id: 'title-default',
-        type: 'title',
-        data: { text: draft.title },
-        order: 1,
-      },
-      {
-        id: 'dates-default',
-        type: 'dates',
+    // Start with existing blocks and update core blocks with voice data
+    const newBlocks: Block[] = [...blocks];
+    
+    // Update title block
+    const titleBlockIndex = newBlocks.findIndex(b => b.id === 'title-default');
+    if (titleBlockIndex >= 0) {
+      newBlocks[titleBlockIndex] = {
+        ...newBlocks[titleBlockIndex],
+        data: { 
+          text: draft.title,
+          category: ''
+        }
+      };
+    }
+    
+    // Update image block
+    const imageBlockIndex = newBlocks.findIndex(b => b.id === 'image-default');
+    if (imageBlockIndex >= 0) {
+      newBlocks[imageBlockIndex] = {
+        ...newBlocks[imageBlockIndex],
+        data: { url: '', alt: '' }
+      };
+    }
+    
+    // Update dates block
+    const datesBlockIndex = newBlocks.findIndex(b => b.id === 'dates-default');
+    if (datesBlockIndex >= 0) {
+      newBlocks[datesBlockIndex] = {
+        ...newBlocks[datesBlockIndex],
         data: { 
           startDate: draft.dates.startDate, 
           endDate: draft.dates.endDate 
-        },
-        order: 2,
-      },
-      {
-        id: 'location-default',
-        type: 'location',
+        }
+      };
+    }
+    
+    // Update location block
+    const locationBlockIndex = newBlocks.findIndex(b => b.id === 'location-default');
+    if (locationBlockIndex >= 0) {
+      newBlocks[locationBlockIndex] = {
+        ...newBlocks[locationBlockIndex],
         data: { 
           location: `${draft.location.city}, ${draft.location.country}` 
-        },
-        order: 3,
-      },
-      {
-        id: 'richText-default',
-        type: 'richText',
-        data: { content: draft.description || '' },
-        order: 4,
-      },
-    ];
-
-    let blockOrder = 5;
-
-    if (draft.description) {
-      newBlocks.push({
-        id: `richText-${Date.now()}`,
-        type: 'richText',
-        data: { content: draft.description },
-        order: blockOrder++,
-      });
+        }
+      };
     }
+    
+    // Update description block
+    const descriptionBlockIndex = newBlocks.findIndex(b => b.id === 'richText-default');
+    if (descriptionBlockIndex >= 0) {
+      newBlocks[descriptionBlockIndex] = {
+        ...newBlocks[descriptionBlockIndex],
+        data: { content: draft.description || '' }
+      };
+    }
+
+    let blockOrder = 4;
+
+    // Description block already updated above, no need to create duplicate
 
     draft.agendaDays.forEach((day, index) => {
       newBlocks.push({
@@ -1199,10 +1243,7 @@ const ExperienceEdit = () => {
 
     setBlocks(newBlocks);
     setShowVoiceModal(false);
-    toast({
-      title: "Experience updated from voice!",
-      description: "Review the changes and publish when ready.",
-    });
+    // Experience updated from voice
   }, [toast]);
 
   return (
@@ -1251,7 +1292,7 @@ const ExperienceEdit = () => {
       <VoiceExperienceModal 
         isOpen={showVoiceModal}
         onClose={() => setShowVoiceModal(false)}
-        onPrefillBuilder={handleVoicePrefill}
+        onPrefillBuilder={prefillFromVoice}
       />
     </div>
   );
@@ -1266,13 +1307,13 @@ function getDefaultBlockData(type: BlockType): any {
     case 'location':
       return { location: '' };
     case 'image':
-      return { url: '', alt: '' };
+      return { url: '', alt: '', file: undefined };
     case 'richText':
       return { content: 'Tell your story here...' };
     case 'highlights':
       return { highlights: [] };
     case 'agendaDay':
-      return { date: null, scheduleByDate: {} };
+      return { date: null, items: [{ time: '09:00', activity: 'Welcome & Introductions' }] };
     case 'tickets':
       return { tiers: [{ name: 'Standard', price: 500, quantity: 20 }] };
     case 'gallery':

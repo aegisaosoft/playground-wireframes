@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
+import { useUser } from "@/contexts/UserContext";
 import PlaygroundHero from "@/components/PlaygroundHero";
 import ExperiencesSection from "@/components/ExperiencesSection";
 import { RetreatGrid, Retreat } from "@/components/RetreatGrid";
@@ -7,135 +8,16 @@ import { RetreatDetailsModal, RetreatDetail } from "@/components/RetreatDetailsM
 import { RetreatEditor, RetreatDetails } from "@/components/RetreatEditor";
 import { BrandSuccessModal } from "@/components/BrandSuccessModal";
 import { BrandEditor, BrandData } from "@/components/BrandEditor";
-import retreatBali from "@/assets/retreat-bali.jpg";
-import retreatCostaRica from "@/assets/retreat-costa-rica.jpg";
-import retreatTulum from "@/assets/retreat-tulum.jpg";
-import retreatPortugal from "@/assets/retreat-portugal.jpg";
-import retreatSwitzerland from "@/assets/retreat-switzerland.jpg";
-import retreatGreece from "@/assets/retreat-greece.jpg";
-
-const initialRetreats: Retreat[] = [
-  {
-    id: 1,
-    image: retreatBali,
-    location: "Bali",
-    date: "Jan 15–22",
-    title: "7-Day Digital Detox & Mindfulness Retreat in Ubud",
-    description: "Disconnect from technology and reconnect with yourself in the heart of Bali. This transformative retreat combines mindfulness practices, yoga sessions, and cultural immersion in a serene jungle setting.",
-    capacity: 12,
-    spotsRemaining: 3,
-    price: 1200,
-    requiresApplication: true,
-    agendaVisibility: 'public',
-    agenda: [
-      {
-        date: "January 15",
-        activities: [
-          { time: "09:00", title: "Welcome Circle & Introductions", description: "Meet your fellow retreaters and set intentions" },
-          { time: "11:00", title: "Mindful Walking in Rice Paddies" },
-          { time: "14:00", title: "Lunch & Rest" },
-          { time: "16:00", title: "Evening Yoga & Meditation" }
-        ]
-      },
-      {
-        date: "January 16",
-        activities: [
-          { time: "07:00", title: "Sunrise Meditation" },
-          { time: "09:00", title: "Breakfast & Journaling Time" },
-          { time: "10:30", title: "Local Village Tour" },
-          { time: "15:00", title: "Afternoon Rest" },
-          { time: "17:00", title: "Sound Healing Session" }
-        ]
-      }
-    ],
-    organizer: {
-      name: "Sarah Williams",
-      avatar: "/placeholder.svg",
-      profileLink: "#"
-    }
-  },
-  {
-    id: 2,
-    image: retreatCostaRica,
-    location: "Costa Rica",
-    date: "Feb 20–27",
-    title: "Pura Vida Adventure & Wellness Retreat",
-    description: "Experience the pure life of Costa Rica through adventure activities, wellness practices, and sustainable living workshops.",
-    capacity: 15,
-    spotsRemaining: 8,
-    price: 950,
-    requiresApplication: false,
-    agendaVisibility: 'private',
-    organizer: {
-      name: "Carlos Rodriguez",
-      avatar: "/placeholder.svg"
-    }
-  },
-  {
-    id: 3,
-    image: retreatTulum,
-    location: "Tulum",
-    date: "Mar 10–17",
-    title: "Beachfront Yoga & Cenote Healing Experience",
-    description: "Combine ancient Mayan wisdom with modern wellness practices on the stunning Caribbean coast.",
-    capacity: 20,
-    spotsRemaining: 12,
-    price: 800,
-    requiresApplication: false,
-    agendaVisibility: 'public',
-    agenda: [
-      {
-        date: "March 10",
-        activities: [
-          { time: "08:00", title: "Beach Sunrise Yoga" },
-          { time: "10:00", title: "Cenote Swimming & Meditation" }
-        ]
-      }
-    ]
-  },
-  {
-    id: 4,
-    image: retreatPortugal,
-    location: "Portugal",
-    date: "Apr 1–8",
-    title: "Creative Writing & Wine Retreat in Douro Valley",
-    description: "Unleash your creativity while enjoying world-class wines in one of Portugal's most beautiful regions.",
-    capacity: 10,
-    spotsRemaining: 2,
-    price: 1400,
-    requiresApplication: true,
-    agendaVisibility: 'public'
-  },
-  {
-    id: 5,
-    image: retreatSwitzerland,
-    location: "Switzerland",
-    date: "Apr 3–10",
-    title: "Alpine Startup Founder Retreat",
-    description: "Network with fellow entrepreneurs while enjoying the stunning Swiss Alps and world-class business workshops.",
-    capacity: 8,
-    spotsRemaining: 1,
-    price: 2200,
-    requiresApplication: true,
-    agendaVisibility: 'private'
-  },
-  {
-    id: 6,
-    image: retreatGreece,
-    location: "Greece",
-    date: "Apr 5–12",
-    title: "Digital Nomad Retreat in Mediterranean Paradise",
-    description: "Work remotely while enjoying the Greek islands, with coworking sessions and networking opportunities.",
-    capacity: 25,
-    spotsRemaining: 18,
-    price: 650,
-    requiresApplication: false,
-    agendaVisibility: 'public'
-  }
-];
+import { experiencesService } from '@/services/experiences.service';
+import { bookmarksService } from '@/services/bookmarks.service';
+import { followsService } from '@/services/follows.service';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import { formatExperienceDates } from '@/utils/dateFormatter';
 
 const Index = () => {
-  const [retreats, setRetreats] = useState<Retreat[]>(initialRetreats);
+  const [retreats, setRetreats] = useState<Retreat[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState<'home' | 'editor'>('home');
   const [editingRetreat, setEditingRetreat] = useState<RetreatDetails | null>(null);
   const [selectedRetreat, setSelectedRetreat] = useState<RetreatDetail | null>(null);
@@ -144,22 +26,94 @@ const Index = () => {
   const [followedHosts, setFollowedHosts] = useState<string[]>([]);
   const [showBrandSuccessModal, setShowBrandSuccessModal] = useState(false);
   const [showBrandEditor, setShowBrandEditor] = useState(false);
+  // Use UserContext for brand data and user info
+  const { user, brandPreferences, updateBrandPreferences } = useUser();
   const [userBrandData, setUserBrandData] = useState<BrandData | null>(null);
-  const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
+  const { toast } = useToast();
 
-  // Load brand data from localStorage on app start
+  // Load retreats from API
   useEffect(() => {
-    const storedBrandData = localStorage.getItem('userBrandData');
-    if (storedBrandData) {
-      setUserBrandData(JSON.parse(storedBrandData));
+    const loadRetreats = async () => {
+      setLoading(true);
+      try {
+        const experiences = await experiencesService.getAll();
+        
+        // Transform API experiences to Retreat format
+        const transformedRetreats: Retreat[] = experiences.map(exp => ({
+          id: parseInt(exp.id),
+          image: exp.featuredImageUrl || '/placeholder.svg',
+          location: exp.location,
+          date: formatExperienceDates(exp.startDate, exp.endDate, exp.date),
+          title: exp.title,
+          description: exp.description,
+          capacity: exp.totalCapacity || 10,
+          spotsRemaining: (exp.totalCapacity || 10) - (exp.spotsTaken || 0),
+          price: exp.basePriceCents ? exp.basePriceCents / 100 : 0,
+          requiresApplication: exp.requiresApproval || false,
+          agendaVisibility: 'public',
+          organizer: {
+            name: exp.hostName || exp.host?.name || 'Unknown Host',
+            avatar: exp.host?.profileImageUrl || '/placeholder.svg',
+            profileLink: `/host/${exp.hostId || exp.host?.id}`
+          }
+        }));
+        
+        setRetreats(transformedRetreats);
+        
+        // Load user's saved retreats and followed hosts if authenticated
+        if (user) {
+          try {
+            const bookmarks = await bookmarksService.getMyBookmarks();
+            const savedIds = bookmarks.map(bookmark => parseInt(bookmark.experienceId));
+            setSavedRetreats(savedIds);
+            
+            const follows = await followsService.getMyFollows();
+            const followedIds = follows.map(follow => follow.userId);
+            setFollowedHosts(followedIds);
+          } catch (error) {
+          }
+        }
+        
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load experiences. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRetreats();
+  }, [user, toast]);
+
+  // Load brand data from API when user context loads
+  useEffect(() => {
+    if (brandPreferences) {
+      // Transform API brand preferences to local BrandData format
+      const brandData: BrandData = {
+        name: brandPreferences.name || 'Your Brand',
+        description: brandPreferences.description || '',
+        logo: brandPreferences.logoUrl || null,
+        coverImage: brandPreferences.coverImageUrl || null,
+        website: brandPreferences.website || '',
+        instagram: brandPreferences.instagram || '',
+        twitter: brandPreferences.twitter || '',
+        linkedin: brandPreferences.linkedin || '',
+        facebook: brandPreferences.facebook || '',
+        youtube: brandPreferences.youtube || '',
+        tiktok: brandPreferences.tiktok || '',
+        followers: 124, // This would come from API
+        rating: 4.9,
+        experiencesCount: 2,
+        participantsCount: 45
+      };
+      setUserBrandData(brandData);
     }
-  }, []);
+  }, [brandPreferences]);
 
   const handleCreateRetreat = (newRetreat: Omit<Retreat, 'id'>) => {
-    // Get current user from localStorage
-    const storedUser = localStorage.getItem('user');
-    const user = storedUser ? JSON.parse(storedUser) : null;
-    setCurrentUser(user);
     
     const retreat: Retreat = {
       ...newRetreat,
@@ -243,20 +197,91 @@ const Index = () => {
     setEditingRetreat(null);
   };
 
-  const handleToggleSaveRetreat = (retreatId: number) => {
-    setSavedRetreats(prev => 
-      prev.includes(retreatId) 
-        ? prev.filter(id => id !== retreatId)
-        : [...prev, retreatId]
-    );
+  const handleToggleSaveRetreat = async (retreatId: number) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to bookmark retreats",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const isCurrentlySaved = savedRetreats.includes(retreatId);
+      
+      if (isCurrentlySaved) {
+        await bookmarksService.removeBookmark(retreatId.toString());
+        setSavedRetreats(prev => prev.filter(id => id !== retreatId));
+        toast({
+          title: "Bookmark Removed",
+          description: "Retreat removed from your bookmarks",
+        });
+      } else {
+        await bookmarksService.createBookmark({ experienceId: retreatId.toString() });
+        setSavedRetreats(prev => [...prev, retreatId]);
+        toast({
+          title: "Bookmarked",
+          description: "Retreat added to your bookmarks",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update bookmark. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleToggleFollowHost = (hostName: string) => {
-    setFollowedHosts(prev => 
-      prev.includes(hostName) 
-        ? prev.filter(name => name !== hostName)
-        : [...prev, hostName]
-    );
+  const handleToggleFollowHost = async (hostName: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to follow hosts",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Find the host ID from the retreats data
+    const hostRetreat = retreats.find(r => r.organizer.name === hostName);
+    const hostId = hostRetreat?.organizer.profileLink?.split('/').pop();
+    
+    if (!hostId) {
+      toast({
+        title: "Error",
+        description: "Could not find host information",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const isCurrentlyFollowing = followedHosts.includes(hostName);
+      
+      if (isCurrentlyFollowing) {
+        await followsService.unfollowUser(hostId);
+        setFollowedHosts(prev => prev.filter(name => name !== hostName));
+        toast({
+          title: "Unfollowed",
+          description: "You're no longer following this host",
+        });
+      } else {
+        await followsService.createFollow({ followedUserId: hostId });
+        setFollowedHosts(prev => [...prev, hostName]);
+        toast({
+          title: "Following",
+          description: "You're now following this host",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update follow status. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCustomizeBrand = () => {
@@ -264,14 +289,43 @@ const Index = () => {
     setShowBrandEditor(true);
   };
 
-  const handleSaveBrandData = (brandData: BrandData) => {
+  const handleSaveBrandData = async (brandData: BrandData) => {
     setUserBrandData(brandData);
-    // In a real app, this would save to backend/localStorage
-    localStorage.setItem('userBrandData', JSON.stringify(brandData));
+    
+    // Save to API via UserContext
+    try {
+      await updateBrandPreferences({
+        name: brandData.name,
+        description: brandData.description,
+        logoUrl: brandData.logo,
+        coverImageUrl: brandData.coverImage,
+        website: brandData.website,
+        instagram: brandData.instagram,
+        twitter: brandData.twitter,
+        linkedin: brandData.linkedin,
+        facebook: brandData.facebook,
+        youtube: brandData.youtube,
+        tiktok: brandData.tiktok
+      });
+    } catch (error) {
+      // Fallback: still update local state even if API fails
+    }
   };
 
   // Filter retreats to show only user's retreats (for demo purposes, we'll show all)
   const userRetreats = retreats;
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-neon-cyan" />
+          <p className="text-muted-foreground">Loading experiences...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (currentView === 'editor' && editingRetreat) {
     return (
@@ -310,7 +364,7 @@ const Index = () => {
         isOpen={showBrandSuccessModal}
         onClose={() => setShowBrandSuccessModal(false)}
         onCustomizeBrand={handleCustomizeBrand}
-        hostName={currentUser?.name || "Host"}
+        hostName={user?.name || "Host"}
       />
 
       {/* Brand Editor */}
@@ -318,7 +372,7 @@ const Index = () => {
         isOpen={showBrandEditor}
         onClose={() => setShowBrandEditor(false)}
         onSave={handleSaveBrandData}
-        hostName={currentUser?.name || "Host"}
+        hostName={user?.name || "Host"}
         initialData={userBrandData || undefined}
       />
     </div>

@@ -221,26 +221,11 @@ const ExperienceDetail = () => {
       }
 
       try {
-        console.log('📥 Loading experience details:', experienceId);
         setIsLoading(true);
         
         // Fetch experience from API
         const data = await experiencesService.getById(experienceId);
         
-        console.log('✅ Experience details loaded:', data);
-        console.log('📊 Full data from API:', {
-          title: data.title,
-          description: data.description,
-          location: data.location,
-          city: data.city,
-          country: data.country,
-          startDate: data.startDate,
-          endDate: data.endDate,
-          price: data.price || data.basePriceCents,
-          category: data.category,
-          status: data.status,
-          hostName: data.hostName
-        });
         
         // Use only real data from database (no mock data)
         const transformedExperience = {
@@ -286,27 +271,6 @@ const ExperienceDetail = () => {
           additionalInfo: data.additionalInfo || ''
         };
         
-        console.log('🎨 Displaying experience:', {
-          title: transformedExperience.title,
-          description: transformedExperience.description,
-          image: transformedExperience.image,
-          dates: transformedExperience.dates,
-          location: transformedExperience.location
-        });
-        console.log('✨ Highlights from API:', data.highlights);
-        console.log('❓ FAQ from API:', data.faq);
-        console.log('📂 Resources from API:', data.resources);
-        console.log('🖼️ Gallery from API:', data.gallery);
-        console.log('🗺️ Logistics from API:', {
-          meetupInstructions: data.meetupInstructions,
-          checkInNotes: data.checkInNotes,
-          emergencyContactName: data.emergencyContactName,
-          emergencyContactPhone: data.emergencyContactPhone,
-          additionalInfo: data.additionalInfo
-        });
-        console.log('✨ Highlights after transformation:', transformedExperience.highlights);
-        console.log('🎫 Ticket Tiers from API:', data.ticketTiers);
-        console.log('🎫 Ticket Tiers after transformation:', transformedExperience.ticketTiers);
         
         setExperience(transformedExperience);
         
@@ -318,7 +282,6 @@ const ExperienceDetail = () => {
         }
         
       } catch (error) {
-        console.error('❌ Error loading experience:', error);
         toast({
           title: "Experience Not Found",
           description: "The experience you're looking for doesn't exist.",
@@ -336,10 +299,7 @@ const ExperienceDetail = () => {
   const handleCopyLink = () => {
     const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {
-      toast({
-        title: "Link copied!",
-        description: "Experience link copied to clipboard.",
-      });
+      // Link copied successfully - no toast needed
     }).catch(() => {
       toast({
         title: "Copy failed",

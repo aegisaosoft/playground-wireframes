@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { VoiceOnboardingModal } from "@/components/VoiceOnboarding";
@@ -23,6 +23,9 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showVoiceOnboarding, setShowVoiceOnboarding] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
+  const [isSendingReset, setIsSendingReset] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -33,6 +36,13 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
     try {
       if (isSignUp) {
         const res = await authService.signUp({ email, password, name: email.split('@')[0] });
+        
+        // Check if email verification is needed
+        if (!res.token || !res.user) {
+          onClose();
+          return;
+        }
+        
         // Store user + token already handled in service; show onboarding
         setShowVoiceOnboarding(true);
       } else {
@@ -41,7 +51,6 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
         localStorage.setItem('auth_token', res.token);
         onLogin({ name: res.user.name, email: res.user.email }, false);
         onClose();
-        toast({ title: "Welcome back!", description: "You've been logged in successfully." });
         navigate('/account');
       }
       
@@ -50,10 +59,56 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       setPassword("");
       setConfirmPassword("");
     } catch (error) {
-      const msg = isSignUp ? "Sign up failed. Check details and try again." : "Invalid email or password.";
-      toast({ title: "Authentication error", description: msg, variant: "destructive" });
+      // Use the specific error message from the backend
+      const errorMessage = error instanceof Error ? error.message : 
+        (isSignUp ? "Sign up failed. Check details and try again." : "Invalid email or password.");
+      
+      // Check if this is a verified account signup attempt
+      if (isSignUp && error instanceof Error && error.message.includes("ACCOUNT_EXISTS_VERIFIED")) {
+        // Switch to login mode and show helpful message
+        setIsSignUp(false);
+        toast({ 
+          title: "Account Already Exists", 
+          description: "An account with this email already exists. Please log in instead.",
+          variant: "default" 
+        });
+      } else {
+        toast({ 
+          title: "Authentication error", 
+          description: errorMessage, 
+          variant: "destructive" 
+        });
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotPasswordEmail.trim()) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSendingReset(true);
+    try {
+      await authService.forgotPassword(forgotPasswordEmail);
+      setShowForgotPassword(false);
+      setForgotPasswordEmail("");
+    } catch (error) {
+      console.error('Forgot password failed:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to send reset email. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingReset(false);
     }
   };
 
@@ -74,11 +129,6 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
     }
     setShowVoiceOnboarding(false);
     onClose();
-    
-    toast({
-      title: "Welcome!",
-      description: "Your account has been created successfully.",
-    });
 
     // Navigate to profile section
     navigate('/account');
@@ -92,11 +142,6 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
     }
     setShowVoiceOnboarding(false);
     onClose();
-    
-    toast({
-      title: "Welcome!",
-      description: "Your account has been created successfully.",
-    });
 
     // Navigate to profile section
     navigate('/account');
@@ -194,6 +239,18 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
               {isLoading ? "Loading..." : isSignUp ? "Get Early Access" : "Sign In"}
             </Button>
             
+            {!isSignUp && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-sm text-coral hover:underline"
+                >
+                  Forgot your password?
+                </button>
+              </div>
+            )}
+            
             {isSignUp && (
               <p className="text-xs text-muted-foreground text-center mt-2">
                 Join now to access private experiences. You'll also be added to the waitlist for public access.
@@ -222,6 +279,44 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       onComplete={handleVoiceOnboardingComplete}
       isFirstSignIn={true}
     />
+
+    {/* Forgot Password Modal */}
+    <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Reset Password</DialogTitle>
+          <DialogDescription>
+            Enter your email address and we'll send you a link to reset your password.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleForgotPassword} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="reset-email">Email</Label>
+            <Input
+              id="reset-email"
+              type="email"
+              placeholder="Enter your email"
+              value={forgotPasswordEmail}
+              onChange={(e) => setForgotPasswordEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowForgotPassword(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSendingReset} className="flex-1">
+              {isSendingReset ? "Sending..." : "Send Reset Link"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
     </>
   );
 };

@@ -8,7 +8,7 @@ interface ImageCropModalProps {
   isOpen: boolean;
   onClose: () => void;
   imageUrl: string;
-  onCropComplete: (croppedImageUrl: string) => void;
+  onCropComplete: (croppedImageUrl: string, croppedFile?: File) => void;
 }
 
 export const ImageCropModal: React.FC<ImageCropModalProps> = ({
@@ -142,11 +142,12 @@ export const ImageCropModal: React.FC<ImageCropModalProps> = ({
       image.height * zoom
     );
 
-    // Convert to blob and create URL
+    // Convert to blob and create URL and File object
     croppedCanvas.toBlob((blob) => {
       if (blob) {
         const croppedUrl = URL.createObjectURL(blob);
-        onCropComplete(croppedUrl);
+        const croppedFile = new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' });
+        onCropComplete(croppedUrl, croppedFile);
         onClose();
       }
     }, 'image/jpeg', 0.95);

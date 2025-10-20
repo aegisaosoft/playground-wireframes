@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import ExperienceCard from "./ExperienceCard";
 import { Button } from "@/components/ui/button";
 import { experiencesService } from "@/services/experiences.service";
+import { formatExperienceDates } from "@/utils/dateFormatter";
 
 const categoryColorMap: Record<string, "pink" | "cyan" | "yellow" | "purple" | "green" | "orange"> = {
   tech: "cyan",
@@ -26,7 +27,7 @@ const ExperiencesSection = () => {
           id: exp.id,
           title: exp.title,
           location: exp.location || 'TBA',
-          duration: exp.dates || 'TBA',
+          duration: formatExperienceDates(exp.startDate, exp.endDate, exp.date || exp.dates),
           description: exp.description || exp.shortDescription || '',
           highlights: exp.highlights || [],
           image: exp.image || exp.featuredImageUrl || null,

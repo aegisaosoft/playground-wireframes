@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { User, Plus, Upload, X, Building2, Info, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { User, Info, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { brandsService, BrandData } from '@/services/brands.service';
+import { useUser } from '@/contexts/UserContext';
 
 export interface HostData {
   type: 'personal' | 'brand';
   name: string;
   avatar?: string;
-  brandId?: string;
+  id?: string; // For API compatibility
+  brandId?: string; // For backward compatibility
 }
 
 interface HostSelectorProps {
@@ -23,10 +24,9 @@ export const HostSelector: React.FC<HostSelectorProps> = ({
   selectedHost,
   onHostChange,
 }) => {
-  const [showBrandForm, setShowBrandForm] = useState(false);
-  const [brandName, setBrandName] = useState('');
-  const [brandLogo, setBrandLogo] = useState<string | null>(null);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; name: string; email: string } | null>(null);
+  const [userBrands, setUserBrands] = useState<BrandData[]>([]);
+  const [isLoadingBrands, setIsLoadingBrands] = useState(false);
   
   // Authentication state
   const [showAuthForm, setShowAuthForm] = useState(false);
@@ -37,12 +37,48 @@ export const HostSelector: React.FC<HostSelectorProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Get user from context
+  const { user: contextUser, isAuthenticated } = useUser();
+
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    // Use context user if available, otherwise fall back to localStorage
+    if (contextUser) {
+      setUser({
+        id: contextUser.id,
+        name: contextUser.name,
+        email: contextUser.email
+      });
+    } else {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
     }
-  }, []);
+  }, [contextUser]);
+
+  // Load user's brands when user is authenticated
+  useEffect(() => {
+    const loadUserBrands = async () => {
+      if (isAuthenticated && contextUser) {
+        setIsLoadingBrands(true);
+        try {
+          // First call debug endpoint to see what's in the database
+          const debugInfo = await brandsService.debugMyBrands();
+          
+          const brands = await brandsService.getMyBrands();
+          setUserBrands(brands);
+        } catch (error) {
+          setUserBrands([]);
+        } finally {
+          setIsLoadingBrands(false);
+        }
+      } else {
+        setUserBrands([]);
+      }
+    };
+
+    loadUserBrands();
+  }, [isAuthenticated, contextUser]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,32 +112,7 @@ export const HostSelector: React.FC<HostSelectorProps> = ({
     setName('');
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setBrandLogo(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
-  const handleCreateBrand = () => {
-    if (!brandName.trim()) return;
-
-    const newBrand: HostData = {
-      type: 'brand',
-      name: brandName,
-      avatar: brandLogo || undefined,
-      brandId: `brand-${Date.now()}` // Simple ID generation for demo
-    };
-
-    onHostChange(newBrand);
-    setShowBrandForm(false);
-    setBrandName('');
-    setBrandLogo(null);
-  };
 
   const handleSelectPersonal = () => {
     if (!user) return;
@@ -109,17 +120,24 @@ export const HostSelector: React.FC<HostSelectorProps> = ({
     const personalHost: HostData = {
       type: 'personal',
       name: user.name,
+      id: user.id, // Use user ID for personal host
     };
     
     onHostChange(personalHost);
-    setShowBrandForm(false);
   };
 
-  const handleCancelBrandForm = () => {
-    setShowBrandForm(false);
-    setBrandName('');
-    setBrandLogo(null);
+  const handleSelectBrand = (brand: BrandData) => {
+    const brandHost: HostData = {
+      type: 'brand',
+      name: brand.name,
+      avatar: brand.logo,
+      id: brand.id, // Use brand ID for brand host
+      brandId: brand.id, // For backward compatibility
+    };
+    
+    onHostChange(brandHost);
   };
+
 
   if (!user) {
     return (
@@ -314,148 +332,82 @@ export const HostSelector: React.FC<HostSelectorProps> = ({
         </CardContent>
       </Card>
 
-      {/* Brand Option */}
-      {selectedHost.type === 'brand' && !showBrandForm ? (
-        <Card className="bg-neon-purple/10 border-neon-purple/40 ring-1 ring-neon-purple/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Avatar className="w-10 h-10">
-                <AvatarImage src={selectedHost.avatar} alt={selectedHost.name} />
-                <AvatarFallback className="bg-neon-purple/20 text-neon-purple text-sm">
-                  {selectedHost.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="font-medium text-foreground text-sm">{selectedHost.name}</p>
-                <p className="text-xs text-muted-foreground">Brand profile</p>
-              </div>
-              <div className="w-2 h-2 bg-neon-purple rounded-full" />
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {/* Create Brand Button or Form */}
-      {!showBrandForm && selectedHost.type !== 'brand' ? (
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setShowBrandForm(true)}
-            className="flex-1 border-white/20 text-foreground hover:bg-white/10 justify-start"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create a Host Brand
-          </Button>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button 
-                type="button"
-                className="flex items-center justify-center p-2 hover:bg-white/10 rounded transition-colors"
-              >
-                <Info className="w-3 h-3 text-muted-foreground hover:text-foreground cursor-help" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent 
-              side="top"
-              className="bg-[#111] text-white border border-white/20 rounded-lg px-3 py-2 shadow-lg max-w-xs"
+      {/* User's Brands Section */}
+      
+      {userBrands.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground font-medium">Your brands:</p>
+          {userBrands.map((brand) => {
+            return (
+            <Card 
+              key={brand.id}
+              className={`cursor-pointer transition-all ${
+                selectedHost.type === 'brand' && selectedHost.brandId === brand.id
+                  ? 'bg-neon-purple/10 border-neon-purple/40 ring-1 ring-neon-purple/20' 
+                  : 'bg-white/5 border-white/10 hover:bg-white/8'
+              }`}
+              onClick={() => handleSelectBrand(brand)}
             >
-              <p className="text-xs">Create a business profile for professional hosting</p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      ) : null}
-
-      {/* Brand Creation Form */}
-      {showBrandForm && (
-        <Card className="bg-white/5 border-white/10">
-          <CardContent className="p-4 space-y-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Building2 className="w-4 h-4 text-neon-purple" />
-              <p className="font-medium text-foreground text-sm">Create Host Brand</p>
-            </div>
-
-            {/* Brand Name */}
-            <div className="space-y-2">
-              <Label htmlFor="brand-name" className="text-xs text-foreground">Brand Name *</Label>
-              <Input
-                id="brand-name"
-                value={brandName}
-                onChange={(e) => setBrandName(e.target.value)}
-                placeholder="e.g. Zen Wellness Co."
-                className="bg-white/5 border-white/20 text-foreground text-sm h-9"
-              />
-            </div>
-
-            {/* Brand Logo */}
-            <div className="space-y-2">
-              <Label className="text-xs text-foreground">Brand Logo</Label>
-              <div className="border-2 border-dashed border-white/20 rounded-lg p-3">
-                {brandLogo ? (
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={brandLogo} alt="Brand logo" />
-                      <AvatarFallback className="text-xs">
-                        {brandName.split(' ').map(n => n[0]).join('').toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="text-xs font-medium text-foreground">Logo uploaded</p>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-10 h-10">
+                    <AvatarImage src={brand.logo} alt={brand.name || 'Brand'} />
+                    <AvatarFallback className="bg-neon-purple/20 text-neon-purple text-sm">
+                      {(brand.name || 'Brand').split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-foreground text-sm">{brand.name || 'Unnamed Brand'}</p>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button 
+                            type="button"
+                            className="flex items-center justify-center p-0.5 hover:bg-white/10 rounded transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Info className="w-3 h-3 text-muted-foreground hover:text-foreground cursor-help" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent 
+                          side="top"
+                          className="bg-[#111] text-white border border-white/20 rounded-lg px-3 py-2 shadow-lg max-w-xs"
+                        >
+                          <p className="text-xs">Host as {brand.role?.toLowerCase() || 'member'} of this brand</p>
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setBrandLogo(null)}
-                      className="h-8 w-8 p-0 hover:bg-white/10"
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <Upload className="mx-auto h-6 w-6 text-muted-foreground mb-2" />
-                    <label htmlFor="logo-upload" className="cursor-pointer">
-                      <span className="text-neon-purple hover:underline text-xs">
-                        Upload logo
-                      </span>
-                      <input
-                        id="logo-upload"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        className="hidden"
-                      />
-                    </label>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      PNG, JPG up to 5MB
+                    <p className="text-xs text-muted-foreground">
+                      {brand.role === 'Owner' ? 'Your brand' : `${brand.role} brand`}
                     </p>
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-2 pt-2">
-              <Button
-                variant="ghost" 
-                size="sm"
-                onClick={handleCancelBrandForm}
-                className="flex-1 text-muted-foreground hover:text-foreground hover:bg-white/10 h-8 text-xs"
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleCreateBrand}
-                disabled={!brandName.trim()}
-                className="flex-1 bg-gradient-neon text-background hover:opacity-90 h-8 text-xs font-medium"
-              >
-                Create Brand
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                  {selectedHost.type === 'brand' && selectedHost.brandId === brand.id && (
+                    <div className="w-2 h-2 bg-neon-purple rounded-full" />
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+            );
+          })}
+        </div>
       )}
+
+      {/* Debug: Show when no brands found */}
+      {userBrands.length === 0 && !isLoadingBrands && isAuthenticated && (
+        <div className="p-4 border border-yellow-500/20 bg-yellow-500/5 rounded-lg">
+          <p className="text-xs text-yellow-500">
+            🔍 Debug: No brands found. userBrands.length = {userBrands.length}
+          </p>
+        </div>
+      )}
+
+      {/* Loading state for brands */}
+      {isLoadingBrands && (
+        <div className="flex items-center justify-center p-4">
+          <div className="text-sm text-muted-foreground">Loading your brands...</div>
+        </div>
+      )}
+
 
       </div>
     </TooltipProvider>

@@ -108,10 +108,7 @@ export const RetreatEditor = ({ retreat, onSave, onClose, isOpen }: RetreatEdito
       const savedRetreat = { ...currentRetreat, isPublished: false };
       onSave(savedRetreat);
       
-      toast({
-        title: "Retreat saved as draft!",
-        description: "Your retreat has been saved. It's not visible to the public yet.",
-      });
+      // Retreat saved as draft
     } catch (error) {
       toast({
         title: "Error",
@@ -180,12 +177,7 @@ export const RetreatEditor = ({ retreat, onSave, onClose, isOpen }: RetreatEdito
       const publishedRetreat = { ...currentRetreat, isPublished: true };
       onSave(publishedRetreat);
       
-      toast({
-        title: "Retreat published successfully",
-        description: currentRetreat.isPublic 
-          ? "Your retreat is now live and visible to everyone!" 
-          : "Your retreat is now live via direct link only.",
-      });
+      // Retreat published successfully
       
       onClose();
     } catch (error) {

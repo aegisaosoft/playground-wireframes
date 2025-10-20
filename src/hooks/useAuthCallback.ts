@@ -44,11 +44,6 @@ export const useAuthCallback = () => {
           
           console.log('✅ Backend JWT received!', backendAuth);
           
-          toast({
-            title: "Welcome!",
-            description: `Logged in as ${backendAuth.user.name}`,
-          });
-          
           // Reload the page to ensure all components refresh with new auth
           window.location.href = '/account';
           

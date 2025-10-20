@@ -15,7 +15,10 @@ import {
   Sparkles,
   MapPin,
   Calendar,
-  Plus
+  Plus,
+  BookOpen,
+  ExternalLink,
+  Layers
 } from 'lucide-react';
 
 interface BlockPaletteProps {
@@ -24,31 +27,29 @@ interface BlockPaletteProps {
   onScrollToBlock: (type: BlockType) => void;
 }
 
-const essentialBlocks = [
+const allBlocks = [
   { type: 'image' as BlockType, label: 'Cover Image', icon: Image },
   { type: 'dates' as BlockType, label: 'Dates', icon: Calendar },
   { type: 'location' as BlockType, label: 'Location', icon: MapPin },
   { type: 'richText' as BlockType, label: 'Description', icon: FileText },
   { type: 'tickets' as BlockType, label: 'Tickets', icon: Ticket },
-];
-
-const additionalBlocks = [
   { type: 'highlights' as BlockType, label: 'Highlights', icon: Stars },
   { type: 'agendaDay' as BlockType, label: 'Agenda', icon: Clock },
   { type: 'logistics' as BlockType, label: 'Logistics', icon: MapPin },
   { type: 'gallery' as BlockType, label: 'Gallery', icon: Grid3X3 },
   { type: 'faq' as BlockType, label: 'FAQ', icon: HelpCircle },
+  { type: 'cta' as BlockType, label: 'Call to Action', icon: ExternalLink },
+  { type: 'resources' as BlockType, label: 'Resources', icon: BookOpen },
 ];
 
 export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceCreate, onScrollToBlock }) => {
-  const [showMore, setShowMore] = useState(false);
 
   const renderBlockButton = (item: { type: BlockType; label: string; icon: any }) => {
     const IconComponent = item.icon;
     return (
       <button
         key={item.type}
-        onClick={() => onScrollToBlock(item.type)}
+        onClick={() => onAddBlock(item.type)}
         className="w-full p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-neon-pink/30 hover:shadow-neon/20 transition-all duration-200 text-left group"
       >
         <div className="flex items-start gap-3">
@@ -99,32 +100,8 @@ export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceC
       </h2>
       
       <div className="space-y-2">
-        {/* Essential blocks */}
-        {essentialBlocks.map(renderBlockButton)}
-        
-        {/* Add More button */}
-        <button
-          onClick={() => setShowMore(!showMore)}
-          className="w-full p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-neon-cyan/30 transition-all duration-200 text-left group"
-        >
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 bg-gradient-to-br from-neon-cyan to-neon-purple rounded-md flex items-center justify-center transition-transform duration-200 ${showMore ? 'rotate-45' : ''}`}>
-              <Plus className="w-4 h-4 text-black" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-foreground font-medium group-hover:text-neon-cyan transition-colors">
-                Add more
-              </div>
-            </div>
-          </div>
-        </button>
-
-        {/* Additional blocks (collapsible) */}
-        {showMore && (
-          <div className="space-y-2 pt-2">
-            {additionalBlocks.map(renderBlockButton)}
-          </div>
-        )}
+        {/* All blocks */}
+        {allBlocks.map(renderBlockButton)}
       </div>
     </div>
   );

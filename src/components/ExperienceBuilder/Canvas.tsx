@@ -139,27 +139,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   return (
     <div className="flex-1 overflow-y-auto bg-gradient-dark p-8">
       <div className="max-w-4xl mx-auto">
-        {/* 🛡️ TITLE BLOCK - ALWAYS VISIBLE AND FIRST */}
-        <div 
-          className="mb-8 p-6 bg-gradient-to-r from-neon-pink/10 via-transparent to-neon-pink/10 rounded-lg border border-neon-pink/20"
-          style={{ 
-            visibility: 'visible', 
-            opacity: 1,
-            display: 'block'
-          }}
-        >
-          <div className="mb-4 pb-2 border-b border-neon-pink/20">
-            <span className="text-sm font-medium text-neon-pink uppercase tracking-wider">
-              ✨ Title (Required - Always Visible)
-            </span>
-          </div>
-          <TitleBlock 
-            data={titleData} 
-            onChange={onUpdateTitleData} 
-          />
-        </div>
-        
-        {/* OTHER BLOCKS */}
+        {/* ALL BLOCKS */}
         {sortedBlocks.map((block, index) => (
           <BlockWrapper
             key={block.id}

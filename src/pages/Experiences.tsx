@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import { searchExperiences } from '@/utils/searchExperiences';
 import { HomeSearchBar } from '@/components/HomeSearchBar';
 import { experiencesService } from '@/services/experiences.service';
 import { useToast } from '@/hooks/use-toast';
+import { formatExperienceDates } from '@/utils/dateFormatter';
 
 // Mock data for experiences
 const mockExperiences = [
@@ -18,7 +19,7 @@ const mockExperiences = [
     id: "1",
     title: "Hacker House Bali",
     location: "Ubud, Bali",
-    dates: "Mar 15-22, 2024",
+    dates: "Jan 1 - 10, 2025",
     host: { name: "TechCorp", id: "techcorp" },
     image: "/src/assets/retreat-bali.jpg",
     description: "7-day intensive coding retreat in tropical paradise. Build, ship, and network with fellow developers.",
@@ -29,7 +30,7 @@ const mockExperiences = [
     id: "2", 
     title: "Yoga & Meditation Retreat",
     location: "Rishikesh, India",
-    dates: "Apr 10-17, 2024",
+    dates: "Jan 20 - Feb 2, 2024",
     host: { name: "Mindful Journey", id: "mindful" },
     image: "/src/assets/retreat-greece.jpg",
     description: "Ancient wisdom meets modern wellness. Transform your practice in the yoga capital of the world.",
@@ -40,7 +41,7 @@ const mockExperiences = [
     id: "3",
     title: "Digital Nomad Mastermind",
     location: "Lisbon, Portugal", 
-    dates: "May 5-12, 2024",
+    dates: "Dec 25, 2024 - Jan 3, 2025",
     host: { name: "Remote Collective", id: "remote-collective" },
     image: "/src/assets/retreat-portugal.jpg",
     description: "Level up your remote business while exploring Europe's most vibrant startup city.",
@@ -51,7 +52,7 @@ const mockExperiences = [
     id: "4",
     title: "Alpine Adventure Camp",
     location: "Zermatt, Switzerland",
-    dates: "Jun 20-27, 2024", 
+    dates: "Feb 15 - 22, 2025", 
     host: { name: "Mountain Guides", id: "mountain-guides" },
     image: "/src/assets/retreat-switzerland.jpg",
     description: "Epic hiking, climbing, and outdoor adventures in the heart of the Swiss Alps.",
@@ -62,7 +63,7 @@ const mockExperiences = [
     id: "5",
     title: "Wellness & Sacred Geometry",
     location: "Tulum, Mexico",
-    dates: "Jul 8-15, 2024",
+    dates: "Mar 8 - 15, 2025",
     host: { name: "Sacred Spaces", id: "sacred-spaces" },
     image: "/src/assets/retreat-tulum.jpg", 
     description: "Healing arts, sound baths, and consciousness expansion in a magical jungle setting.",
@@ -73,7 +74,7 @@ const mockExperiences = [
     id: "6",
     title: "Mediterranean Culinary Journey",
     location: "Santorini, Greece",
-    dates: "Aug 12-19, 2024",
+    dates: "Apr 12 - 19, 2025",
     host: { name: "Chef Masters", id: "chef-masters" },
     image: "/src/assets/retreat-costa-rica.jpg",
     description: "Master Mediterranean cuisine while island-hopping through Greece's most beautiful destinations.",
@@ -92,6 +93,7 @@ const categoryColors = {
 
 export default function Experiences() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [experiences, setExperiences] = useState<any[]>([]);
   const [filteredExperiences, setFilteredExperiences] = useState<any[]>([]);
@@ -115,7 +117,7 @@ export default function Experiences() {
         id: exp.id,
         title: exp.title,
         location: exp.location,
-        dates: exp.date || exp.dates || 'TBA',
+        dates: formatExperienceDates(exp.startDate, exp.endDate, exp.date || exp.dates),
         host: { 
           name: exp.hostName || exp.host?.name || 'Unknown Host', 
           id: exp.hostId || exp.host?.id || 'unknown' 
@@ -130,12 +132,7 @@ export default function Experiences() {
       setFilteredExperiences(transformedData);
       
       // Only show success toast if we have data
-      if (transformedData.length > 0) {
-        toast({
-          title: "Experiences Loaded",
-          description: `Loaded ${transformedData.length} experiences from API`,
-        });
-      }
+      // Successfully loaded experiences
     } catch (err) {
       console.error('Failed to fetch experiences:', err);
       setError('Failed to load experiences from API');
@@ -175,7 +172,7 @@ export default function Experiences() {
         id: exp.id,
         title: exp.title,
         location: exp.location,
-        dates: exp.date || exp.dates || 'TBA',
+        dates: formatExperienceDates(exp.startDate, exp.endDate, exp.date || exp.dates),
         host: { 
           name: exp.hostName || exp.host?.name || 'Unknown Host', 
           id: exp.hostId || exp.host?.id || 'unknown' 
@@ -188,7 +185,6 @@ export default function Experiences() {
       
       setFilteredExperiences(transformedResults);
     } catch (err) {
-      console.error('Search failed, using local filter:', err);
       // Fallback to local search if API fails
       const filtered = searchExperiences(query, experiences);
       setFilteredExperiences(filtered);
@@ -199,7 +195,7 @@ export default function Experiences() {
     if (!user) {
       setShowAuthModal(true);
     } else {
-      window.location.href = '/create';
+      navigate('/create');
     }
   };
 
@@ -214,7 +210,7 @@ export default function Experiences() {
   const handleVoiceDraftCreated = (draft: VoiceExperienceDraft) => {
     // Store the draft and navigate to builder
     localStorage.setItem('voiceExperienceDraft', JSON.stringify(draft));
-    window.location.href = '/experience-builder?fromVoice=true';
+    navigate('/create?fromVoice=true');
   };
 
   // Fetch experiences from API on mount

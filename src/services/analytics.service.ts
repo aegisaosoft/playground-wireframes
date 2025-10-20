@@ -72,6 +72,6 @@ export const analyticsService = {
   },
 
   async getExperienceAnalytics(experienceId: string): Promise<ExperienceAnalytics> {
-    return apiClient.get<ExperienceAnalytics>(`/analytics/experience/${experienceId}`);
+    return apiClient.get<ExperienceAnalytics>(`/Analytics/experience/${experienceId}`);
   },
 };

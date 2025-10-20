@@ -121,8 +121,8 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
       className={`group relative transition-all duration-300 ${
         // Title block can NEVER be dragging or invisible
         isDragging && block.id !== 'title-default' ? 'opacity-50' : ''
-      } ${dragOver ? 'scale-105' : ''} ${
-        isHighlighted 
+      } ${dragOver && block.id !== 'title-default' ? 'scale-105' : ''} ${
+        isHighlighted && block.id !== 'title-default'
           ? 'ring-2 ring-neon-pink shadow-[0_0_30px_rgba(255,71,209,0.5)] animate-pulse' 
           : ''
       }`}
@@ -132,20 +132,20 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
         display: 'block',
         minHeight: 'auto'
       } : undefined}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      onDragOver={block.id !== 'title-default' ? handleDragOver : undefined}
+      onDragLeave={block.id !== 'title-default' ? handleDragLeave : undefined}
+      onDrop={block.id !== 'title-default' ? handleDrop : undefined}
     >
       {/* Drop indicator */}
-      {dragOver === 'top' && (
+      {dragOver === 'top' && block.id !== 'title-default' && (
         <div className="absolute -top-1 left-0 right-0 h-0.5 bg-neon-purple rounded-full z-10" />
       )}
-      {dragOver === 'bottom' && (
+      {dragOver === 'bottom' && block.id !== 'title-default' && (
         <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-neon-purple rounded-full z-10" />
       )}
 
       {/* Block Header */}
-      {!['dates-default', 'location-default'].includes(block.id) && (
+      {!['dates-default', 'location-default', 'title-default'].includes(block.id) && (
         <div className={`flex items-center justify-between mb-3 ${
           block.id === 'title-default' ? 'pb-2 border-b border-neon-pink/20' : ''
         }`}>
@@ -162,7 +162,7 @@ export const BlockWrapper: React.FC<BlockWrapperProps> = ({
               <span className={`text-sm font-medium ${
                 block.id === 'title-default' ? 'text-neon-pink uppercase tracking-wider' : 'text-foreground'
               }`}>
-                {block.id === 'title-default' ? '✨ ' : ''}{blockTypeLabels[block.type]}{block.id === 'title-default' ? ' (Required)' : ''}
+                {block.id === 'title-default' ? '' : blockTypeLabels[block.type]}
               </span>
             </div>
           </div>

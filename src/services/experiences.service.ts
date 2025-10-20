@@ -123,6 +123,9 @@ export interface CreateExperienceRequest {
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   additionalInfo?: string;
+  // Host information
+  hostId?: string;
+  hostType?: string; // 'personal' or 'brand'
 }
 
 export const experiencesService = {
@@ -165,10 +168,8 @@ export const experiencesService = {
       if (value !== undefined && value !== null) {
         // Handle arrays and objects as JSON strings
         if (Array.isArray(value)) {
-          console.log(`📦 Appending ${key} as JSON array:`, value);
           formData.append(key, JSON.stringify(value));
         } else if (typeof value === 'object') {
-          console.log(`📦 Appending ${key} as JSON object:`, value);
           formData.append(key, JSON.stringify(value));
         } else {
           formData.append(key, String(value));
@@ -178,29 +179,23 @@ export const experiencesService = {
     
     // Append featured image if provided
     if (featuredImage) {
-      console.log('📸 Appending featured image:', featuredImage.name);
       formData.append('featuredImage', featuredImage);
     }
     
     // Append gallery images if provided
     if (galleryImages && galleryImages.length > 0) {
-      console.log('📸 Appending', galleryImages.length, 'gallery images');
       galleryImages.forEach((file, index) => {
-        console.log(`   Gallery image ${index + 1}:`, file.name);
         formData.append('galleryImages', file);
       });
       
       // Append gallery alt texts
       if (galleryAlts && galleryAlts.length > 0) {
         formData.append('galleryAlts', JSON.stringify(galleryAlts));
-        console.log('📸 Appending gallery alt texts:', galleryAlts);
       }
     }
     
     // Debug: Log all FormData entries
-    console.log('📤 FormData entries being sent:');
     for (let pair of formData.entries()) {
-      console.log(`   ${pair[0]}:`, pair[1]);
     }
     
     return apiClient.upload<Experience>('/Experiences', formData);
@@ -211,6 +206,57 @@ export const experiencesService = {
    */
   async update(id: string, data: Partial<CreateExperienceRequest>): Promise<Experience> {
     return apiClient.put<Experience>(`/Experiences/${id}`, data);
+  },
+
+  /**
+   * Update experience with file uploads (for editing)
+   */
+  async updateWithFiles(
+    id: string, 
+    data: Partial<CreateExperienceRequest>, 
+    featuredImage?: File,
+    galleryImages?: File[],
+    galleryAlts?: string[]
+  ): Promise<Experience> {
+    
+    const formData = new FormData();
+    
+    // Append all text fields (excluding arrays/objects)
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        // Handle arrays and objects as JSON strings
+        if (Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
+        } else if (typeof value === 'object') {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, String(value));
+        }
+      }
+    });
+    
+    // Add featured image if provided
+    if (featuredImage) {
+      formData.append('featuredImage', featuredImage);
+    }
+    
+    // Append gallery images if provided
+    if (galleryImages && galleryImages.length > 0) {
+      galleryImages.forEach((file, index) => {
+        formData.append('galleryImages', file);
+      });
+      
+      // Append gallery alt texts
+      if (galleryAlts && galleryAlts.length > 0) {
+        formData.append('galleryAlts', JSON.stringify(galleryAlts));
+      }
+    }
+    
+    // Debug: Log all FormData entries
+    for (let pair of formData.entries()) {
+    }
+    
+    return apiClient.upload<Experience>(`/Experiences/${id}`, formData, { method: 'PUT' });
   },
 
   /**
@@ -235,5 +281,20 @@ export const experiencesService = {
     formData.append('image', file);
     return apiClient.upload<{ imageUrl: string }>(`/Experiences/${id}/image`, formData);
   },
+
+  async getTicketSalesCount(id: string): Promise<{ [tierId: string]: number }> {
+    const response = await apiClient.get<{ success: boolean; data: { [tierId: string]: number } }>(`/Experiences/${id}/ticket-sales`);
+    return response.data;
+  },
+
+  async getExperienceCapacity(id: string): Promise<{ totalCapacity: number; totalSold: number; availableSpots: number }> {
+    const response = await apiClient.get<{ success: boolean; data: { totalCapacity: number; totalSold: number; availableSpots: number } }>(`/Experiences/${id}/capacity`);
+    return response.data;
+  },
+
+  async getTierCapacity(id: string): Promise<Array<{ tierId: string; tierName: string; tierCapacity: number; sold: number; available: number }>> {
+    const response = await apiClient.get<{ success: boolean; data: Array<{ tierId: string; tierName: string; tierCapacity: number; sold: number; available: number }> }>(`/Experiences/${id}/tier-capacity`);
+    return response.data;
+  }
 };
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,9 +17,10 @@ interface ApplicantManagementProps {
   onUpdateApplicant: (applicantId: string, status: 'approved' | 'rejected') => void;
   onAddApplicants: (retreatId: number, applicants: Omit<Applicant, 'id' | 'retreatId' | 'appliedAt'>[]) => void;
   onUpdateNotes: (applicantId: string, notes: string) => void;
+  selectedApplicationId?: string | null;
 }
 
-export const ApplicantManagement = ({ retreat, onUpdateApplicant, onAddApplicants, onUpdateNotes }: ApplicantManagementProps) => {
+export const ApplicantManagement = ({ retreat, onUpdateApplicant, onAddApplicants, onUpdateNotes, selectedApplicationId }: ApplicantManagementProps) => {
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -29,6 +30,17 @@ export const ApplicantManagement = ({ retreat, onUpdateApplicant, onAddApplicant
   const approvedApplicants = retreat.applicants.filter(a => a.status === 'approved');
   const rejectedApplicants = retreat.applicants.filter(a => a.status === 'rejected');
   const pendingApplicants = retreat.applicants.filter(a => a.status === 'pending');
+
+  // Auto-open selected application if provided
+  useEffect(() => {
+    if (selectedApplicationId && retreat.applicants.length > 0) {
+      const application = retreat.applicants.find(a => a.id === selectedApplicationId);
+      if (application) {
+        setSelectedApplicant(application);
+        setIsProfileModalOpen(true);
+      }
+    }
+  }, [selectedApplicationId, retreat.applicants]);
 
   const handleApprove = (applicantId: string) => {
     onUpdateApplicant(applicantId, 'approved');
@@ -110,10 +122,7 @@ export const ApplicantManagement = ({ retreat, onUpdateApplicant, onAddApplicant
       setIsUploadModalOpen(false);
       setCsvContent("");
       
-      toast({
-        title: "Contacts uploaded",
-        description: `${newApplicants.length} contacts have been added as approved applicants.`,
-      });
+      // Contacts uploaded successfully
     } catch (error) {
       toast({
         title: "Upload failed",

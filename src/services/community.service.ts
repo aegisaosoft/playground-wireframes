@@ -59,11 +59,11 @@ export const communityService = {
   },
 
   async getIdeaComments(ideaId: string): Promise<Comment[]> {
-    return apiClient.get<Comment[]>(`/ideas/${ideaId}/comments`);
+    return apiClient.get<Comment[]>(`/Ideas/${ideaId}/comments`);
   },
 
   async createComment(ideaId: string, data: CreateCommentRequest): Promise<Comment> {
-    return apiClient.post<Comment>(`/ideas/${ideaId}/comments`, data);
+    return apiClient.post<Comment>(`/Ideas/${ideaId}/comments`, data);
   },
 
   async toggleInterest(ideaId: string): Promise<{ isInterested: boolean; interestCount: number; message: string }> {

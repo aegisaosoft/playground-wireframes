@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TopBar } from '@/components/ExperienceBuilder/TopBar';
 import { BlockPalette } from '@/components/ExperienceBuilder/BlockPalette';
 import { Canvas } from '@/components/ExperienceBuilder/Canvas';
 import { SettingsSidebar } from '@/components/ExperienceBuilder/SettingsSidebar';
 import { HostData } from '@/components/ExperienceBuilder/HostSelector';
-import { TeamMember } from '@/components/ExperienceBuilder/TeamManagement';
 import { Block, BlockType } from '@/types/experienceBuilder';
 import { VoiceExperienceDraft } from '@/types/voiceExperienceCreation';
 import { VoiceExperienceModal } from '@/components/VoiceExperienceCreation';
@@ -13,8 +13,12 @@ import { Button } from '@/components/ui/button';
 import { Mic, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { experiencesService, CreateExperienceRequest } from '@/services/experiences.service';
+import { useUser } from '@/contexts/UserContext';
 
 const ExperienceBuilder = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
   // 🛡️ TITLE BLOCK - PERSISTENT AND SEPARATE FROM OTHER BLOCKS
   const [titleData, setTitleData] = useState({ text: '', category: '' });
   
@@ -34,7 +38,7 @@ const ExperienceBuilder = () => {
     {
       id: 'location-default',
       type: 'location', 
-      data: { city: '', country: '' },
+      data: { location: '' },
       order: 2,
     },
   ]);
@@ -42,87 +46,63 @@ const ExperienceBuilder = () => {
   const [title, setTitle] = useState('');
   const [showVoiceBanner, setShowVoiceBanner] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
+  // User context
+  const { user, isLoading: isLoadingUser, isAuthenticated } = useUser();
+  
   const [selectedHost, setSelectedHost] = useState<HostData>(() => {
-    // Initialize with user's personal profile
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      return {
-        type: 'personal',
-        name: user.name,
-      };
-    }
+    // Initialize with default values
     return {
       type: 'personal',
       name: 'User',
     };
   });
 
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
   const blockRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
-  
-  const { toast } = useToast();
 
-  // 🐛 DEBUG: Log blocks state whenever it changes
-  useEffect(() => {
-    console.log('📊 Current blocks state:', {
-      total: blocks.length,
-      types: blocks.map(b => ({ id: b.id, type: b.type, order: b.order })),
-      titleData: titleData,
-      hasDatesBlock: blocks.some(b => b.id === 'dates-default'),
-      hasLocationBlock: blocks.some(b => b.id === 'location-default'),
+  // Apply user-specific default settings
+  const applyUserDefaults = useCallback((profile: any) => {
+    
+    // Set default category based on user role or preferences
+    if (profile.role === 'admin') {
+      setTitleData(prev => ({
+        ...prev,
+        category: 'Professional'
+      }));
+    }
+    
+    // Set default visibility based on user preferences
+    // For now, default to private for new users
+    setIsPublic(false);
+    
+    // Set default location if user has a preferred location
+    // This could be expanded to load from user preferences
+    setBlocks(prev => {
+      const locationBlock = prev.find(b => b.id === 'location-default');
+      if (locationBlock && !locationBlock.data.location) {
+        // Could set default location based on user profile or preferences
+        // For now, leave empty for user to fill
+      }
+      return prev;
     });
-  }, [blocks, titleData]);
+    
+  }, []);
 
-  // 🛡️ Self-healing: Ensure core blocks (dates, location) always exist
-  // NOTE: Title is now separate and always present
+  // Update selected host when user data loads
   useEffect(() => {
-    const hasDatesBlock = blocks.some(b => b.id === 'dates-default');
-    const hasLocationBlock = blocks.some(b => b.id === 'location-default');
-    
-    // If all core blocks are present, do nothing
-    if (hasDatesBlock && hasLocationBlock) {
-      return;
-    }
-    
-    console.warn('🔧 Self-healing: Core block missing! Re-adding...');
-    const coreBlocks: Block[] = [];
-    
-    if (!hasDatesBlock) {
-      console.warn('⚠️ Dates block is MISSING! Restoring...');
-      coreBlocks.push({
-        id: 'dates-default',
-        type: 'dates',
-        data: { startDate: null, endDate: null },
-        order: 0,
-      });
-    }
-    
-    if (!hasLocationBlock) {
-      console.warn('⚠️ Location block is MISSING! Restoring...');
-      coreBlocks.push({
-        id: 'location-default',
-        type: 'location',
-        data: { city: '', country: '' },
-        order: 1,
-      });
-    }
-    
-    // Add missing core blocks
-    if (coreBlocks.length > 0) {
-      setBlocks(prev => {
-        // Merge core blocks at the start, preserve others
-        const merged = [...coreBlocks, ...prev];
-        return merged.sort((a, b) => a.order - b.order);
+    if (user) {
+      setSelectedHost({
+        type: 'personal',
+        name: user.name,
       });
       
-      toast({
-        title: "Core blocks restored",
-        description: "Essential blocks (dates, location) have been restored.",
-      });
+      // Apply user-specific default settings
+      applyUserDefaults(user);
+      
     }
-  }, [blocks, toast]); // Run whenever blocks change
+  }, [user, applyUserDefaults]);
+
+
 
   // Check for voice draft on load
   useEffect(() => {
@@ -140,7 +120,6 @@ const ExperienceBuilder = () => {
           // Clean up URL
           window.history.replaceState({}, '', '/experience-builder');
         } catch (error) {
-          console.error('Error loading voice draft:', error);
         }
       }
     }
@@ -154,43 +133,60 @@ const ExperienceBuilder = () => {
     // Update title data (separate from blocks array)
     setTitleData({ text: draft.title, category: draft.category || '' });
 
-    // Create new blocks array starting with core blocks (dates, location)
-    const newBlocks: Block[] = [
-      {
-        id: 'title-default',
-        type: 'title',
-        data: { text: draft.title },
-        order: 0,
-      },
-      {
-        id: 'dates-default',
-        type: 'dates',
+    // Start with existing blocks and update core blocks with voice data
+    const newBlocks: Block[] = [...blocks];
+    
+    // Update title block
+    const titleBlockIndex = newBlocks.findIndex(b => b.id === 'title-default');
+    if (titleBlockIndex >= 0) {
+      newBlocks[titleBlockIndex] = {
+        ...newBlocks[titleBlockIndex],
+        data: { text: draft.title, category: draft.category || '' }
+      };
+    }
+    
+    // Update dates block
+    const datesBlockIndex = newBlocks.findIndex(b => b.id === 'dates-default');
+    if (datesBlockIndex >= 0) {
+      newBlocks[datesBlockIndex] = {
+        ...newBlocks[datesBlockIndex],
         data: { 
           startDate: draft.dates.startDate, 
           endDate: draft.dates.endDate 
-        },
-        order: 1,
-      },
-      {
-        id: 'location-default',
-        type: 'location',
+        }
+      };
+    }
+    
+    // Update location block
+    const locationBlockIndex = newBlocks.findIndex(b => b.id === 'location-default');
+    if (locationBlockIndex >= 0) {
+      newBlocks[locationBlockIndex] = {
+        ...newBlocks[locationBlockIndex],
         data: { 
           location: `${draft.location.city}, ${draft.location.country}` 
-        },
-        order: 2,
-      },
-    ];
+        }
+      };
+    }
 
     let blockOrder = 3;
 
-    // Add description as rich text if available
+    // Update description block if available
     if (draft.description) {
-      newBlocks.push({
-        id: `richText-${Date.now()}`,
-        type: 'richText',
-        data: { content: draft.description },
-        order: blockOrder++,
-      });
+      const descriptionBlockIndex = newBlocks.findIndex(b => b.id === 'richText-default');
+      if (descriptionBlockIndex >= 0) {
+        newBlocks[descriptionBlockIndex] = {
+          ...newBlocks[descriptionBlockIndex],
+          data: { content: draft.description }
+        };
+      } else {
+        // If no default richText block exists, create a new one
+        newBlocks.push({
+          id: `richText-${Date.now()}`,
+          type: 'richText',
+          data: { content: draft.description },
+          order: blockOrder++,
+        });
+      }
     }
 
     // Add agenda days
@@ -224,12 +220,7 @@ const ExperienceBuilder = () => {
       order: blockOrder++,
     });
 
-    console.log('🎤 prefillFromVoice: Setting new blocks:', newBlocks.map(b => ({ id: b.id, type: b.type })));
     setBlocks(newBlocks);
-    toast({
-      title: "Experience prefilled from voice!",
-      description: "Review the details and customize as needed before publishing.",
-    });
   }, [toast]);
 
   const handleVoicePrefill = useCallback((draft: VoiceExperienceDraft) => {
@@ -237,6 +228,13 @@ const ExperienceBuilder = () => {
     setShowVoiceBanner(true);
     setShowVoiceModal(false);
   }, [prefillFromVoice]);
+
+  // ✅ Delete gallery image handler for create page (no API call needed)
+  const handleDeleteGalleryImage = useCallback(async (imageId: string) => {
+    // For create page, we don't need to call the API since images haven't been saved yet
+    // The GalleryBlock will handle the local state removal
+    return Promise.resolve();
+  }, []);
 
   const handleVoiceCreate = () => {
     setShowVoiceModal(true);
@@ -309,46 +307,40 @@ const ExperienceBuilder = () => {
   }, [blocks, getInsertPosition]);
 
   const addBlock = useCallback((type: BlockType) => {
-    const newBlock: Block = {
-      id: `${type}-${Date.now()}`,
-      type,
-      data: getDefaultBlockData(type),
-      order: blocks.length,
-    };
-    
-    console.log('➕ Adding block:', type, 'Total blocks before:', blocks.length);
-    console.log('🔎 Blocks BEFORE add:', blocks.map(b => ({ id: b.id, type: b.type })));
-    
     setBlocks(prev => {
-      console.log('🔎 Blocks in setBlocks prev:', prev.map(b => ({ id: b.id, type: b.type })));
-      const newBlocks = [...prev, newBlock];
-      console.log('📦 Blocks AFTER add:', newBlocks.map(b => ({ id: b.id, type: b.type })));
+      // Check if this is a core block type that should only exist once
+      const coreBlockTypes = ['title', 'dates', 'location', 'richText', 'image'];
       
-      // Verify title block is still there
-      const hasTitleBlock = newBlocks.some(b => b.id === 'title-default');
-      const titleBlockType = newBlocks.find(b => b.id === 'title-default')?.type;
-      console.log('🔍 Title block check:', { hasTitleBlock, titleBlockType });
-      
-      if (!hasTitleBlock) {
-        console.error('🚨 CRITICAL ERROR: Title block disappeared when adding', type);
+      if (coreBlockTypes.includes(type)) {
+        // For core blocks, check if one already exists
+        const existingBlockIndex = prev.findIndex(b => b.id === `${type}-default`);
+        
+        if (existingBlockIndex >= 0) {
+          // Keep existing block unchanged
+          return prev;
+        }
       }
       
-      return newBlocks;
+      // For non-core blocks or when core block doesn't exist, create new block
+      const newBlock: Block = {
+        id: coreBlockTypes.includes(type) ? `${type}-default` : `${type}-${Date.now()}`,
+        type,
+        data: getDefaultBlockData(type),
+        order: blocks.length,
+      };
+      
+      return [...prev, newBlock];
     });
   }, [blocks.length]);
 
   const updateBlock = useCallback((id: string, data: any) => {
-    console.log('🔄 updateBlock called for:', id, 'with data:', data);
     setBlocks(prev => {
       const result = prev.map(block => {
         if (block.id === id) {
-          const updated = { ...block, data: { ...block.data, ...data } };
-          console.log('🔄 Updated block:', { id: updated.id, type: updated.type, oldData: block.data, newData: updated.data });
-          return updated;
+          return { ...block, data: { ...block.data, ...data } };
         }
         return block;
       });
-      console.log('🔄 All blocks after update:', result.map(b => ({ id: b.id, type: b.type })));
       return result;
     });
   }, []);
@@ -374,39 +366,32 @@ const ExperienceBuilder = () => {
   }, [blocks]);
 
   const reorderBlocks = useCallback((dragIndex: number, hoverIndex: number) => {
-    console.log('🔀 reorderBlocks: drag', dragIndex, 'to', hoverIndex);
     
     // ✅ VALIDATE INDICES
     if (isNaN(dragIndex) || isNaN(hoverIndex)) {
-      console.error('❌ Invalid reorder indices:', { dragIndex, hoverIndex });
       return;
     }
     
     setBlocks(prev => {
       // ✅ VALIDATE INDEX BOUNDS
       if (dragIndex < 0 || dragIndex >= prev.length) {
-        console.error('❌ dragIndex out of bounds:', { dragIndex, arrayLength: prev.length });
         return prev;
       }
       if (hoverIndex < 0 || hoverIndex >= prev.length) {
-        console.error('❌ hoverIndex out of bounds:', { hoverIndex, arrayLength: prev.length });
         return prev;
       }
       
-      console.log('🔀 Blocks before reorder:', prev.map(b => ({ id: b.id, type: b.type, order: b.order })));
       const newBlocks = [...prev];
       const draggedBlock = newBlocks[dragIndex];
       
       // ✅ VALIDATE DRAGGED BLOCK
       if (!draggedBlock) {
-        console.error('❌ draggedBlock is undefined at index:', dragIndex);
         return prev;
       }
       
       newBlocks.splice(dragIndex, 1);
       newBlocks.splice(hoverIndex, 0, draggedBlock);
       const result = newBlocks.map((block, index) => ({ ...block, order: index }));
-      console.log('🔀 Blocks after reorder:', result.map(b => ({ id: b.id, type: b.type, order: b.order })));
       return result;
     });
   }, []);
@@ -424,9 +409,13 @@ const ExperienceBuilder = () => {
       const faqBlock = blocks.find(b => b.type === 'faq');
       const resourcesBlock = blocks.find(b => b.type === 'resources');
       const logisticsBlock = blocks.find(b => b.type === 'logistics');
+      const ctaBlock = blocks.find(b => b.type === 'cta');
 
       // For draft, we can be more lenient with validation
-      if (!titleData.text || titleData.text.trim().length < 3) {
+      const titleBlock = blocks.find(b => b.type === 'title');
+      const titleText = titleBlock?.data?.text || titleData.text;
+      
+      if (!titleText || titleText.trim().length < 3) {
         toast({
           title: "Title Required",
           description: "Please add a title (minimum 3 characters) to save your draft",
@@ -460,23 +449,24 @@ const ExperienceBuilder = () => {
       });
 
       // Extract highlights
-      console.log('✨ Extracting highlights - highlightsBlock:', highlightsBlock);
-      console.log('✨ highlightsBlock?.data?.highlights:', highlightsBlock?.data?.highlights);
       const highlights = highlightsBlock?.data?.highlights ? 
         highlightsBlock.data.highlights.map((item: any) => item.text || item) : [];
-      console.log('✨ Extracted highlights:', highlights);
 
       const createRequest: CreateExperienceRequest = {
-        title: titleData.text,
+        title: titleText,
         description: description,
         shortDescription: description.substring(0, 200) + (description.length > 200 ? '...' : ''),
-        location: locationBlock?.data?.city && locationBlock?.data?.country 
-          ? `${locationBlock.data.city}, ${locationBlock.data.country}`
-          : 'Location to be specified',
-        city: locationBlock?.data?.city || '',
-        country: locationBlock?.data?.country || '',
-        startDate: datesBlock?.data?.startDate ? datesBlock.data.startDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        endDate: datesBlock?.data?.endDate ? datesBlock.data.endDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        location: locationBlock?.data?.location || 'Location to be specified',
+        city: '',
+        country: '',
+        startDate: datesBlock?.data?.startDate ? 
+          (datesBlock.data.startDate instanceof Date ? 
+            datesBlock.data.startDate.toISOString().split('T')[0] : 
+            new Date(datesBlock.data.startDate).toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
+        endDate: datesBlock?.data?.endDate ? 
+          (datesBlock.data.endDate instanceof Date ? 
+            datesBlock.data.endDate.toISOString().split('T')[0] : 
+            new Date(datesBlock.data.endDate).toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
         basePriceCents: (ticketsBlock?.data?.tiers?.[0]?.price || 0) * 100,
         totalCapacity: ticketsBlock?.data?.tiers?.[0]?.quantity || 10,
         status: 'draft',
@@ -484,6 +474,9 @@ const ExperienceBuilder = () => {
         currency: 'USD',
         timezone: 'UTC',
         categorySlug: titleData.category || 'tech',
+        // Host information
+        hostId: selectedHost.id,
+        hostType: selectedHost.type,
         agendaItems: agendaItems.length > 0 ? agendaItems : undefined,
         highlights: highlights.length > 0 ? highlights : undefined,
         ticketTiers: ticketsBlock?.data?.tiers && ticketsBlock.data.tiers.length > 0 ? 
@@ -519,18 +512,10 @@ const ExperienceBuilder = () => {
       };
 
       // Extract featured image file if exists
-      console.log('🖼️ Checking for image (SAVE DRAFT). imageBlock:', imageBlock);
-      console.log('🖼️ imageBlock?.data?.file:', imageBlock?.data?.file);
       const featuredImageFile = imageBlock?.data?.file as File | undefined;
 
       if (featuredImageFile) {
-        console.log('✅ Featured image file found:', {
-          fileName: featuredImageFile.name,
-          fileSize: featuredImageFile.size,
-          fileType: featuredImageFile.type
-        });
-      } else {
-        console.log('⚠️ No featured image file to upload');
+        formData.append('featuredImage', featuredImageFile);
       }
 
       // Extract gallery images with alt texts
@@ -545,36 +530,12 @@ const ExperienceBuilder = () => {
             galleryAlts.push(img.alt || '');
           }
         });
-        console.log('🖼️ Found', galleryFiles.length, 'gallery images to upload');
-        console.log('🖼️ Gallery alt texts:', galleryAlts);
       }
-
-      // Debug logging
-      console.log('📤 Saving experience with:');
-      console.log('   Agenda items:', agendaItems);
-      console.log('   Highlights:', highlights);
-      console.log('   Ticket tiers:', createRequest.ticketTiers);
-      console.log('   FAQ items:', createRequest.faqItems);
-      console.log('   Resources:', createRequest.resources);
-      console.log('   Logistics:', {
-        meetupInstructions: createRequest.meetupInstructions,
-        checkInNotes: createRequest.checkInNotes,
-        emergencyContactName: createRequest.emergencyContactName,
-        emergencyContactPhone: createRequest.emergencyContactPhone,
-        additionalInfo: createRequest.additionalInfo
-      });
-      console.log('   Gallery images:', galleryFiles.length);
 
       // Save draft via API
       const savedExperience = await experiencesService.create(createRequest, featuredImageFile, galleryFiles, galleryAlts);
 
-      toast({
-        title: "Draft Saved!",
-        description: `Your experience "${savedExperience.title}" has been saved as draft`,
-      });
-
     } catch (error) {
-      console.error('Error saving draft:', error);
       toast({
         title: "Error Saving Draft",
         description: "Failed to save draft. Please try again.",
@@ -598,7 +559,10 @@ const ExperienceBuilder = () => {
       const logisticsBlock = blocks.find(b => b.type === 'logistics');
 
       // Validate required fields
-      if (!titleData.text || titleData.text.trim().length < 3) {
+      const titleBlock = blocks.find(b => b.type === 'title');
+      const titleText = titleBlock?.data?.text || titleData.text;
+      
+      if (!titleText || titleText.trim().length < 3) {
         toast({
           title: "Title Required",
           description: "Please add a title to your experience (minimum 3 characters)",
@@ -616,10 +580,10 @@ const ExperienceBuilder = () => {
         return;
       }
 
-      if (!locationBlock?.data?.city || !locationBlock?.data?.country) {
+      if (!locationBlock?.data?.location || locationBlock.data.location.trim().length < 3) {
         toast({
           title: "Location Required",
-          description: "Please add city and country to your experience",
+          description: "Please add a location to your experience",
           variant: "destructive",
         });
         return;
@@ -653,22 +617,25 @@ const ExperienceBuilder = () => {
       });
 
       // Extract highlights
-      console.log('✨ Extracting highlights - highlightsBlock:', highlightsBlock);
-      console.log('✨ highlightsBlock?.data?.highlights:', highlightsBlock?.data?.highlights);
       const highlights = highlightsBlock?.data?.highlights ? 
         highlightsBlock.data.highlights.map((item: any) => item.text || item) : [];
-      console.log('✨ Extracted highlights:', highlights);
 
       // Create experience request - Always publish when using handlePublish
       const createRequest: CreateExperienceRequest = {
-        title: titleData.text,
+        title: titleText,
         description: description,
         shortDescription: description.substring(0, 200) + (description.length > 200 ? '...' : ''),
-        location: `${locationBlock.data.city}, ${locationBlock.data.country}`,
-        city: locationBlock.data.city,
-        country: locationBlock.data.country,
-        startDate: datesBlock.data.startDate ? datesBlock.data.startDate.toISOString().split('T')[0] : '',
-        endDate: datesBlock.data.endDate ? datesBlock.data.endDate.toISOString().split('T')[0] : '',
+        location: locationBlock.data.location,
+        city: '',
+        country: '',
+        startDate: datesBlock.data.startDate ? 
+          (datesBlock.data.startDate instanceof Date ? 
+            datesBlock.data.startDate.toISOString().split('T')[0] : 
+            new Date(datesBlock.data.startDate).toISOString().split('T')[0]) : '',
+        endDate: datesBlock.data.endDate ? 
+          (datesBlock.data.endDate instanceof Date ? 
+            datesBlock.data.endDate.toISOString().split('T')[0] : 
+            new Date(datesBlock.data.endDate).toISOString().split('T')[0]) : '',
         basePriceCents: basePrice * 100, // Convert to cents
         totalCapacity: ticketsBlock?.data?.tiers?.[0]?.quantity || 10,
         status: 'published', // Always publish when handlePublish is called
@@ -676,6 +643,9 @@ const ExperienceBuilder = () => {
         currency: 'USD',
         timezone: 'UTC',
         categorySlug: titleData.category || 'tech', // Default to 'tech' if not selected
+        // Host information
+        hostId: selectedHost.id,
+        hostType: selectedHost.type,
         agendaItems: agendaItems.length > 0 ? agendaItems : undefined,
         highlights: highlights.length > 0 ? highlights : undefined,
         ticketTiers: ticketsBlock?.data?.tiers && ticketsBlock.data.tiers.length > 0 ? 
@@ -711,18 +681,10 @@ const ExperienceBuilder = () => {
       };
 
       // Extract featured image file if exists
-      console.log('🖼️ Checking for image (PUBLISH). imageBlock:', imageBlock);
-      console.log('🖼️ imageBlock?.data?.file:', imageBlock?.data?.file);
       const featuredImageFile = imageBlock?.data?.file as File | undefined;
       
       if (featuredImageFile) {
-        console.log('✅ Featured image file found:', {
-          fileName: featuredImageFile.name,
-          fileSize: featuredImageFile.size,
-          fileType: featuredImageFile.type
-        });
-      } else {
-        console.log('⚠️ No featured image file to upload');
+        formData.append('featuredImage', featuredImageFile);
       }
       
       // Extract gallery images with alt texts
@@ -737,41 +699,22 @@ const ExperienceBuilder = () => {
             galleryAltsPublish.push(img.alt || '');
           }
         });
-        console.log('🖼️ Found', galleryFilesPublish.length, 'gallery images to upload');
-        console.log('🖼️ Gallery alt texts:', galleryAltsPublish);
       }
       
-      // Debug logging
-      console.log('📤 Publishing experience with:');
-      console.log('   Agenda items:', agendaItems);
-      console.log('   Highlights:', highlights);
-      console.log('   Ticket tiers:', createRequest.ticketTiers);
-      console.log('   FAQ items:', createRequest.faqItems);
-      console.log('   Resources:', createRequest.resources);
-      console.log('   Logistics:', {
-        meetupInstructions: createRequest.meetupInstructions,
-        checkInNotes: createRequest.checkInNotes,
-        emergencyContactName: createRequest.emergencyContactName,
-        emergencyContactPhone: createRequest.emergencyContactPhone,
-        additionalInfo: createRequest.additionalInfo
-      });
-      console.log('   Gallery images:', galleryFilesPublish.length);
-      console.log('   Status:', createRequest.status);
-      console.log('   Full request:', createRequest);
       
       // Create experience via API
       const createdExperience = await experiencesService.create(createRequest, featuredImageFile, galleryFilesPublish, galleryAltsPublish);
 
+      // Experience published successfully
       toast({
         title: "Experience Published!",
-        description: `Your experience "${createdExperience.title}" has been published successfully`,
+        description: "Your experience has been successfully published.",
       });
 
       // Redirect to the experiences page to see the created experience
-      window.location.href = `/experiences`;
+      navigate('/experiences');
 
     } catch (error) {
-      console.error('Error creating experience:', error);
       toast({
         title: "Error Creating Experience",
         description: "Failed to create experience. Please try again.",
@@ -780,26 +723,6 @@ const ExperienceBuilder = () => {
     }
   }, [title, blocks, isPublic, selectedHost, toast]);
 
-  // Team management handlers
-  const handleAddTeamMember = useCallback((member: Omit<TeamMember, 'id'>) => {
-    const newMember: TeamMember = {
-      ...member,
-      id: `team-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    };
-    setTeamMembers(prev => [...prev, newMember]);
-  }, []);
-
-  const handleRemoveTeamMember = useCallback((id: string) => {
-    setTeamMembers(prev => prev.filter(member => member.id !== id));
-  }, []);
-
-  const handleUpdateTeamMemberRole = useCallback((id: string, role: 'co-host' | 'admin') => {
-    setTeamMembers(prev => 
-      prev.map(member => 
-        member.id === id ? { ...member, role } : member
-      )
-    );
-  }, []);
 
   return (
     <div className="min-h-screen bg-[#0b0b12] flex flex-col">
@@ -852,6 +775,7 @@ const ExperienceBuilder = () => {
           onReorderBlocks={reorderBlocks}
           blockRefsMap={blockRefsMap}
           highlightedBlockId={highlightedBlockId}
+          onDeleteGalleryImage={handleDeleteGalleryImage}
         />
         
         <SettingsSidebar
@@ -859,10 +783,6 @@ const ExperienceBuilder = () => {
           onToggleVisibility={setIsPublic}
           selectedHost={selectedHost}
           onHostChange={setSelectedHost}
-          teamMembers={teamMembers}
-          onAddTeamMember={handleAddTeamMember}
-          onRemoveTeamMember={handleRemoveTeamMember}
-          onUpdateTeamMemberRole={handleUpdateTeamMemberRole}
         />
       </div>
 
@@ -885,7 +805,7 @@ function getDefaultBlockData(type: BlockType): any {
     case 'location':
       return { location: '' };
     case 'image':
-      return { url: '', alt: '' };
+      return { url: '', alt: '', file: undefined };
     case 'richText':
       return { content: 'Tell your story here...' };
     case 'highlights':

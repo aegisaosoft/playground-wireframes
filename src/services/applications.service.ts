@@ -11,6 +11,9 @@ export interface Application {
   appliedAt: string;
   image?: string;
   message: string;
+  applicantName?: string;
+  applicantEmail?: string;
+  applicantAvatar?: string;
 }
 
 export interface CreateApplicationRequest {
@@ -25,6 +28,10 @@ export interface UpdateApplicationStatusRequest {
 export const applicationsService = {
   async getMyApplications(): Promise<Application[]> {
     return apiClient.get<Application[]>('/Applications/my');
+  },
+
+  async getApplicationsForApproval(): Promise<Application[]> {
+    return apiClient.get<Application[]>('/Applications/for-approval');
   },
 
   async getExperienceApplications(experienceId: string): Promise<Application[]> {

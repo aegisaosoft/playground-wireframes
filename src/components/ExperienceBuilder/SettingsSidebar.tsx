@@ -2,9 +2,8 @@ import React from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Globe, Lock, Link2 } from 'lucide-react';
-import { PaymentsCard } from '@/components/PaymentsCard';
 import { HostSelector, HostData } from './HostSelector';
-import { TeamManagement, TeamMember } from './TeamManagement';
+import { useUser } from '@/contexts/UserContext';
 
 
 interface SettingsSidebarProps {
@@ -12,10 +11,6 @@ interface SettingsSidebarProps {
   onToggleVisibility: (isPublic: boolean) => void;
   selectedHost: HostData;
   onHostChange: (host: HostData) => void;
-  teamMembers: TeamMember[];
-  onAddTeamMember: (member: Omit<TeamMember, 'id'>) => void;
-  onRemoveTeamMember: (id: string) => void;
-  onUpdateTeamMemberRole: (id: string, role: 'co-host' | 'admin') => void;
 }
 
 export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
@@ -23,11 +18,8 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   onToggleVisibility,
   selectedHost,
   onHostChange,
-  teamMembers,
-  onAddTeamMember,
-  onRemoveTeamMember,
-  onUpdateTeamMemberRole,
 }) => {
+  const { isAuthenticated } = useUser();
   
 
   return (
@@ -42,16 +34,6 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
         <HostSelector 
           selectedHost={selectedHost}
           onHostChange={onHostChange}
-        />
-      </div>
-
-      {/* Team Management */}
-      <div className="mb-8">
-        <TeamManagement
-          teamMembers={teamMembers}
-          onAddMember={onAddTeamMember}
-          onRemoveMember={onRemoveTeamMember}
-          onUpdateMemberRole={onUpdateTeamMemberRole}
         />
       </div>
 
@@ -120,10 +102,6 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
         )}
       </div>
 
-      {/* Payments Section */}
-      <div className="mb-8">
-        <PaymentsCard variant="sidebar" />
-      </div>
     </div>
   );
 };

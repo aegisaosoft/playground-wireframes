@@ -3,8 +3,10 @@
  * Base URL: https://localhost:7183
  */
 
-// Use direct API URL to bypass proxy issues
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:7183/api';
+// Use direct API URL to bypass proxy issues - temporarily force direct backend URL
+const API_BASE_URL = 'https://localhost:7183/api';
+
+// Debug: Log the API base URL
 
 interface RequestOptions extends RequestInit {
   headers?: Record<string, string>;
@@ -66,6 +68,7 @@ class ApiClient {
     options: RequestOptions = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
+    
     const config: RequestInit = {
       ...options,
       headers: this.buildHeaders(options.headers),
@@ -77,7 +80,7 @@ class ApiClient {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
+          errorData.error || errorData.message || `HTTP error! status: ${response.status}`
         );
       }
 
@@ -88,7 +91,6 @@ class ApiClient {
 
       return await response.json();
     } catch (error) {
-      console.error('API request failed:', error);
       throw error;
     }
   }
@@ -181,7 +183,7 @@ class ApiClient {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
+          errorData.error || errorData.message || `HTTP error! status: ${response.status}`
         );
       }
 

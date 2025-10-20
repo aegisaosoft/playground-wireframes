@@ -10,6 +10,7 @@ import { RetreatEditor, RetreatDetails } from "@/components/RetreatEditor";
 import { BrandData } from "@/components/BrandEditor";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
 import { BrandLogo } from "@/components/BrandLogo";
+import { useUser } from "@/contexts/UserContext";
 
 interface NavigationProps {
   onCreateRetreat?: (retreat: Omit<Retreat, 'id'>) => void;
@@ -42,18 +43,23 @@ export const Navigation = ({
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isRetreatModalOpen, setIsRetreatModalOpen] = useState(false);
   const [isVoiceOnboardingOpen, setIsVoiceOnboardingOpen] = useState(false);
-  const [user, setUser] = useState<{ name: string; email: string; profile?: any } | null>(null);
+  const { user, logout: contextLogout, login } = useUser();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
-
   const handleLogin = (userData: { name: string; email: string; profile?: any }, isFirstSignIn = false) => {
-    setUser(userData);
+    // Transform userData to match UserProfile interface
+    const userProfile = {
+      id: userData.email, // Use email as ID for now
+      email: userData.email,
+      name: userData.name,
+      role: userData.profile?.role || 'user',
+      isEmailVerified: userData.profile?.isEmailVerified || false,
+      isActive: userData.profile?.isActive || true,
+      createdAt: new Date().toISOString(),
+      profileImageUrl: userData.profile?.profileImageUrl
+    };
+    
+    login(userProfile);
     
     // Show voice onboarding for first-time sign-ins if no profile exists
     if (isFirstSignIn && !userData.profile?.onboardingCompleted) {
@@ -62,14 +68,15 @@ export const Navigation = ({
   };
 
   const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('auth_token');
+    contextLogout(); // Use context logout
     navigate('/');
   };
 
   const handleUpdateUser = (userData: { name: string; email: string }) => {
-    setUser(userData);
+    // Update user data through the context
+    if (user) {
+      login({ ...user, name: userData.name, email: userData.email });
+    }
   };
 
   const handleBecomeHost = () => {
@@ -165,13 +172,18 @@ export const Navigation = ({
 
           {/* Auth control (top-right): Login or Logout */}
           {user ? (
-            <Button
-              variant="outline"
-              className="bg-transparent border-white/20 text-foreground hover:bg-white/10"
-              onClick={handleLogout}
-            >
-              Log out
-            </Button>
+            <div className="flex flex-col items-start">
+              <Button
+                variant="outline"
+                className="bg-transparent border-white/20 text-foreground hover:bg-white/10"
+                onClick={handleLogout}
+              >
+                Log out
+              </Button>
+              <span className="text-xs text-white/70 mt-1">
+                {user.name}
+              </span>
+            </div>
           ) : (
             <Button
               variant="outline"

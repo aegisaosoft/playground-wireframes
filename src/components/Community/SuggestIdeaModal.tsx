@@ -56,11 +56,6 @@ export const SuggestIdeaModal = ({ isOpen, onClose, onSuccess }: SuggestIdeaModa
         isAnonymous: formData.isAnonymous
       });
       
-      toast({
-        title: "Idea Posted!",
-        description: "Your suggestion has been added to the community board.",
-      });
-      
       // Reset form and close modal
       setFormData({
         title: '',

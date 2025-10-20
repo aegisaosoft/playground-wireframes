@@ -51,15 +51,18 @@ export const authService = {
    * Login user
    */
   async login(credentials: LoginRequest): Promise<AuthResponse> {
-    console.log('🔑 Attempting login with:', credentials.email);
     
     // Call backend endpoint (case-sensitive: /Auth not /auth)
     const backendResponse = await apiClient.post<BackendAuthResponse>('/Auth/login', credentials);
     
-    console.log('📥 Backend response:', backendResponse);
     
     // Check if login was successful
     if (!backendResponse.success || !backendResponse.token || !backendResponse.user) {
+      // Handle specific error cases
+      if (backendResponse.message === 'EMAIL_NOT_VERIFIED_RESENT') {
+        throw new Error('Your email address is not verified. A new verification email has been sent to your inbox. Please check your email and click the verification link before logging in.');
+      }
+      // Preserve the specific backend error message
       throw new Error(backendResponse.message || 'Login failed');
     }
     
@@ -83,9 +86,6 @@ export const authService = {
     localStorage.setItem('user', JSON.stringify(response.user));
     localStorage.setItem('auth_token', response.token);
     
-    console.log('✅ Token saved to localStorage:', response.token.substring(0, 20) + '...');
-    console.log('✅ User saved to localStorage:', response.user);
-    console.log('✅ Profile Image URL:', backendResponse.user.profileImageUrl || 'none');
     
     return response;
   },
@@ -103,11 +103,28 @@ export const authService = {
     });
     
     // Check if registration was successful
-    if (!backendResponse.success || !backendResponse.token || !backendResponse.user) {
+    if (!backendResponse.success) {
+      // Handle specific error cases
+      if (backendResponse.message === 'ACCOUNT_EXISTS_VERIFIED') {
+        throw new Error('ACCOUNT_EXISTS_VERIFIED: An account with this email already exists. Please try logging in instead.');
+      } else if (backendResponse.message === 'ACCOUNT_EXISTS_UNVERIFIED') {
+        throw new Error('An account with this email already exists but is not verified. A new verification email has been sent to your inbox.');
+      }
       throw new Error(backendResponse.message || 'Registration failed');
     }
     
-    // Transform backend response to frontend format
+    // For new registrations, backend returns null token/user until email verification
+    // This is expected behavior - user needs to verify email first
+    if (!backendResponse.token || !backendResponse.user) {
+      // Return a special response indicating email verification is needed
+      return {
+        token: null,
+        user: null,
+        message: backendResponse.message || 'Please check your email and click the verification link to activate your account.'
+      } as any;
+    }
+    
+    // Transform backend response to frontend format (for verified users)
     const response: AuthResponse = {
       token: backendResponse.token,
       user: {
@@ -131,6 +148,31 @@ export const authService = {
   },
 
   /**
+   * Forgot password - Send password reset email
+   */
+  async forgotPassword(email: string): Promise<{ success: boolean; message: string }> {
+    
+    const response = await apiClient.post<{ success: boolean; message: string }>('/Auth/forgot-password', {
+      email: email
+    });
+    
+    return response;
+  },
+
+  /**
+   * Reset password with token
+   */
+  async resetPassword(token: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+    
+    const response = await apiClient.post<{ success: boolean; message: string }>('/Auth/reset-password', {
+      token: token,
+      newPassword: newPassword
+    });
+    
+    return response;
+  },
+
+  /**
    * Logout user
    */
   logout(): void {
@@ -139,7 +181,8 @@ export const authService = {
   },
 
   /**
-   * Get current user
+   * Get current user from localStorage (fallback method)
+   * Note: Prefer using UserContext for getting current user
    */
   getCurrentUser(): any | null {
     const userStr = localStorage.getItem('user');
@@ -154,7 +197,8 @@ export const authService = {
   },
 
   /**
-   * Check if user is authenticated
+   * Check if user is authenticated (fallback method)
+   * Note: Prefer using UserContext for authentication state
    */
   isAuthenticated(): boolean {
     return !!localStorage.getItem('auth_token');
@@ -164,13 +208,11 @@ export const authService = {
    * Exchange Google ID token for backend JWT token
    */
   async googleLogin(googleIdToken: string): Promise<AuthResponse> {
-    console.log('🔑 Exchanging Google token for backend JWT');
     
     const backendResponse = await apiClient.post<BackendAuthResponse>('/Auth/google-login', {
       idToken: googleIdToken
     });
     
-    console.log('📥 Backend response:', backendResponse);
     
     // Check if login was successful
     if (!backendResponse.success || !backendResponse.token || !backendResponse.user) {
@@ -197,9 +239,6 @@ export const authService = {
     localStorage.setItem('user', JSON.stringify(response.user));
     localStorage.setItem('auth_token', response.token);
     
-    console.log('✅ Backend JWT Token saved:', response.token.substring(0, 20) + '...');
-    console.log('✅ User saved:', response.user);
-    console.log('✅ Profile Image URL:', backendResponse.user.profileImageUrl || 'none');
     
     return response;
   },

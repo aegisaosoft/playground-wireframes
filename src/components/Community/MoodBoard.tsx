@@ -140,12 +140,6 @@ export const MoodBoard = ({ ideas: propIdeas, isLoading = false, onRefresh }: Mo
           : idea
       ));
       
-      // Show success feedback
-      toast({
-        title: result.isInterested ? "Interest Added! 👍" : "Interest Removed",
-        description: result.message,
-      });
-      
       console.log('✅ Interest toggled successfully');
     } catch (error: any) {
       console.error('❌ Failed to toggle interest:', error);

@@ -105,10 +105,7 @@ export const BrandPage = ({
     setIsEditing(false);
     setHasUnsavedChanges(false);
     
-    toast({
-      title: "Brand page updated!",
-      description: "Your changes have been saved successfully.",
-    });
+    // Brand page updated successfully
   };
 
   const toggleFollow = () => {

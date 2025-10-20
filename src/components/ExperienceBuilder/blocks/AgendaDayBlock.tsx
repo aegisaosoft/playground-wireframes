@@ -15,56 +15,41 @@ interface AgendaItem {
 interface AgendaDayBlockProps {
   data: { 
     date: Date | null; 
-    scheduleByDate: { [dateString: string]: AgendaItem[] };
+    items: AgendaItem[];
   };
   onChange: (data: { 
     date: Date | null; 
-    scheduleByDate: { [dateString: string]: AgendaItem[] };
+    items: AgendaItem[];
   }) => void;
   dateRange?: { startDate: Date | null; endDate: Date | null };
 }
 
 export const AgendaDayBlock: React.FC<AgendaDayBlockProps> = ({ data, onChange, dateRange }) => {
-  // Get current date's items
-  const currentDateString = data.date ? format(data.date, 'yyyy-MM-dd') : null;
-  const currentItems = currentDateString && data.scheduleByDate?.[currentDateString] 
-    ? data.scheduleByDate[currentDateString] 
-    : [{ time: '09:00', activity: 'Welcome & Introductions' }];
+  // Get current items
+  const currentItems = data.items || [{ time: '09:00', activity: 'Welcome & Introductions' }];
 
   const addItem = () => {
-    if (!currentDateString) return;
     const newItems = [...currentItems, { time: '09:00', activity: 'New Activity' }];
     onChange({ 
       ...data, 
-      scheduleByDate: { 
-        ...data.scheduleByDate, 
-        [currentDateString]: newItems 
-      } 
+      items: newItems
     });
   };
 
   const removeItem = (index: number) => {
-    if (!currentDateString) return;
     const newItems = currentItems.filter((_, i) => i !== index);
     onChange({ 
       ...data, 
-      scheduleByDate: { 
-        ...data.scheduleByDate, 
-        [currentDateString]: newItems 
-      } 
+      items: newItems
     });
   };
 
   const updateItem = (index: number, field: keyof AgendaItem, value: string) => {
-    if (!currentDateString) return;
     const newItems = [...currentItems];
     newItems[index] = { ...newItems[index], [field]: value };
     onChange({ 
       ...data, 
-      scheduleByDate: { 
-        ...data.scheduleByDate, 
-        [currentDateString]: newItems 
-      } 
+      items: newItems
     });
   };
 

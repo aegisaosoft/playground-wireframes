@@ -11,6 +11,7 @@ import { Calendar, MapPin, Users, Clock, ExternalLink, Heart, UserPlus, UserChec
 import { RichContentDisplay } from "./RichContentDisplay";
 import { ContentBlock } from "./RichContentEditor";
 import { ApplicationPreviewModal, TicketTier, ApplicationField } from "./ApplicationPreviewModal";
+import { useNotification } from '@/contexts/NotificationContext';
 
 export interface RetreatDetail {
   id: number;
@@ -57,6 +58,7 @@ export const RetreatDetailsModal = ({ retreat, isOpen, onClose, savedRetreats, o
   const [isApplying, setIsApplying] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const navigate = useNavigate();
+  const { showInfo } = useNotification();
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -67,7 +69,7 @@ export const RetreatDetailsModal = ({ retreat, isOpen, onClose, savedRetreats, o
 
   const handleSaveClick = () => {
     if (!user || !retreat) {
-      alert('Please log in to save retreats');
+      showInfo('Login Required', 'Please log in to save retreats');
       return;
     }
     onToggleSaveRetreat(retreat.id);
@@ -75,7 +77,7 @@ export const RetreatDetailsModal = ({ retreat, isOpen, onClose, savedRetreats, o
 
   const handleFollowClick = () => {
     if (!user || !retreat?.organizer) {
-      alert('Please log in to follow hosts');
+      showInfo('Login Required', 'Please log in to follow hosts');
       return;
     }
     onToggleFollowHost(retreat.organizer.name);
@@ -83,7 +85,7 @@ export const RetreatDetailsModal = ({ retreat, isOpen, onClose, savedRetreats, o
 
   const handleApply = () => {
     if (!user) {
-      alert('Please log in to apply');
+      showInfo('Login Required', 'Please log in to apply');
       return;
     }
     // Show preview modal first

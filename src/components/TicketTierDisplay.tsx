@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Ticket, CreditCard, FileText, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { applicationsService } from '@/services/applications.service';
+import { experiencesService } from '@/services/experiences.service';
 
 interface TicketTier {
   id: string;
@@ -27,9 +30,29 @@ export const TicketTierDisplay: React.FC<TicketTierDisplayProps> = ({
   className = ""
 }) => {
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
+  const [tierCapacity, setTierCapacity] = useState<Array<{ tierId: string; tierName: string; tierCapacity: number; sold: number; available: number }> | null>(null);
+  const [loadingCapacity, setLoadingCapacity] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const handleBuyTicket = async (tierId: string) => {
+  // Load per-tier capacity
+  useEffect(() => {
+    const loadTierCapacity = async () => {
+      try {
+        setLoadingCapacity(true);
+        const capacity = await experiencesService.getTierCapacity(experienceId);
+        setTierCapacity(capacity);
+      } catch (error) {
+        // Continue without capacity data - don't block the UI
+      } finally {
+        setLoadingCapacity(false);
+      }
+    };
+
+    loadTierCapacity();
+  }, [experienceId]);
+
+  const handleBuyTicket = (tierId: string) => {
     if (!hostPayoutsEnabled) {
       toast({
         title: "Payments Unavailable",
@@ -39,44 +62,44 @@ export const TicketTierDisplay: React.FC<TicketTierDisplayProps> = ({
       return;
     }
 
+    // Check if this specific tier is sold out
+    const tierInfo = tierCapacity?.find(t => t.tierId === tierId);
+    if (tierInfo && tierInfo.available <= 0) {
+      toast({
+        title: "Tier Sold Out",
+        description: `The ${tierInfo.tierName} tier is fully booked.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Navigate to payment page with experience and tier information
+    navigate(`/payment/${experienceId}?tier=${tierId}`);
+  };
+
+  const handleApply = async (tierId: string) => {
     setLoadingTier(tierId);
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/checkout/session', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ experienceId, tierId })
-      // });
-      // const { url } = await response.json();
       
-      // Mock checkout URL for demo
-      const mockCheckoutUrl = `https://checkout.stripe.com/pay/mock-session-${tierId}`;
+      // Create application via API
+      const application = await applicationsService.createApplication({
+        experienceId,
+        message: `Application for ${tiers.find(t => t.id === tierId)?.name || 'free'} tier`
+      });
       
-      if (mockCheckoutUrl) {
-        // Open Stripe checkout in a new tab
-        window.open(mockCheckoutUrl, '_blank');
-      } else {
-        throw new Error('No checkout URL received');
-      }
+      
+      // Show success feedback (but no toast as per user request)
+      // Application created successfully
+      
     } catch (error) {
-      console.error('Failed to create checkout session:', error);
       toast({
-        title: "Checkout Failed",
-        description: "Checkout couldn't be created. Please try later.",
+        title: "Application Failed",
+        description: error instanceof Error ? error.message : "Failed to submit application. Please try again.",
         variant: "destructive",
       });
     } finally {
       setLoadingTier(null);
     }
-  };
-
-  const handleApply = (tierId: string) => {
-    // Handle free tier application
-    console.log('Applying for free tier:', tierId);
-    toast({
-      title: "Application Submitted",
-      description: "Your application has been submitted successfully.",
-    });
   };
 
   const formatPrice = (priceInCents: number) => {
@@ -87,8 +110,7 @@ export const TicketTierDisplay: React.FC<TicketTierDisplayProps> = ({
     return null;
   }
 
-  // Debug logging
-  console.log('🎫 TicketTierDisplay rendering with tiers:', tiers);
+  // Debug logging removed to prevent console spam
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -97,18 +119,23 @@ export const TicketTierDisplay: React.FC<TicketTierDisplayProps> = ({
         <h3 className="text-lg font-semibold text-foreground">Choose Your Tier</h3>
       </div>
       
-      <div className="grid gap-4">
-        {tiers.map((tier) => {
-          console.log(`🎫 Rendering tier: ${tier.name}, price_cents: ${tier.price_cents}`);
-          const isPaid = tier.price_cents > 0;
-          const isLoading = loadingTier === tier.id;
-          const canPurchase = isPaid && hostPayoutsEnabled;
+             <div className="grid gap-4">
+               {tiers.map((tier) => {
+                 const isPaid = tier.price_cents > 0;
+                 const isLoading = loadingTier === tier.id;
+                 const tierInfo = tierCapacity?.find(t => t.tierId === tier.id);
+                 const isTierSoldOut = tierInfo ? tierInfo.available <= 0 : false;
+                 const canPurchase = isPaid && hostPayoutsEnabled && !isTierSoldOut;
           
           return (
-            <div
-              key={tier.id}
-              className="p-4 bg-white/5 border border-white/10 rounded-lg hover:border-white/20 transition-colors"
-            >
+                 <div
+                   key={tier.id}
+                   className={`p-4 bg-white/5 border rounded-lg transition-colors ${
+                     isTierSoldOut 
+                       ? 'border-red-500/30 bg-red-500/5 opacity-60' 
+                       : 'border-white/10 hover:border-white/20'
+                   }`}
+                 >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
@@ -131,9 +158,15 @@ export const TicketTierDisplay: React.FC<TicketTierDisplayProps> = ({
                     </p>
                   )}
                   
-                  <p className="text-xs text-muted-foreground">
-                    {tier.quantity} spots available
-                  </p>
+                         <p className="text-xs text-muted-foreground">
+                           {loadingCapacity ? (
+                             'Loading availability...'
+                           ) : isTierSoldOut ? (
+                             <span className="text-red-400">Tier Sold Out</span>
+                           ) : (
+                             `${tierInfo?.available || 0} of ${tierInfo?.tierCapacity || 0} spots available`
+                           )}
+                         </p>
                 </div>
               </div>
               
@@ -143,20 +176,29 @@ export const TicketTierDisplay: React.FC<TicketTierDisplayProps> = ({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="flex-1">
-                          <Button
-                            onClick={() => handleBuyTicket(tier.id)}
-                            disabled={isLoading || !canPurchase}
-                            className="w-full bg-neon-green text-background hover:bg-neon-green/90 font-medium rounded-full"
-                          >
-                            {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                            <CreditCard className="w-4 h-4 mr-2" />
-                            {isLoading ? 'Creating...' : 'Buy Now'}
-                          </Button>
+                                 <Button
+                                   onClick={() => handleBuyTicket(tier.id)}
+                                   disabled={isLoading || !canPurchase}
+                                   className={`w-full font-medium rounded-full ${
+                                     isTierSoldOut 
+                                       ? 'bg-gray-500 text-gray-300 cursor-not-allowed' 
+                                       : 'bg-neon-green text-background hover:bg-neon-green/90'
+                                   }`}
+                                 >
+                                   {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                                   <CreditCard className="w-4 h-4 mr-2" />
+                                   {isLoading ? 'Creating...' : isTierSoldOut ? 'Sold Out' : 'Buy Now'}
+                                 </Button>
                         </div>
                       </TooltipTrigger>
                       {!canPurchase && (
                         <TooltipContent>
-                          <p>Payments unavailable—host hasn't enabled payouts yet.</p>
+                          <p>
+                            {isTierSoldOut 
+                              ? 'This tier is sold out' 
+                              : 'Payments unavailable—host hasn\'t enabled payouts yet.'
+                            }
+                          </p>
                         </TooltipContent>
                       )}
                     </Tooltip>
@@ -164,10 +206,12 @@ export const TicketTierDisplay: React.FC<TicketTierDisplayProps> = ({
                 ) : (
                   <Button
                     onClick={() => handleApply(tier.id)}
+                    disabled={isLoading}
                     className="w-full bg-white/10 text-foreground hover:bg-white/20 font-medium rounded-full"
                   >
+                    {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     <FileText className="w-4 h-4 mr-2" />
-                    Apply Now
+                    {isLoading ? 'Applying...' : 'Apply Now'}
                   </Button>
                 )}
               </div>

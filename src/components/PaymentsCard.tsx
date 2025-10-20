@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CreditCard, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { paymentsService } from '@/services/payments.service';
+import { useUser } from '@/contexts/UserContext';
 
 interface PaymentsCardProps {
   variant?: 'sidebar' | 'full';
@@ -19,44 +21,41 @@ export const PaymentsCard: React.FC<PaymentsCardProps> = ({ variant = 'full' }) 
   const [stripeStatus, setStripeStatus] = useState<StripeStatus | null>(null);
   const [showConnectModal, setShowConnectModal] = useState(false);
   const { toast } = useToast();
+  const { user, isAuthenticated } = useUser();
 
   useEffect(() => {
-    checkStripeStatus();
-  }, []);
+    if (isAuthenticated) {
+      checkStripeStatus();
+    }
+  }, [isAuthenticated]);
 
   const checkStripeStatus = async () => {
+    if (!isAuthenticated) {
+      return;
+    }
+
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/connect/status');
-      // const status = await response.json();
-      
-      // Mock status for demo
-      const mockStatus = {
-        charges_enabled: false,
-        payouts_enabled: false
-      };
-      
-      setStripeStatus(mockStatus);
+      const status = await paymentsService.getStripeStatus();
+      setStripeStatus(status);
     } catch (error) {
       console.error('Failed to check Stripe status:', error);
+      // Temporarily hide error message - only log to console
+      // toast({
+      //   title: "Error",
+      //   description: "Failed to load payment status.",
+      //   variant: "destructive",
+      // });
     }
   };
 
   const handleConnectStripe = async () => {
     setIsLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/connect/account-link', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' }
-      // });
-      // const { onboarding_url } = await response.json();
+      const { onboarding_url } = await paymentsService.createAccountLink();
       
-      // Mock onboarding URL for demo
-      const mockOnboardingUrl = 'https://connect.stripe.com/setup/mock-account';
-      
-      if (mockOnboardingUrl) {
-        window.location.href = mockOnboardingUrl;
+      if (onboarding_url) {
+        // Redirect to Stripe onboarding
+        window.location.href = onboarding_url;
       } else {
         throw new Error('No onboarding URL received');
       }
@@ -64,7 +63,7 @@ export const PaymentsCard: React.FC<PaymentsCardProps> = ({ variant = 'full' }) 
       console.error('Failed to start Stripe onboarding:', error);
       toast({
         title: "Connection Failed",
-        description: "Stripe onboarding couldn't start. Try again.",
+        description: error instanceof Error ? error.message : "Stripe onboarding couldn't start. Try again.",
         variant: "destructive",
       });
     } finally {

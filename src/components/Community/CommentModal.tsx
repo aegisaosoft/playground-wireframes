@@ -89,11 +89,91 @@ const mockComments: Comment[] = [
   }
 ];
 
+// Recursive component for unlimited nested replies
+const RecursiveReply: React.FC<{
+  reply: Comment;
+  parentCommentId: string;
+  parentReplyId: string;
+  onLikeNestedReply: (nestedReplyId: string, replyId: string, parentId: string) => void;
+  onSetNestedReplyingTo: (value: {parentId: string, replyId: string} | null) => void;
+  formatTimeAgo: (date: Date | string) => string;
+}> = ({ reply, parentCommentId, parentReplyId, onLikeNestedReply, onSetNestedReplyingTo, formatTimeAgo }) => {
+  return (
+    <div className="flex gap-2">
+      <Avatar className="w-5 h-5 mt-1">
+        <AvatarImage src={reply.userAvatar} />
+        <AvatarFallback className="bg-neon-cyan/20 text-neon-cyan text-xs">
+          {reply.userName.charAt(0)}
+        </AvatarFallback>
+      </Avatar>
+      
+      <div className="flex-1">
+        <div className="bg-white/3 rounded-lg p-2">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-semibold text-xs text-white">
+              {reply.userName}
+            </span>
+            <span className="text-xs text-white/60">
+              {formatTimeAgo(reply.timestamp)}
+            </span>
+          </div>
+          <p className="text-white/90 text-xs">{reply.content}</p>
+        </div>
+        
+        <div className="flex items-center gap-2 mt-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onLikeNestedReply(reply.id, parentReplyId, parentCommentId)}
+            className={`h-4 px-1 text-xs ${
+              reply.isLiked 
+                ? 'text-neon-pink bg-neon-pink/10' 
+                : 'text-white/60 hover:text-neon-pink'
+            }`}
+          >
+            <Heart className="w-3 h-3 mr-1" />
+            {reply.likes > 0 && reply.likes}
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onSetNestedReplyingTo({parentId: parentCommentId, replyId: reply.id})}
+            className="h-4 px-1 text-xs text-white/60 hover:text-neon-cyan"
+          >
+            <Reply className="w-3 h-3 mr-1" />
+            Reply
+          </Button>
+        </div>
+
+        {/* Recursively render deeper nested replies */}
+        {reply.replies && reply.replies.length > 0 && (
+          <div className="ml-4 space-y-2 border-l border-white/5 pl-4 mt-2">
+            {reply.replies.map((nestedReply) => (
+              <RecursiveReply
+                key={nestedReply.id}
+                reply={nestedReply}
+                parentCommentId={parentCommentId}
+                parentReplyId={reply.id}
+                onLikeNestedReply={onLikeNestedReply}
+                onSetNestedReplyingTo={onSetNestedReplyingTo}
+                formatTimeAgo={formatTimeAgo}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export const CommentModal = ({ isOpen, onClose, idea, update }: CommentModalProps) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
+  const [nestedReplyingTo, setNestedReplyingTo] = useState<{parentId: string, replyId: string} | null>(null);
+  const [nestedReplyText, setNestedReplyText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -143,11 +223,6 @@ export const CommentModal = ({ isOpen, onClose, idea, update }: CommentModalProp
       // Add to local state
       setComments(prev => [...prev, createdComment as Comment]);
       setNewComment('');
-      
-      toast({
-        title: "Comment Posted!",
-        description: "Your comment has been added.",
-      });
     } catch (error) {
       console.error('❌ Failed to post comment:', error);
       toast({
@@ -177,27 +252,98 @@ export const CommentModal = ({ isOpen, onClose, idea, update }: CommentModalProp
     setNewComment('');
   };
 
-  const handleSubmitReply = (parentId: string) => {
-    if (!replyText.trim()) return;
+  const handleSubmitReply = async (parentId: string) => {
+    if (!replyText.trim() || !idea) return;
 
-    const reply: Comment = {
-      id: `reply-${Date.now()}`,
-      userId: 'current-user',
-      userName: 'You',
-      content: replyText,
-      timestamp: new Date(),
-      likes: 0,
-      isLiked: false
-    };
+    try {
+      setIsSubmitting(true);
+      console.log('📤 Posting reply to comment:', parentId, 'on idea:', idea.id);
+      
+      // Call API to create reply
+      const createdReply = await communityService.createComment(idea.id, {
+        content: replyText.trim(),
+        parentCommentId: parentId
+      });
+      
+      console.log('✅ Reply created:', createdReply);
 
-    setComments(prev => prev.map(comment => 
-      comment.id === parentId 
-        ? { ...comment, replies: [...(comment.replies || []), reply] }
-        : comment
-    ));
-    
-    setReplyText('');
-    setReplyingTo(null);
+      // Add to local state
+      setComments(prev => prev.map(comment => 
+        comment.id === parentId 
+          ? { ...comment, replies: [...(comment.replies || []), createdReply as Comment] }
+          : comment
+      ));
+      
+      setReplyText('');
+      setReplyingTo(null);
+    } catch (error) {
+      console.error('❌ Failed to post reply:', error);
+      toast({
+        title: "Error",
+        description: "Failed to post reply. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Recursive function to add a new reply to the correct nested location
+  const addReplyToNestedStructure = (replies: Comment[], targetId: string, newReply: Comment): Comment[] => {
+    return replies.map(reply => {
+      if (reply.id === targetId) {
+        return {
+          ...reply,
+          replies: [...(reply.replies || []), newReply]
+        };
+      }
+      if (reply.replies && reply.replies.length > 0) {
+        return {
+          ...reply,
+          replies: addReplyToNestedStructure(reply.replies, targetId, newReply)
+        };
+      }
+      return reply;
+    });
+  };
+
+  const handleSubmitNestedReply = async (parentId: string, replyId: string) => {
+    if (!nestedReplyText.trim() || !idea) return;
+
+    try {
+      setIsSubmitting(true);
+      console.log('📤 Posting nested reply to reply:', replyId, 'on idea:', idea.id);
+      
+      // Call API to create nested reply
+      const createdNestedReply = await communityService.createComment(idea.id, {
+        content: nestedReplyText.trim(),
+        parentCommentId: replyId // Reply to the reply, not the original comment
+      });
+      
+      console.log('✅ Nested reply created:', createdNestedReply);
+
+      // Add to local state using recursive function
+      setComments(prev => prev.map(comment => 
+        comment.id === parentId 
+          ? {
+              ...comment, 
+              replies: addReplyToNestedStructure(comment.replies || [], replyId, createdNestedReply as Comment)
+            }
+          : comment
+      ));
+      
+      setNestedReplyText('');
+      setNestedReplyingTo(null);
+    } catch (error) {
+      console.error('❌ Failed to post nested reply:', error);
+      toast({
+        title: "Error",
+        description: "Failed to post reply. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleLikeComment = (commentId: string, isReply = false, parentId?: string) => {
@@ -231,6 +377,44 @@ export const CommentModal = ({ isOpen, onClose, idea, update }: CommentModalProp
     }
   };
 
+  // Recursive function to update likes in nested replies
+  const updateReplyLike = (replies: Comment[], targetId: string): Comment[] => {
+    return replies.map(reply => {
+      if (reply.id === targetId) {
+        return {
+          ...reply,
+          isLiked: !reply.isLiked,
+          likes: reply.isLiked ? reply.likes - 1 : reply.likes + 1
+        };
+      }
+      if (reply.replies && reply.replies.length > 0) {
+        return {
+          ...reply,
+          replies: updateReplyLike(reply.replies, targetId)
+        };
+      }
+      return reply;
+    });
+  };
+
+  const handleLikeNestedReply = (nestedReplyId: string, replyId: string, parentId: string) => {
+    setComments(prev => prev.map(comment => 
+      comment.id === parentId 
+        ? {
+            ...comment,
+            replies: comment.replies?.map(reply =>
+              reply.id === replyId
+                ? {
+                    ...reply,
+                    replies: updateReplyLike(reply.replies || [], nestedReplyId)
+                  }
+                : reply
+            ) || []
+          }
+        : comment
+    ));
+  };
+
   const formatTimeAgo = (date: Date | string) => {
     const now = new Date();
     const commentDate = typeof date === 'string' ? new Date(date) : date;
@@ -250,7 +434,7 @@ export const CommentModal = ({ isOpen, onClose, idea, update }: CommentModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-background/95 backdrop-blur-sm border-white/20 text-white max-w-2xl max-h-[80vh]">
+      <DialogContent className="bg-background/95 backdrop-blur-sm border-white/20 text-white max-w-2xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-white flex items-center gap-3">
             <MessageCircle className="w-5 h-5 text-neon-cyan" />
@@ -294,7 +478,7 @@ export const CommentModal = ({ isOpen, onClose, idea, update }: CommentModalProp
           </div>
 
           {/* Comments list */}
-          <ScrollArea className="max-h-[400px]">
+          <ScrollArea className="h-[60vh] w-full">
             <div className="space-y-4 pr-4">
               {isLoading ? (
                 <div className="text-center py-8 text-white/60">
@@ -370,7 +554,7 @@ export const CommentModal = ({ isOpen, onClose, idea, update }: CommentModalProp
                           <div className="flex gap-2">
                             <Button
                               onClick={() => handleSubmitReply(comment.id)}
-                              disabled={!replyText.trim()}
+                              disabled={!replyText.trim() || isSubmitting}
                               size="sm"
                               className="bg-neon-cyan text-background hover:bg-neon-cyan/90 text-xs h-7"
                             >
@@ -416,22 +600,85 @@ export const CommentModal = ({ isOpen, onClose, idea, update }: CommentModalProp
                                   <p className="text-white/90 text-xs">{reply.content}</p>
                                 </div>
                                 
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleLikeComment(reply.id, true, comment.id)}
-                                  className={`h-5 px-2 text-xs ${
-                                    reply.isLiked 
-                                      ? 'text-neon-pink bg-neon-pink/10' 
-                                      : 'text-white/60 hover:text-neon-pink'
-                                  }`}
-                                >
-                                  <Heart className="w-3 h-3 mr-1" />
-                                  {reply.likes > 0 && reply.likes}
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleLikeComment(reply.id, true, comment.id)}
+                                    className={`h-5 px-2 text-xs ${
+                                      reply.isLiked 
+                                        ? 'text-neon-pink bg-neon-pink/10' 
+                                        : 'text-white/60 hover:text-neon-pink'
+                                    }`}
+                                  >
+                                    <Heart className="w-3 h-3 mr-1" />
+                                    {reply.likes > 0 && reply.likes}
+                                  </Button>
+                                  
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setNestedReplyingTo({parentId: comment.id, replyId: reply.id})}
+                                    className="h-5 px-2 text-xs text-white/60 hover:text-neon-cyan"
+                                  >
+                                    <Reply className="w-3 h-3 mr-1" />
+                                    Reply
+                                  </Button>
+                                </div>
+                                
+                                {/* Nested Replies (replies to replies) - Recursive */}
+                                {reply.replies && reply.replies.length > 0 && (
+                                  <div className="ml-4 space-y-2 border-l border-white/5 pl-4 mt-2">
+                                    {reply.replies.map((nestedReply) => (
+                                      <RecursiveReply
+                                        key={nestedReply.id}
+                                        reply={nestedReply}
+                                        parentCommentId={comment.id}
+                                        parentReplyId={reply.id}
+                                        onLikeNestedReply={handleLikeNestedReply}
+                                        onSetNestedReplyingTo={setNestedReplyingTo}
+                                        formatTimeAgo={formatTimeAgo}
+                                      />
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           ))}
+                          
+                          {/* Nested Reply Input */}
+                          {nestedReplyingTo && nestedReplyingTo.parentId === comment.id && (
+                            <div className="ml-4 space-y-2 border-l border-white/10 pl-4">
+                              <Textarea
+                                placeholder={`Reply to ${comment.replies?.find(r => r.id === nestedReplyingTo.replyId)?.userName || 'this reply'}...`}
+                                value={nestedReplyText}
+                                onChange={(e) => setNestedReplyText(e.target.value)}
+                                className="bg-white/5 border-white/20 text-white placeholder:text-white/40 min-h-[60px] text-sm"
+                              />
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => handleSubmitNestedReply(nestedReplyingTo.parentId, nestedReplyingTo.replyId)}
+                                  disabled={!nestedReplyText.trim() || isSubmitting}
+                                  size="sm"
+                                  className="bg-neon-cyan text-background hover:bg-neon-cyan/90 text-xs h-7"
+                                >
+                                  Reply
+                                </Button>
+                                <Button
+                                  onClick={() => {
+                                    setNestedReplyingTo(null);
+                                    setNestedReplyText('');
+                                  }}
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-white/20 text-white/60 hover:bg-white/10 text-xs h-7"
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                          
                         </div>
                       )}
                     </div>

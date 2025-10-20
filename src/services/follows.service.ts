@@ -25,6 +25,6 @@ export const followsService = {
   },
 
   async unfollowUser(followedUserId: string): Promise<void> {
-    return apiClient.delete<void>(`/follows/${followedUserId}`);
+    return apiClient.delete<void>(`/Follows/${followedUserId}`);
   },
 };

@@ -48,27 +48,47 @@ const ExperienceCard = ({
       onClick={handleClick}
     >
       {/* Image */}
-      <div className="relative h-64 overflow-hidden">
-        <img 
-          src={image} 
-          alt={title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-        />
-        
-        {/* Category badge */}
-        <div className="absolute top-4 left-4">
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${categoryColors[category.color]}`}>
-            {category.name}
-          </span>
-        </div>
+      {image ? (
+        <div className="relative h-64 overflow-hidden">
+          <img 
+            src={image} 
+            alt={title}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+          />
+          
+          {/* Category badge */}
+          <div className="absolute top-4 left-4">
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${categoryColors[category.color]}`}>
+              {category.name}
+            </span>
+          </div>
 
-        {/* Duration badge */}
-        <div className="absolute top-4 right-4">
-          <span className="px-3 py-1 rounded-full text-sm font-medium bg-background/80 text-foreground backdrop-blur-sm">
-            {duration}
-          </span>
+          {/* Duration badge */}
+          <div className="absolute top-4 right-4">
+            <span className="px-3 py-1 rounded-full text-sm font-medium bg-background/80 text-foreground backdrop-blur-sm">
+              {duration}
+            </span>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="relative h-64 overflow-hidden bg-gradient-to-br from-background to-muted flex items-center justify-center">
+          <div className="text-muted-foreground text-5xl">📸</div>
+          
+          {/* Category badge */}
+          <div className="absolute top-4 left-4">
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${categoryColors[category.color]}`}>
+              {category.name}
+            </span>
+          </div>
+
+          {/* Duration badge */}
+          <div className="absolute top-4 right-4">
+            <span className="px-3 py-1 rounded-full text-sm font-medium bg-background/80 text-foreground backdrop-blur-sm">
+              {duration}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <div className="p-6">

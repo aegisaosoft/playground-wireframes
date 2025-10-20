@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { VoiceProfileSection } from '@/components/VoiceProfile';
 import { useVoiceRecognition } from '@/hooks/useVoiceRecognition';
@@ -13,6 +14,12 @@ import { experiencesService, Experience } from '@/services/experiences.service';
 import { applicationsService, Application } from '@/services/applications.service';
 import { bookmarksService, Bookmark } from '@/services/bookmarks.service';
 import { followsService, FollowedHost } from '@/services/follows.service';
+import { brandsService } from '@/services/brands.service';
+import { ticketsService, TicketPurchase } from '@/services/tickets.service';
+import { EditBrandPageModal } from '@/components/EditBrandPageModal';
+import { AddFindMemberModal } from '@/components/AddFindMemberModal';
+import { MembersListModal } from '@/components/MembersListModal';
+import { StripeSettings } from '@/components/StripeSettings';
 import { 
   User, 
   FileText, 
@@ -23,6 +30,7 @@ import {
   ArrowLeft,
   Upload,
   Calendar,
+  RefreshCw,
   MapPin,
   Eye,
   Edit,
@@ -35,19 +43,20 @@ import {
   Link2,
   Building,
   Mic,
-  MicOff
+  MicOff,
+  Ticket
 } from 'lucide-react';
 import { SocialAccountsInput, SocialAccounts } from '@/components/SocialAccountsInput';
 
 // No mock data - using real API calls
 
-type SidebarItem = 'profile' | 'applications' | 'hosting' | 'saved' | 'following' | 'brand' | 'settings';
+type SidebarItem = 'profile' | 'applications' | 'tickets' | 'hosting' | 'saved' | 'following' | 'brand' | 'settings';
 
 export default function MyAccount() {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<SidebarItem>(() => {
     const tab = searchParams.get('tab');
-    return (tab && ['profile', 'applications', 'hosting', 'saved', 'following', 'brand', 'settings'].includes(tab)) 
+    return (tab && ['profile', 'applications', 'tickets', 'hosting', 'saved', 'following', 'brand', 'settings'].includes(tab)) 
       ? tab as SidebarItem 
       : 'profile';
   });
@@ -62,8 +71,24 @@ export default function MyAccount() {
   const [isLoadingSaved, setIsLoadingSaved] = useState(false);
   const [userApplications, setUserApplications] = useState<Application[]>([]);
   const [isLoadingApplications, setIsLoadingApplications] = useState(false);
+  const [applicationFilters, setApplicationFilters] = useState({
+    pending: true,
+    approved: true,
+    rejected: true
+  });
+  const [userTickets, setUserTickets] = useState<TicketPurchase[]>([]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(false);
+  const [refundingTickets, setRefundingTickets] = useState<Set<string>>(new Set());
+  const [cancellingTickets, setCancellingTickets] = useState<Set<string>>(new Set());
   const [followedHosts, setFollowedHosts] = useState<FollowedHost[]>([]);
   const [isLoadingHosts, setIsLoadingHosts] = useState(false);
+  const [userBrands, setUserBrands] = useState<any[]>([]);
+  const [isLoadingBrands, setIsLoadingBrands] = useState(false);
+  const [showEditBrandModal, setShowEditBrandModal] = useState(false);
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [showMembersListModal, setShowMembersListModal] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState<any>(null);
+  const [isCreatingNewBrand, setIsCreatingNewBrand] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -137,10 +162,8 @@ export default function MyAccount() {
               privateSlug: exp.slug
             }));
             
-            console.log('✅ Loaded experiences:', transformedExperiences);
             setMyExperiences(transformedExperiences);
           } catch (error) {
-            console.error('Failed to fetch user experiences:', error);
             toast({
               title: "Error",
               description: "Failed to load your experiences",
@@ -150,6 +173,22 @@ export default function MyAccount() {
             setIsLoadingExperiences(false);
           }
           break;
+
+         case 'brand':
+           setIsLoadingBrands(true);
+           try {
+             const brands = await brandsService.getMyBrands();
+             setUserBrands(brands);
+          } catch (error) {
+            toast({
+              title: "Error",
+               description: "Failed to load your brands",
+              variant: "destructive",
+            });
+          } finally {
+             setIsLoadingBrands(false);
+          }
+          break;
           
                case 'saved':
                  setIsLoadingSaved(true);
@@ -157,7 +196,6 @@ export default function MyAccount() {
                    const bookmarks = await bookmarksService.getMyBookmarks();
                    setSavedExperiences(bookmarks);
                  } catch (error) {
-                   console.error('Failed to fetch saved experiences:', error);
                    toast({
                      title: "Error",
                      description: "Failed to load saved experiences",
@@ -171,10 +209,10 @@ export default function MyAccount() {
                case 'applications':
                  setIsLoadingApplications(true);
                  try {
-                   const applications = await applicationsService.getMyApplications();
+                   // Load applications for experiences where user is the host (for approval)
+                   const applications = await applicationsService.getApplicationsForApproval();
                    setUserApplications(applications);
                  } catch (error) {
-                   console.error('Failed to fetch applications:', error);
                    toast({
                      title: "Error",
                      description: "Failed to load applications",
@@ -185,13 +223,34 @@ export default function MyAccount() {
                  }
                  break;
 
+               case 'tickets':
+                 setIsLoadingTickets(true);
+                 try {
+                   const tickets = await ticketsService.getMyTickets();
+                   setUserTickets(tickets);
+                 } catch (error: any) {
+                   
+                   // If it's a 404 error, the endpoint isn't available yet
+                   if (error.message?.includes('404') || error.message?.includes('Not Found')) {
+                     setUserTickets([]);
+                   } else {
+                     toast({
+                       title: "Error",
+                       description: "Failed to load tickets",
+                       variant: "destructive",
+                     });
+                   }
+                 } finally {
+                   setIsLoadingTickets(false);
+                 }
+                 break;
+
                case 'following':
                  setIsLoadingHosts(true);
                  try {
                    const follows = await followsService.getMyFollows();
                    setFollowedHosts(follows);
                  } catch (error) {
-                   console.error('Failed to fetch followed hosts:', error);
                    toast({
                      title: "Error",
                      description: "Failed to load followed hosts",
@@ -210,10 +269,34 @@ export default function MyAccount() {
   // Update activeTab when URL search params change
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['profile', 'applications', 'hosting', 'saved', 'following', 'brand', 'settings'].includes(tab)) {
+    if (tab && ['profile', 'applications', 'tickets', 'hosting', 'saved', 'following', 'brand', 'settings'].includes(tab)) {
       setActiveTab(tab as SidebarItem);
     }
   }, [searchParams]);
+
+  // Load applications when component mounts if on applications tab
+  useEffect(() => {
+    if (activeTab === 'applications' && userApplications.length === 0 && !isLoadingApplications) {
+      const loadApplications = async () => {
+        setIsLoadingApplications(true);
+        try {
+          // Load applications for experiences where user is the host (for approval)
+          const applications = await applicationsService.getApplicationsForApproval();
+          setUserApplications(applications);
+        } catch (error) {
+          console.error('Failed to fetch applications:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load applications",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoadingApplications(false);
+        }
+      };
+      loadApplications();
+    }
+  }, [activeTab, userApplications.length, isLoadingApplications, toast]);
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -244,7 +327,7 @@ export default function MyAccount() {
   const handleLogout = () => {
     localStorage.removeItem('user');
     setUser(null);
-    toast({
+      toast({
       title: "Logged out",
       description: "You have been logged out successfully.",
     });
@@ -271,8 +354,6 @@ export default function MyAccount() {
       
       const token = localStorage.getItem('auth_token');
       
-      console.log('🔑 Uploading avatar with token:', token ? 'Token exists' : 'NO TOKEN!');
-      console.log('📤 File:', file.name, 'Size:', file.size);
       
       const response = await fetch('/api/Auth/upload-avatar', {
         method: 'POST',
@@ -283,11 +364,9 @@ export default function MyAccount() {
         // Don't set Content-Type - browser will set it with boundary
       });
 
-      console.log('📥 Response status:', response.status, response.statusText);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Upload error:', errorData);
         throw new Error(errorData.message || 'Upload failed');
       }
 
@@ -309,10 +388,8 @@ export default function MyAccount() {
         description: `Image saved successfully!`,
       });
       
-      console.log('Avatar uploaded successfully:', data);
       
     } catch (error) {
-      console.error('Error uploading avatar:', error);
       toast({
         title: "Upload Failed",
         description: "Failed to upload avatar. Please try again.",
@@ -339,13 +416,122 @@ export default function MyAccount() {
     });
   };
 
+  const handleEditBrand = (brand: any) => {
+    setSelectedBrand(brand);
+    setIsCreatingNewBrand(false);
+    setShowEditBrandModal(true);
+  };
+
+  const handleCreateNewBrand = () => {
+    setSelectedBrand(null);
+    setIsCreatingNewBrand(true);
+    setShowEditBrandModal(true);
+  };
+
+  const handleAddMember = (brand: any) => {
+    setSelectedBrand(brand);
+    setShowAddMemberModal(true);
+  };
+
+  const handleViewMembers = (brand: any) => {
+    setSelectedBrand(brand);
+    setShowMembersListModal(true);
+  };
+
+  const handleSaveBrand = async (brandData: any) => {
+    try {
+      setIsLoading(true);
+      
+      // The EditBrandPageModal already handles the API call
+      // We just need to reload the brands list and show success
+      const brands = await brandsService.getMyBrands();
+      setUserBrands(brands);
+      
+      toast({
+        title: "Success",
+        description: isCreatingNewBrand ? "Brand created successfully!" : "Brand updated successfully!",
+      });
+      
+      setShowEditBrandModal(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Brand saved but failed to reload the list. Please refresh the page.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRefundTicket = async (ticketId: string) => {
+    try {
+      setRefundingTickets(prev => new Set(prev).add(ticketId));
+      
+      const refundResult = await ticketsService.refundTicket(ticketId);
+      
+      toast({
+        title: "Refund Successful",
+        description: `Your refund of $${refundResult.amount.toFixed(2)} has been processed. Refund ID: ${refundResult.refundId}`,
+      });
+      
+      // Reload tickets to show updated status
+      const updatedTickets = await ticketsService.getMyTickets();
+      setUserTickets(updatedTickets);
+      
+    } catch (error: any) {
+      toast({
+        title: "Refund Failed",
+        description: error.message || "Failed to process refund. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setRefundingTickets(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(ticketId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleCancelTicket = async (ticketId: string) => {
+    try {
+      setCancellingTickets(prev => new Set(prev).add(ticketId));
+      
+      const cancelResult = await ticketsService.cancelTicket(ticketId);
+      
+      toast({
+        title: "Ticket Cancelled",
+        description: "Your pending ticket has been cancelled successfully.",
+      });
+      
+      // Reload tickets to show updated status
+      const updatedTickets = await ticketsService.getMyTickets();
+      setUserTickets(updatedTickets);
+      
+    } catch (error: any) {
+      toast({
+        title: "Cancel Failed",
+        description: error.message || "Failed to cancel ticket. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCancellingTickets(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(ticketId);
+        return newSet;
+      });
+    }
+  };
+
   // Check if user has hosted experiences or created brands
   const hasHostedExperiences = myExperiences.length > 0;
-  const hasCreatedBrands = true; // Mock - would check if user has created any brands
+  const hasCreatedBrands = userBrands.length > 0;
   
   const profileItems = [
     { id: 'profile' as SidebarItem, label: 'Profile', icon: User },
     { id: 'applications' as SidebarItem, label: 'My Applications', icon: FileText },
+    { id: 'tickets' as SidebarItem, label: 'My Tickets', icon: Ticket },
     { id: 'saved' as SidebarItem, label: 'Saved Experiences', icon: BookmarkIcon },
     { id: 'following' as SidebarItem, label: 'Following Hosts', icon: Users },
     { id: 'settings' as SidebarItem, label: 'Settings', icon: Settings },
@@ -353,7 +539,7 @@ export default function MyAccount() {
 
   const hostingItems = [
     { id: 'hosting' as SidebarItem, label: 'Experiences', icon: Home },
-    ...(hasCreatedBrands ? [{ id: 'brand' as SidebarItem, label: 'Brand Page', icon: Building }] : []),
+    { id: 'brand' as SidebarItem, label: 'Brand Page', icon: Building },
   ];
 
   const renderContent = () => {
@@ -485,26 +671,6 @@ export default function MyAccount() {
                   onChange={setSocialAccounts}
                 />
 
-                {/* Brand Info */}
-                <Card className="bg-white/3 border-white/10 rounded-xl">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-neon rounded-full flex items-center justify-center font-semibold text-background">
-                          {(user?.name || 'U').charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">Your Brand</p>
-                          <p className="text-sm text-muted-foreground">2 experiences hosted</p>
-                          <p className="text-sm text-muted-foreground">124 followers</p>
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm" className="border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10">
-                        Edit Brand Page
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
 
                 {/* Action Buttons */}
                 <div className="flex gap-4 pt-4">
@@ -522,19 +688,110 @@ export default function MyAccount() {
         );
 
       case 'applications':
+        // Filter applications based on selected checkboxes
+        const filteredApplications = userApplications.filter(app => {
+          if (app.status === 'pending' && !applicationFilters.pending) return false;
+          if (app.status === 'approved' && !applicationFilters.approved) return false;
+          if (app.status === 'rejected' && !applicationFilters.rejected) return false;
+          return true;
+        });
+
+        const getStatusBadge = (status: string) => {
+          switch (status) {
+            case 'approved':
+              return <Badge className="bg-neon-green/20 text-neon-green border-neon-green/40">Approved</Badge>;
+            case 'pending':
+              return <Badge className="bg-neon-yellow/20 text-neon-yellow border-neon-yellow/40">Pending</Badge>;
+            case 'rejected':
+              return <Badge className="bg-red-500/20 text-red-500 border-red-500/40">Rejected</Badge>;
+            default:
+              return <Badge className="bg-gray-500/20 text-gray-500 border-gray-500/40">{status}</Badge>;
+          }
+        };
+
+        const getActionButton = (application: Application) => {
+          if (application.status === 'approved') {
+            return (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
+                onClick={() => navigate(`/experience/portal/${application.experienceId}`)}
+              >
+                Open Portal
+              </Button>
+            );
+          } else {
+            return (
+              <Button variant="outline" size="sm" className="border-white/20 text-foreground hover:bg-white/10">
+                <Eye className="w-4 h-4 mr-2" />
+                View
+              </Button>
+            );
+          }
+        };
+
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold text-foreground">My Applications</h1>
+              <h1 className="text-3xl font-bold text-foreground">Experience Applications</h1>
+              <p className="text-muted-foreground">Applications for your experiences</p>
             </div>
 
-            {/* Approved Applications */}
+            {/* Filter Checkboxes */}
+            <Card className="bg-white/5 border-white/10 rounded-2xl">
+              <CardHeader>
+                <CardTitle className="text-foreground">Filter Applications</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="pending-filter"
+                      checked={applicationFilters.pending}
+                      onCheckedChange={(checked) => 
+                        setApplicationFilters(prev => ({ ...prev, pending: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="pending-filter" className="text-foreground">
+                        Pending ({userApplications.filter(app => app.status === 'pending').length})
+                    </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="approved-filter"
+                      checked={applicationFilters.approved}
+                      onCheckedChange={(checked) => 
+                        setApplicationFilters(prev => ({ ...prev, approved: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="approved-filter" className="text-foreground">
+                        Approved ({userApplications.filter(app => app.status === 'approved').length})
+                    </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="rejected-filter"
+                      checked={applicationFilters.rejected}
+                      onCheckedChange={(checked) => 
+                        setApplicationFilters(prev => ({ ...prev, rejected: checked as boolean }))
+                      }
+                    />
+                    <Label htmlFor="rejected-filter" className="text-foreground">
+                        Rejected ({userApplications.filter(app => app.status === 'rejected').length})
+                    </Label>
+                    </div>
+                  </div>
+              </CardContent>
+            </Card>
+
+            {/* Applications List */}
             <Card className="bg-white/5 border-white/10 rounded-2xl">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between text-foreground">
-                  Approved Applications
-                  <Badge variant="secondary" className="bg-neon-green/20 text-neon-green">
-                    {userApplications.filter(app => app.status === 'approved').length}
+                  Applications
+                  <Badge variant="secondary">
+                    {filteredApplications.length} of {userApplications.length}
                   </Badge>
                 </CardTitle>
               </CardHeader>
@@ -543,77 +800,17 @@ export default function MyAccount() {
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">Loading applications...</p>
                   </div>
-                ) : userApplications.filter(app => app.status === 'approved').length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No approved applications yet.</p>
-                  </div>
+                ) : filteredApplications.length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">
+                      {userApplications.length === 0 
+                        ? "No applications yet." 
+                            : "No applications match the selected filters."
+                          }
+                        </p>
+                      </div>
                 ) : (
-                  userApplications
-                    .filter(app => app.status === 'approved')
-                    .map((application) => (
-                      <Card
-                        key={application.id}
-                        className="bg-white/3 border-white/10 rounded-xl hover:bg-white/5 transition-colors"
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                              <img
-                                src={application.image || '/placeholder.svg'}
-                                alt={application.experienceTitle}
-                                className="w-16 h-16 rounded-lg object-cover"
-                              />
-                              <div>
-                                <h3 className="font-semibold text-foreground">{application.experienceTitle}</h3>
-                                <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
-                                  <span className="flex items-center">
-                                    <MapPin className="w-4 h-4 mr-1" />
-                                    {application.location}
-                                  </span>
-                                  <span className="flex items-center">
-                                    <Calendar className="w-4 h-4 mr-1" />
-                                    {application.dates}
-                                  </span>
-                                </div>
-                                <p className="text-sm text-muted-foreground mt-1">by {application.organizer}</p>
-                                <p className="text-xs text-muted-foreground mt-1">Applied: {application.appliedAt}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-3">
-                              <Badge className="bg-neon-green/20 text-neon-green border-neon-green/40">
-                                Approved
-                              </Badge>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
-                                onClick={() => window.open(`/experience/portal/${application.id}`, '_blank')}
-                              >
-                                Open Portal
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Pending Applications */}
-            <Card className="bg-white/5 border-white/10 rounded-2xl">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between text-foreground">
-                  Pending Applications
-                  <Badge variant="secondary" className="bg-neon-yellow/20 text-neon-yellow">
-                    {userApplications.filter(app => app.status === 'pending').length}
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {userApplications
-                  .filter(app => app.status === 'pending')
-                  .map((application) => (
+                  filteredApplications.map((application) => (
                     <Card
                       key={application.id}
                       className="bg-white/3 border-white/10 rounded-xl hover:bg-white/5 transition-colors"
@@ -638,23 +835,184 @@ export default function MyAccount() {
                                   {application.dates}
                                 </span>
                               </div>
-                              <p className="text-sm text-muted-foreground mt-1">by {application.organizer}</p>
+                              <p className="text-sm text-muted-foreground mt-1">Applicant: {application.applicantName}</p>
                               <p className="text-xs text-muted-foreground mt-1">Applied: {application.appliedAt}</p>
                             </div>
                           </div>
                           <div className="flex items-center space-x-3">
-                            <Badge className="bg-neon-yellow/20 text-neon-yellow border-neon-yellow/40">
-                              Pending
-                            </Badge>
-                            <Button variant="outline" size="sm" className="border-white/20 text-foreground hover:bg-white/10">
-                              <Eye className="w-4 h-4 mr-2" />
-                              View
-                            </Button>
+                            {getStatusBadge(application.status)}
+                            {getActionButton(application)}
                           </div>
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
+                  ))
+                )}
+              </CardContent>
+            </Card>
+                            </div>
+        );
+
+      case 'tickets':
+        const getPaymentStatusBadge = (status: string) => {
+          switch (status) {
+            case 'succeeded':
+              return <Badge className="bg-neon-green/20 text-neon-green border-neon-green/40">Paid</Badge>;
+            case 'pending':
+              return <Badge className="bg-neon-yellow/20 text-neon-yellow border-neon-yellow/40">Pending</Badge>;
+            case 'failed':
+              return <Badge className="bg-red-500/20 text-red-400 border-red-500/40">Failed</Badge>;
+            case 'refunded':
+              return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/40">Refunded</Badge>;
+            case 'cancelled':
+              return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/40">Cancelled</Badge>;
+            default:
+              return <Badge variant="secondary">{status}</Badge>;
+          }
+        };
+
+        const getAttendanceStatusBadge = (status: string) => {
+          switch (status) {
+            case 'registered':
+              return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/40">Registered</Badge>;
+            case 'confirmed':
+              return <Badge className="bg-neon-green/20 text-neon-green border-neon-green/40">Confirmed</Badge>;
+            case 'attended':
+              return <Badge className="bg-neon-green/20 text-neon-green border-neon-green/40">Attended</Badge>;
+            case 'no_show':
+              return <Badge className="bg-red-500/20 text-red-400 border-red-500/40">No Show</Badge>;
+            case 'cancelled':
+              return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/40">Cancelled</Badge>;
+            default:
+              return <Badge variant="secondary">{status}</Badge>;
+          }
+        };
+
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-bold text-foreground">My Tickets</h1>
+              <p className="text-muted-foreground">Your purchased experience tickets</p>
+                          </div>
+
+            {/* Tickets List */}
+            <Card className="bg-white/5 border-white/10 rounded-2xl">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between text-foreground">
+                  Tickets
+                  <Badge variant="secondary">
+                    {userTickets.length} tickets
+                              </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {isLoadingTickets ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Loading tickets...</p>
+                  </div>
+                ) : userTickets.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No tickets purchased yet.</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Tickets will appear here after you make a purchase.
+                    </p>
+                  </div>
+                ) : (
+                  userTickets.map((ticket) => (
+                    <Card key={ticket.id} className="bg-white/3 border-white/10 rounded-xl hover:bg-white/5 transition-colors">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <img
+                              src={ticket.experienceImage || '/placeholder.svg'}
+                              alt={ticket.experienceTitle}
+                              className="w-16 h-16 rounded-lg object-cover"
+                            />
+                            <div>
+                              <h3 className="font-semibold text-foreground">{ticket.experienceTitle}</h3>
+                              {ticket.ticketTierName && (
+                                <p className="text-sm text-muted-foreground">Tier: {ticket.ticketTierName}</p>
+                              )}
+                              <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
+                                <span className="flex items-center">
+                                  <MapPin className="w-4 h-4 mr-1" />
+                                  {ticket.experienceLocation}
+                                </span>
+                                {ticket.experienceDate && (
+                                  <span className="flex items-center">
+                                    <Calendar className="w-4 h-4 mr-1" />
+                                    {new Date(ticket.experienceDate).toLocaleDateString()}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                Amount: ${(ticket.amountCents / 100).toFixed(2)} {ticket.currency}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Purchased: {new Date(ticket.purchasedAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            {getPaymentStatusBadge(ticket.paymentStatus)}
+                            {getAttendanceStatusBadge(ticket.attendanceStatus)}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-white/20 text-foreground hover:bg-white/10"
+                              onClick={() => navigate(`/experience/${ticket.experienceId}`)}
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              View Experience
+                            </Button>
+                            {ticket.paymentStatus === 'succeeded' && !ticket.refundedAt && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+                                onClick={() => handleRefundTicket(ticket.id)}
+                                disabled={refundingTickets.has(ticket.id)}
+                              >
+                                {refundingTickets.has(ticket.id) ? (
+                                  <>
+                                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                    Processing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <RefreshCw className="w-4 h-4 mr-2" />
+                                    Refund
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                            {ticket.paymentStatus === 'pending' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
+                                onClick={() => handleCancelTicket(ticket.id)}
+                                disabled={cancellingTickets.has(ticket.id)}
+                              >
+                                {cancellingTickets.has(ticket.id) ? (
+                                  <>
+                                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                    Cancelling...
+                                  </>
+                                ) : (
+                                  <>
+                                    <RefreshCw className="w-4 h-4 mr-2" />
+                                    Cancel
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </CardContent>
             </Card>
           </div>
@@ -674,19 +1032,7 @@ export default function MyAccount() {
             </div>
 
             {/* Stats Row */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card className="bg-white/5 border-white/10 rounded-2xl">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-sm">Followers</p>
-                      <p className="text-2xl font-bold text-foreground">124</p>
-                    </div>
-                    <Users className="w-8 h-8 text-neon-cyan" />
-                  </div>
-                </CardContent>
-              </Card>
-              
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="bg-white/5 border-white/10 rounded-2xl">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -704,21 +1050,9 @@ export default function MyAccount() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-muted-foreground text-sm">Applications</p>
-                      <p className="text-2xl font-bold text-foreground">15</p>
+                       <p className="text-2xl font-bold text-foreground">{userApplications.length}</p>
                     </div>
                     <FileText className="w-8 h-8 text-neon-green" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-white/5 border-white/10 rounded-2xl">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-sm">Avg Rating</p>
-                      <p className="text-2xl font-bold text-foreground">4.8</p>
-                    </div>
-                    <Star className="w-8 h-8 text-neon-yellow" />
                   </div>
                 </CardContent>
               </Card>
@@ -728,6 +1062,9 @@ export default function MyAccount() {
             <Card className="bg-white/5 border-white/10 rounded-2xl">
               <CardHeader>
                 <CardTitle className="text-foreground">Your Experiences</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Shows experiences you created or are hosting
+                </p>
               </CardHeader>
               <CardContent className="space-y-4">
                 {isLoadingExperiences ? (
@@ -767,6 +1104,12 @@ export default function MyAccount() {
                             <Badge variant="outline" className="border-white/20 text-muted-foreground">
                               {experience.price ? `$${(experience.price / 100).toFixed(0)}` : 'Free'}
                             </Badge>
+                            {/* Show role indicator */}
+                            {experience.creatorId && experience.hostId && (
+                              <Badge variant="outline" className="text-xs border-neon-cyan/40 text-neon-cyan">
+                                {experience.creatorId === experience.hostId ? 'Creator & Host' : 'Creator'}
+                              </Badge>
+                            )}
                             <span className="text-sm text-muted-foreground">
                               by {experience.hostName}
                             </span>
@@ -1000,17 +1343,11 @@ export default function MyAccount() {
                   </div>
                 </div>
 
-                <div className="border-t border-white/10 pt-6">
-                  <Button 
-                    onClick={handleLogout}
-                    variant="destructive"
-                    className="w-full bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    Logout
-                  </Button>
-                </div>
               </CardContent>
             </Card>
+
+            {/* Stripe Integration Section */}
+            <StripeSettings />
           </div>
         );
 
@@ -1019,53 +1356,130 @@ export default function MyAccount() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold text-foreground">Brand Page</h1>
-              <Button 
-                variant="outline" 
-                className="border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Brand Page
-              </Button>
+                <Button 
+                  variant="outline" 
+                  className="border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10"
+                 onClick={handleCreateNewBrand}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                 Add New Brand
+                </Button>
             </div>
             
-            <Card className="bg-white/5 border-white/10 rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-6 mb-6">
-                  <div className="w-20 h-20 bg-gradient-neon rounded-full flex items-center justify-center font-bold text-2xl text-background">
-                    {(user?.name || 'B').charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-foreground">{user?.name || 'Brand Name'}</h3>
-                    <p className="text-muted-foreground">Professional Host</p>
-                    <div className="flex items-center gap-4 mt-2">
-                      <Badge variant="secondary" className="bg-neon-cyan/20 text-neon-cyan">
-                        <Users className="w-3 h-3 mr-1" />
-                        124 followers
-                      </Badge>
-                      <Badge variant="secondary" className="bg-neon-purple/20 text-neon-purple">
-                        <Star className="w-3 h-3 mr-1" />
-                        4.9 rating
-                      </Badge>
+             {isLoadingBrands ? (
+                <Card className="bg-white/5 border-white/10 rounded-2xl">
+                 <CardContent className="p-8 text-center">
+                   <div className="w-16 h-16 bg-gradient-neon rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                     <Building className="w-8 h-8 text-background" />
+                   </div>
+                   <h2 className="text-2xl font-bold text-foreground mb-2">Loading Brands...</h2>
+                   <p className="text-muted-foreground">Please wait while we load your brand information.</p>
+                 </CardContent>
+               </Card>
+             ) : userBrands.length > 0 ? (
+               <div className="space-y-4">
+                 {userBrands.map((brand, index) => (
+                   <Card key={brand.id || index} className="bg-white/5 border-white/10 rounded-2xl">
+                  <CardContent className="p-6">
+                       <div className="flex items-center justify-between mb-6">
+                         <div className="flex items-center gap-6">
+                           {brand?.logo ? (
+                        <img 
+                               src={brand.logo} 
+                          alt="Brand logo" 
+                          className="w-20 h-20 rounded-full object-cover border-2 border-white/20"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 bg-gradient-neon rounded-full flex items-center justify-center font-bold text-2xl text-background">
+                               {(brand?.name || user?.name || 'B').charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                             <h3 className="text-2xl font-bold text-foreground">{brand?.name || 'Brand Name'}</h3>
+                             <p className="text-muted-foreground">{brand?.categoryTitle || 'Professional Host'}</p>
+                        <div className="flex items-center gap-4 mt-2">
+                          <Badge variant="secondary" className="bg-neon-cyan/20 text-neon-cyan">
+                            <Users className="w-3 h-3 mr-1" />
+                                 {brand?.followers || 0} followers
+                          </Badge>
+                          <Badge variant="secondary" className="bg-neon-purple/20 text-neon-purple">
+                            <Star className="w-3 h-3 mr-1" />
+                                 {brand?.rating || 0} rating
+                               </Badge>
+                               <Badge variant="secondary" className="bg-green-500/20 text-green-500">
+                                 <Building className="w-3 h-3 mr-1" />
+                                 {brand?.role || 'Owner'}
+                          </Badge>
+                        </div>
+                      </div>
+                         </div>
+                         <div className="flex flex-col gap-2">
+                           <div className="flex gap-2">
+                             <Button 
+                               variant="outline" 
+                               size="sm" 
+                               className="border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10"
+                               onClick={() => handleEditBrand(brand)}
+                             >
+                               <Edit className="w-4 h-4 mr-2" />
+                               Edit Brand Page
+                             </Button>
+                             <Button 
+                               variant="outline" 
+                               size="sm" 
+                               className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
+                               onClick={() => handleAddMember(brand)}
+                             >
+                               <UserPlus className="w-4 h-4 mr-2" />
+                               Add Member
+                             </Button>
+                           </div>
+                           <Button 
+                             variant="outline" 
+                             size="sm" 
+                             className="border-neon-purple/40 text-neon-purple hover:bg-neon-purple/10"
+                             onClick={() => handleViewMembers(brand)}
+                           >
+                             <Users className="w-4 h-4 mr-2" />
+                             Members List
+                           </Button>
+                         </div>
                     </div>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-2">About</h4>
+                        <p className="text-muted-foreground">
+                             {brand?.description || 'No description available.'}
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-2">Experiences Hosted</h4>
+                           <p className="text-muted-foreground">{brand?.experiencesCount || 0} experiences • {brand?.participantsCount || 0} total participants</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                 ))}
+               </div>
+             ) : (
+              <Card className="bg-white/5 border-white/10 rounded-2xl">
+                <CardContent className="p-8 text-center">
+                  <div className="w-16 h-16 bg-gradient-neon rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Building className="w-8 h-8 text-background" />
                   </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-2">About</h4>
-                    <p className="text-muted-foreground">
-                      We create transformative experiences that combine wellness, adventure, and personal growth. 
-                      Our retreats are designed to help you disconnect from the everyday and reconnect with yourself.
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-2">Experiences Hosted</h4>
-                    <p className="text-muted-foreground">2 experiences • 45 total participants</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <h2 className="text-2xl font-bold text-foreground mb-2">No Brand Page</h2>
+                   <p className="text-muted-foreground mb-6">You don't have a brand page yet.</p>
+                  <Button 
+                     className="bg-gradient-neon text-background hover:opacity-90 shadow-neon"
+                     onClick={handleCreateNewBrand}
+                  >
+                    Create Brand Page
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         );
 
@@ -1141,8 +1555,7 @@ export default function MyAccount() {
                 </div>
 
                 {/* Hosting Group */}
-                {(hasHostedExperiences || hasCreatedBrands) && (
-                  <div className="space-y-2">
+                <div className="space-y-2">
                     <div className="px-3 py-2">
                       <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Hosting</h3>
                     </div>
@@ -1170,7 +1583,6 @@ export default function MyAccount() {
                       </nav>
                     </Card>
                   </div>
-                )}
               </div>
             </div>
           </div>
@@ -1197,30 +1609,28 @@ export default function MyAccount() {
                   </button>
                 );
               })}
-              {(hasHostedExperiences || hasCreatedBrands) && (
-                <>
-                  <div className="w-px bg-white/20 mx-2" />
-                  {hostingItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeTab === item.id;
-                    
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => setActiveTab(item.id)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap transition-all ${
-                          isActive 
-                            ? 'bg-gradient-neon text-background shadow-neon' 
-                            : 'bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10'
-                        }`}
-                      >
-                        <Icon className="w-4 h-4" />
-                        <span className="font-medium">{item.label}</span>
-                      </button>
-                    );
-                  })}
-                </>
-              )}
+              <>
+                <div className="w-px bg-white/20 mx-2" />
+                {hostingItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap transition-all ${
+                        isActive 
+                          ? 'bg-gradient-neon text-background shadow-neon' 
+                          : 'bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span className="font-medium">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </>
             </div>
           </div>
 
@@ -1230,6 +1640,40 @@ export default function MyAccount() {
           </div>
         </div>
       </div>
+
+      {/* Edit Brand Modal */}
+      {showEditBrandModal && (
+        <EditBrandPageModal
+          isOpen={showEditBrandModal}
+          onClose={() => setShowEditBrandModal(false)}
+          onSave={handleSaveBrand}
+           initialData={isCreatingNewBrand ? undefined : selectedBrand}
+          userName={user?.name}
+        />
+      )}
+
+      {/* Add/Find Member Modal */}
+      {showAddMemberModal && selectedBrand && (
+        <AddFindMemberModal
+          isOpen={showAddMemberModal}
+          onClose={() => setShowAddMemberModal(false)}
+          brandId={selectedBrand.id}
+          brandName={selectedBrand.name}
+          onMemberAdded={() => {
+            // Optionally refresh brand data or show success message
+          }}
+        />
+      )}
+
+      {/* Members List Modal */}
+      {showMembersListModal && selectedBrand && (
+        <MembersListModal
+          isOpen={showMembersListModal}
+          onClose={() => setShowMembersListModal(false)}
+          brandId={selectedBrand.id}
+          brandName={selectedBrand.name}
+        />
+      )}
     </div>
   );
 }

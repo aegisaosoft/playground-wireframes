@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Grid3X3, Plus, Trash2, Image as ImageIcon, Upload, X } from 'lucide-react';
+import { useNotification } from '@/contexts/NotificationContext';
 
 interface GalleryImage {
   url: string;
@@ -22,10 +23,11 @@ export const GalleryBlock: React.FC<GalleryBlockProps> = ({ data, onChange, expe
   const [isUploading, setIsUploading] = useState<{ [key: number]: boolean }>({});
   const [isDeleting, setIsDeleting] = useState<{ [key: number]: boolean }>({});
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
+  const { showError } = useNotification();
 
   const handleFileUpload = useCallback(async (file: File, index: number) => {
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      showError('Invalid File Type', 'Please select an image file');
       return;
     }
 
@@ -35,11 +37,6 @@ export const GalleryBlock: React.FC<GalleryBlockProps> = ({ data, onChange, expe
       // Create object URL for preview
       const objectUrl = URL.createObjectURL(file);
       
-      console.log('📸 GalleryBlock: Storing file for gallery image', index, ':', {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type
-      });
       
       // ✅ Store BOTH the preview URL AND the File object
       const newImages = [...data.images];
@@ -50,8 +47,7 @@ export const GalleryBlock: React.FC<GalleryBlockProps> = ({ data, onChange, expe
       };
       onChange({ images: newImages });
     } catch (error) {
-      console.error('Error uploading file:', error);
-      alert('Error uploading file');
+      showError('Upload Failed', 'Error uploading file. Please try again.');
     } finally {
       setIsUploading(prev => ({ ...prev, [index]: false }));
     }
@@ -85,25 +81,20 @@ export const GalleryBlock: React.FC<GalleryBlockProps> = ({ data, onChange, expe
   }, [handleFileUpload]);
 
   const addImage = () => {
-    console.log('➕ GalleryBlock: Adding new image slot');
     const newImages = [...data.images, { url: '', alt: '', file: null }];
     onChange({ images: newImages });
   };
 
   const removeImage = async (index: number) => {
     const image = data.images[index];
-    console.log('🗑️ GalleryBlock: Removing gallery image', index, 'Image ID:', image.id);
     
     // If image has an ID, it's saved in the database - delete from backend
     if (image.id && experienceId && onDeleteImage) {
       try {
         setIsDeleting(prev => ({ ...prev, [index]: true }));
-        console.log('🗑️ Deleting image from backend:', image.id);
         await onDeleteImage(image.id);
-        console.log('✅ Image deleted from backend successfully');
       } catch (error) {
-        console.error('❌ Failed to delete image from backend:', error);
-        alert('Failed to delete image from server');
+        showError('Delete Failed', 'Failed to delete image from server');
         setIsDeleting(prev => ({ ...prev, [index]: false }));
         return; // Don't remove from UI if backend deletion failed
       } finally {

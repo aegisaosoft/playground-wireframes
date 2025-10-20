@@ -1,3 +1,5 @@
+*.jpg
+*.jpeg
 # Logs
 logs
 *.log

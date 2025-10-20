@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Copy, Calendar, MessageCircle, Bell, Settings, LogOut } from 'lucide-react';
+import { ArrowLeft, Copy, Calendar, MessageCircle, Bell, Settings, LogOut, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
@@ -14,368 +14,302 @@ import { PortalResources } from '@/components/ExperiencePortal/PortalResources';
 import { PortalAnnouncements } from '@/components/ExperiencePortal/PortalAnnouncements';
 import { PortalLogistics } from '@/components/ExperiencePortal/PortalLogistics';
 import { experiencesService } from '@/services/experiences.service';
+import { applicationsService } from '@/services/applications.service';
+import { useUser } from '@/contexts/UserContext';
 
-// Mock data - in real app, this would come from Supabase
-const getMockExperienceData = (experienceId: string): ExperiencePortalData => ({
-  experienceId,
-  title: "Desert Code Camp",
-  location: "Joshua Tree, CA",
-  dates: "March 15-20, 2024",
-  image: "/src/assets/retreat-bali.jpg",
-  description: "Build your startup under the stars. Code by day, campfire talks by night.",
-  highlights: [
-    "Star-gazing sessions",
-    "Sunrise yoga", 
-    "Technical workshops",
-    "1-on-1 mentorship",
-    "Desert hiking trails",
-    "Community campfire talks"
-  ],
-  organizer: {
-    id: "1",
-    name: "Alex Chen",
-    email: "alex@example.com",
-    avatar: "/placeholder.svg",
-    bio: "Former Silicon Valley engineer turned desert philosopher.",
-    role: "organizer"
-  },
-  attendees: [
-    {
-      id: "1",
-      name: "Alex Chen",
-      email: "alex@example.com", 
-      avatar: "/placeholder.svg",
-      role: "organizer"
-    },
-    {
-      id: "2", 
-      name: "Sarah Martinez",
-      email: "sarah@example.com",
-      avatar: "/placeholder.svg",
-      role: "attendee"
-    },
-    {
-      id: "3",
-      name: "Mike Johnson", 
-      email: "mike@example.com",
-      avatar: "/placeholder.svg",
-      role: "co-host"
-    }
-  ],
-  userRole: "attendee", // Mock - would be determined from auth
-  isApproved: true,
-  agenda: [
-    {
-      day: "Day 1",
-      items: [
-        { time: "09:00", activity: "Arrival & Setup", description: "Welcome circle and camp setup" },
-        { time: "11:00", activity: "Desert Orientation Walk" },
-        { time: "14:00", activity: "Lunch & Project Planning" }
-      ]
-    }
-  ],
-  ticketTier: {
-    name: "Early Bird",
-    price: 899
-  },
-  visibility: "private",
-  logistics: {
-    address: "Joshua Tree National Park, 74485 National Park Dr, Twentynine Palms, CA 92277",
-    meetupInstructions: "Meet at the visitor center at 9 AM sharp. Look for the Desert Code Camp banner.",
-    checkInNotes: "Bring your confirmation email and a valid ID.",
-    emergencyContact: {
-      name: "Alex Chen",
-      phone: "+1 (555) 123-4567"
-    }
-  }
-});
-
-const ExperiencePortal = () => {
+export default function ExperiencePortal() {
   const { experienceId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("overview");
-  const [isChatMuted, setIsChatMuted] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(3);
-  const [experienceData, setExperienceData] = useState<ExperiencePortalData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isAuthenticated, isLoading: isLoadingUser } = useUser();
+  
+  const [portalData, setPortalData] = useState<ExperiencePortalData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
-  // Load experience from API
-  useEffect(() => {
-    const loadExperience = async () => {
-      if (!experienceId) {
-        navigate('/experiences');
-        return;
-      }
+  const loadExperienceData = async () => {
+    if (!experienceId) {
+      navigate('/experiences');
+      return;
+    }
 
-      try {
-        console.log('📥 Loading experience for portal:', experienceId);
-        setIsLoading(true);
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      console.log('❌ User not authenticated, redirecting to login');
+      setError('You must be logged in to access the experience portal');
+      setLoading(false);
+      // Redirect to login after a short delay
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log('📥 Loading experience portal data:', experienceId);
+      
+      // Fetch experience data from API
+      const experience = await experiencesService.getById(experienceId);
+      console.log('✅ Experience loaded:', experience);
+      
+      // Fetch applications/attendees for this experience
+      const applications = await applicationsService.getExperienceApplications(experienceId);
+      console.log('✅ Applications loaded:', applications);
+      
+      // Transform API data to portal format
+      const portalData: ExperiencePortalData = {
+        experienceId,
+        title: experience.title || 'Untitled Experience',
+        location: experience.location || 'Location TBA',
+        dates: experience.startDate && experience.endDate 
+          ? `${new Date(experience.startDate).toLocaleDateString()} - ${new Date(experience.endDate).toLocaleDateString()}`
+          : 'Dates TBA',
+        image: experience.featuredImageUrl || experience.image || '/placeholder.svg',
+        description: experience.description || 'No description available',
+        highlights: experience.highlights || [],
         
-        const data = await experiencesService.getById(experienceId);
+        // Organizer info (host)
+        organizer: {
+          id: experience.hostId || experience.creatorId || 'unknown',
+          name: experience.hostName || experience.host?.name || 'Unknown Host',
+          email: experience.host?.email || '',
+          avatar: experience.host?.profileImageUrl || '/placeholder.svg',
+          bio: experience.host?.bio || '',
+          role: 'organizer'
+        },
         
-        console.log('✅ Portal experience loaded:', data);
-        
-        // Transform to portal data structure with REAL data from API
-        const portalData: ExperiencePortalData = {
-          experienceId: data.id,
-          title: data.title,
-          location: data.location,
-          dates: data.startDate && data.endDate 
-            ? `${new Date(data.startDate).toLocaleDateString()} - ${new Date(data.endDate).toLocaleDateString()}`
-            : 'Dates TBA',
-          image: data.image || data.featuredImageUrl || '/placeholder.svg',
-          description: data.description,
-          // ✅ Use real highlights from API
-          highlights: data.highlights || [],
-          organizer: {
-            id: data.hostId,
-            name: data.hostName,
-            email: '',
-            avatar: '/placeholder.svg',
-            bio: 'Experience host',
+        // Transform applications to attendees
+        attendees: [
+          // Add organizer first
+          {
+            id: experience.hostId || experience.creatorId || 'unknown',
+            name: experience.hostName || experience.host?.name || 'Unknown Host',
+            email: experience.host?.email || '',
+            avatar: experience.host?.profileImageUrl || '/placeholder.svg',
             role: 'organizer'
           },
-          attendees: [],
-          userRole: 'attendee',
-          isApproved: true,
-          // ✅ Use real agenda from API
-          agenda: data.agenda || [],
-          ticketTier: {
-            name: 'Standard',
-            price: (data.price || 0) / 100
-          },
-          visibility: data.status === 'published' ? 'public' : 'private',
-          // ✅ Use real logistics from API (with fallbacks)
-          logistics: {
-            address: data.address || data.location || 'Address to be announced',
-            meetupInstructions: data.meetupInstructions || 'Details will be shared closer to the event.',
-            checkInNotes: data.checkInNotes || 'Please arrive 15 minutes early.',
-            emergencyContact: {
-              name: data.emergencyContactName || data.hostName,
-              phone: data.emergencyContactPhone || ''
-            },
-            additionalInfo: data.additionalInfo || ''
-          }
-        };
+          // Add approved applications as attendees
+          ...applications
+            .filter(app => app.status === 'approved')
+            .map(app => ({
+              id: app.userId || app.user?.id || 'unknown',
+              name: app.userName || app.user?.name || 'Unknown User',
+              email: app.userEmail || app.user?.email || '',
+              avatar: app.userProfileImageUrl || app.user?.profileImageUrl || '/placeholder.svg',
+              role: 'attendee' as const
+            }))
+        ],
         
-        console.log('📊 Portal data transformed:', {
-          agenda: portalData.agenda,
-          highlights: portalData.highlights,
-          gallery: portalData.gallery,
-          logistics: portalData.logistics
-        });
+        // Schedule from agenda
+        schedule: experience.agenda ? experience.agenda.map(day => ({
+          date: day.day || 'TBA',
+          activities: day.items || []
+        })) : [],
         
-        setExperienceData(portalData);
+        // Resources
+        resources: experience.resources ? experience.resources.map(resource => ({
+          id: resource.id || Math.random().toString(),
+          title: resource.title || 'Untitled Resource',
+          url: resource.url || '#',
+          description: resource.description || '',
+          type: resource.type || 'link'
+        })) : [],
         
-      } catch (error) {
-        console.error('❌ Error loading portal experience:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load experience portal.",
-          variant: "destructive"
-        });
-        navigate('/experiences');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+        // Announcements (empty for now - would need announcements API)
+        announcements: [],
+        
+        // Logistics
+        logistics: {
+          address: experience.location || experience.address || '',
+          meetupInstructions: experience.meetupInstructions || '',
+          checkInNotes: experience.checkInNotes || '',
+          emergencyContactName: experience.emergencyContactName || '',
+          emergencyContactPhone: experience.emergencyContactPhone || '',
+          additionalInfo: experience.additionalInfo || ''
+        },
+        
+        // Chat messages (empty for now - would need chat API)
+        chatMessages: [],
+        
+        // Experience stats
+        stats: {
+          totalAttendees: applications.filter(app => app.status === 'approved').length + 1, // +1 for organizer
+          totalApplications: applications.length,
+          pendingApplications: applications.filter(app => app.status === 'pending').length,
+          approvedApplications: applications.filter(app => app.status === 'approved').length,
+          rejectedApplications: applications.filter(app => app.status === 'rejected').length
+        }
+      };
 
-    loadExperience();
-  }, [experienceId, navigate, toast]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-foreground">Loading portal...</p>
-      </div>
-    );
-  }
-
-  if (!experienceData) {
-    return <div>Experience not found</div>;
-  }
-
-  const isHost = experienceData.userRole === 'organizer' || experienceData.userRole === 'co-host';
-
-  const handleCopyPrivateLink = () => {
-    const privateUrl = `${window.location.origin}/experience/portal/${experienceId}`;
-    navigator.clipboard.writeText(privateUrl).then(() => {
+      setPortalData(portalData);
+      console.log('✅ Portal data transformed and set:', portalData);
+      
+    } catch (err) {
+      console.error('❌ Failed to load experience portal data:', err);
+      setError('Failed to load experience data');
       toast({
-        title: "Link copied!",
-        description: "Private portal link has been copied to clipboard.",
+        title: "Error",
+        description: "Failed to load experience portal. Please try again.",
+        variant: "destructive",
       });
-    });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAddToCalendar = () => {
+  useEffect(() => {
+    // Wait for user authentication to load before fetching data
+    if (!isLoadingUser) {
+      loadExperienceData();
+    }
+  }, [experienceId, isAuthenticated, isLoadingUser, navigate, toast]);
+
+  const handleCopyInviteLink = () => {
+    const inviteLink = `${window.location.origin}/experiences/${experienceId}`;
+    navigator.clipboard.writeText(inviteLink);
     toast({
-      title: "Calendar event created",
-      description: "Experience dates have been added to your calendar.",
+      title: "Link Copied",
+      description: "Experience invite link copied to clipboard",
     });
   };
 
   const handleLeaveExperience = () => {
+    // This would typically involve an API call to remove the user from the experience
     toast({
-      title: "Left experience",
-      description: "You have left this experience portal.",
-      variant: "destructive"
+      title: "Left Experience",
+      description: "You have left this experience",
     });
-    navigate('/account');
+    navigate('/experiences');
   };
 
-  if (!experienceData.isApproved && experienceData.userRole === 'pending') {
+  // Show loading while user authentication is loading or portal data is loading
+  if (isLoadingUser || loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <main className="container mx-auto px-6 py-8">
-          <Button variant="ghost" onClick={() => navigate('/account')} className="mb-6 text-gray-400 hover:text-foreground">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to My Account
-          </Button>
-          
-          {/* Pending Banner */}
-          <div className="bg-neon-yellow/10 border border-neon-yellow/30 rounded-2xl p-6 mb-6">
-            <div className="flex items-center gap-3 mb-2">
-              <Badge className="bg-neon-yellow/20 text-neon-yellow">Pending Approval</Badge>
-              <h1 className="text-2xl font-bold text-foreground">{experienceData.title}</h1>
-            </div>
-            <p className="text-muted-foreground">
-              Your application is being reviewed. You'll get access to the full portal once approved.
-            </p>
-          </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-neon-cyan" />
+          <p className="text-muted-foreground">
+            {isLoadingUser ? 'Loading user authentication...' : 'Loading experience portal...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-          {/* Read-only Overview */}
-          <PortalOverview data={experienceData} isReadOnly />
-        </main>
+  // Show error if user is not authenticated or other errors
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-destructive mb-4">You must be logged in to access the experience portal</p>
+          <Button onClick={() => navigate('/')} variant="outline">
+            Go to Login
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !portalData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-destructive mb-4">{error || 'Experience not found'}</p>
+          <Button onClick={() => navigate('/experiences')} variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Experiences
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-6 py-8">
-        <Button variant="ghost" onClick={() => navigate('/account')} className="mb-6 text-gray-400 hover:text-foreground">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to My Account
-        </Button>
-
-        {/* Hero Header */}
-        <div className="relative rounded-3xl overflow-hidden mb-8">
-          <img 
-            src={experienceData.image} 
-            alt={experienceData.title}
-            className="w-full h-[300px] object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-          
-          <div className="absolute bottom-6 left-6 right-6">
-            <div className="flex items-start justify-between">
+      {/* Header */}
+      <div className="border-b border-gray-800 bg-card">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                onClick={() => navigate('/experiences')}
+                variant="ghost"
+                size="sm"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                  {experienceData.title}
-                </h1>
-                <div className="flex items-center gap-4 text-white/90 text-sm">
-                  <span>{experienceData.location}</span>
-                  <span>•</span>
-                  <span>{experienceData.dates}</span>
-                  {experienceData.visibility === 'private' && (
-                    <>
-                      <span>•</span>
-                      <Badge variant="secondary" className="bg-neon-purple/20 text-neon-purple">
-                        Private
-                      </Badge>
-                    </>
-                  )}
-                </div>
+                <h1 className="text-2xl font-bold">{portalData.title}</h1>
+                <p className="text-muted-foreground">
+                  {portalData.location} • {portalData.dates}
+                </p>
               </div>
-              
-              {/* Action Buttons */}
-              <div className="flex gap-2">
-                <Button size="sm" variant="secondary" onClick={handleCopyPrivateLink}
-                        className="bg-white/10 hover:bg-white/20 text-white border-white/20">
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy Link
-                </Button>
-                <Button size="sm" variant="secondary" onClick={handleAddToCalendar}
-                        className="bg-white/10 hover:bg-white/20 text-white border-white/20">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  Add to Calendar
-                </Button>
-                <Button size="sm" variant="secondary" onClick={() => setIsChatMuted(!isChatMuted)}
-                        className="bg-white/10 hover:bg-white/20 text-white border-white/20">
-                  <Bell className="w-4 h-4 mr-2" />
-                  {isChatMuted ? 'Unmute' : 'Mute'} Chat
-                </Button>
-                <Button size="sm" variant="destructive" onClick={handleLeaveExperience}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Leave
-                </Button>
-              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Button
+                onClick={handleCopyInviteLink}
+                variant="outline"
+                size="sm"
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copy Link
+              </Button>
+              <Button
+                onClick={handleLeaveExperience}
+                variant="destructive"
+                size="sm"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Leave
+              </Button>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Three-pane Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left Rail - Tabs */}
-          <div className="lg:col-span-3">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="w-full bg-card border border-border rounded-xl p-1 mb-6">
-                <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
-                <TabsTrigger value="chat" className="flex-1 relative">
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Chat
-                  {unreadCount > 0 && (
-                    <Badge className="absolute -top-1 -right-1 bg-neon-pink text-background text-xs min-w-[20px] h-5">
-                      {unreadCount}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="attendees" className="flex-1">Attendees</TabsTrigger>
-                <TabsTrigger value="schedule" className="flex-1">Schedule</TabsTrigger>
-                <TabsTrigger value="resources" className="flex-1">Resources</TabsTrigger>
-              </TabsList>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="schedule">Schedule</TabsTrigger>
+            <TabsTrigger value="attendees">Attendees</TabsTrigger>
+            <TabsTrigger value="resources">Resources</TabsTrigger>
+            <TabsTrigger value="announcements">Updates</TabsTrigger>
+            <TabsTrigger value="logistics">Logistics</TabsTrigger>
+          </TabsList>
 
-              <TabsContent value="overview">
-                <PortalOverview data={experienceData} />
-              </TabsContent>
-              
-              <TabsContent value="chat">
-                <PortalChat experienceId={experienceId} userRole={experienceData.userRole} />
-              </TabsContent>
-              
-              <TabsContent value="attendees">
-                <PortalAttendees 
-                  attendees={experienceData.attendees} 
-                  userRole={experienceData.userRole}
-                />
-              </TabsContent>
-              
-              <TabsContent value="schedule">
-                <PortalSchedule agenda={experienceData.agenda} />
-              </TabsContent>
-              
-              <TabsContent value="resources">
-                <PortalResources userRole={experienceData.userRole} />
-              </TabsContent>
-            </Tabs>
-          </div>
+          <TabsContent value="overview">
+            <PortalOverview data={portalData} />
+          </TabsContent>
 
-          {/* Right Rail */}
-          <div className="space-y-6">
-            {/* Announcements */}
-            <PortalAnnouncements experienceId={experienceData.experienceId} userRole={experienceData.userRole} />
-            
-            {/* Logistics */}
-            <PortalLogistics 
-              logistics={experienceData.logistics}
-              isApproved={experienceData.isApproved}
-            />
-          </div>
-        </div>
-      </main>
+          <TabsContent value="schedule">
+            <PortalSchedule data={portalData} />
+          </TabsContent>
+
+          <TabsContent value="attendees">
+            <PortalAttendees data={portalData} />
+          </TabsContent>
+
+          <TabsContent value="resources">
+            <PortalResources data={portalData} />
+          </TabsContent>
+
+          <TabsContent value="announcements">
+            <PortalAnnouncements data={portalData} />
+          </TabsContent>
+
+          <TabsContent value="logistics">
+            <PortalLogistics data={portalData} />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
-};
-
-export default ExperiencePortal;
+}

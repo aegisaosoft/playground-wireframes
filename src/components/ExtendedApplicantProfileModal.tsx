@@ -35,10 +35,7 @@ export const ExtendedApplicantProfileModal: React.FC<ExtendedApplicantProfileMod
   const handleSaveForLater = () => {
     if (notes !== (applicant.organizerNotes || '')) {
       onUpdateNotes(applicant.id, notes);
-      toast({
-        title: "Notes saved",
-        description: "Your private notes have been saved.",
-      });
+      // Notes saved successfully
     }
     onClose();
   };
