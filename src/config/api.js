@@ -4,6 +4,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ||
 
 export const API_URL = API_BASE_URL;
 
+export default API_URL;
+export const API_URL = API_BASE_URL;
+
 // Готовые endpoints для удобства
 export const ENDPOINTS = {
   health: `${API_BASE_URL}/health`,

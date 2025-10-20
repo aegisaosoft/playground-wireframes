@@ -1,12 +1,16 @@
 /**
  * API Client for communicating with the .NET backend
- * Base URL: https://localhost:7183
  */
 
-// Use direct API URL to bypass proxy issues - temporarily force direct backend URL
-const API_BASE_URL = 'https://localhost:7183/api';
+// 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  'https://goplayground-web-api-2025-cgbkabcxh6abccd6.canadacentral-01.azurewebsites.net';
+
+// 
+const API_FULL_URL = `${API_BASE_URL}/api`;
 
 // Debug: Log the API base URL
+console.log('API Base URL:', API_FULL_URL);
 
 interface RequestOptions extends RequestInit {
   headers?: Record<string, string>;
@@ -99,105 +103,4 @@ class ApiClient {
    * GET request
    */
   async get<T>(endpoint: string, options?: RequestOptions): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'GET' });
-  }
-
-  /**
-   * POST request
-   */
-  async post<T>(
-    endpoint: string,
-    data?: unknown,
-    options?: RequestOptions
-  ): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...options,
-      method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
-    });
-  }
-
-  /**
-   * PUT request
-   */
-  async put<T>(
-    endpoint: string,
-    data?: unknown,
-    options?: RequestOptions
-  ): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...options,
-      method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
-    });
-  }
-
-  /**
-   * PATCH request
-   */
-  async patch<T>(
-    endpoint: string,
-    data?: unknown,
-    options?: RequestOptions
-  ): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...options,
-      method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined,
-    });
-  }
-
-  /**
-   * DELETE request
-   */
-  async delete<T>(endpoint: string, options?: RequestOptions): Promise<T> {
-    return this.request<T>(endpoint, { ...options, method: 'DELETE' });
-  }
-
-  /**
-   * Upload file(s) with FormData
-   */
-  async upload<T>(
-    endpoint: string,
-    formData: FormData,
-    options?: Omit<RequestOptions, 'headers'>
-  ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
-    const token = this.getAuthToken();
-    
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const config: RequestInit = {
-      ...options,
-      method: 'POST',
-      headers,
-      body: formData,
-    };
-
-    try {
-      const response = await fetch(url, config);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.error || errorData.message || `HTTP error! status: ${response.status}`
-        );
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('File upload failed:', error);
-      throw error;
-    }
-  }
-}
-
-// Export a singleton instance
-export const apiClient = new ApiClient(API_BASE_URL);
-
-// Export the base URL for reference
-export { API_BASE_URL };
-
+    return this.request<T>(endpoint, { ...options,

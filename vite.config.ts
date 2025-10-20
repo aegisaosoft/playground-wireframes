@@ -8,14 +8,14 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 3000,
-    strictPort: true, // Fail if port is already in use instead of trying another port
-    https: false, // Frontend runs on HTTP, proxy handles HTTPS backend
-    proxy: {
-      // Proxy API requests to the .NET backend
+    strictPort: true,
+    https: false,
+    // Proxy 
+    proxy: mode === 'development' ? {
       '/api': {
-        target: 'https://localhost:7183', // Updated to match Visual Studio HTTPS port
+        target: 'https://localhost:7183', // 
         changeOrigin: true,
-        secure: false, // Allow self-signed certificates in development
+        secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
@@ -29,24 +29,25 @@ export default defineConfig(({ mode }) => ({
           });
         },
       },
-    },
-    // Serve static files from images folder
+    } : undefined,
     fs: {
       allow: ['..']
     }
   },
   publicDir: 'public',
-  // Define environment variables (can be overridden by .env file)
-  define: {
-    'import.meta.env.VITE_API_BASE_URL': JSON.stringify(
-      process.env.VITE_API_BASE_URL || '/api' // Use proxy instead of direct HTTPS
-    ),
-  },
+  
+  // 
+  // define: {
+  //   'import.meta.env.VITE_API_BASE_URL': JSON.stringify(
+  //     process.env.VITE_API_BASE_URL || '/api'
+  //   ),
+  // },
+  
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    mode === 'development' && componentTagger(),
   ].filter(Boolean),
+  
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
