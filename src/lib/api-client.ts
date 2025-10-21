@@ -2,8 +2,8 @@
  * API Client for communicating with the .NET backend
  */
 
-// Read from environment variable
-const API_BASE_URL = import.meta.env.VITE_API_URL || 
+// Read from environment variable (compat with non-Vite type checking)
+const API_BASE_URL = (import.meta as any)?.env?.VITE_API_URL || 
   'https://goplayground-web-api-2025-cgbkabcxh6abccd6.canadacentral-01.azurewebsites.net';
 
 // Add /api to base URL
@@ -11,6 +11,18 @@ const API_FULL_URL = `${API_BASE_URL}/api`;
 
 // Debug: Log the API base URL
 console.log('API Base URL:', API_FULL_URL);
+
+/**
+ * Resolve a backend-served resource (like /images/...) to an absolute URL on the API origin.
+ * Leaves absolute URLs untouched.
+ */
+export function resolveApiResourceUrl(path: string | undefined | null): string | undefined | null {
+  if (!path) return path as any;
+  if (/^https?:\/\//i.test(path)) return path;
+  // Static files (e.g., /images/...) are hosted at the API root, not under /api
+  if (path.startsWith('/')) return `${API_BASE_URL}${path}`;
+  return `${API_BASE_URL}/${path}`;
+}
 
 interface RequestOptions extends RequestInit {
   headers?: Record<string, string>;

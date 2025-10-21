@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api-client';
+import { apiClient, resolveApiResourceUrl } from '@/lib/api-client';
 import { encryptionService } from './encryption.service';
 import { maskStripeAccountId } from '@/utils/account-masking';
 
@@ -58,7 +58,7 @@ export const userService = {
         isActive: response.isActive,
         createdAt: response.createdAt,
         lastLoginAt: response.lastLoginAt,
-        profileImageUrl: response.profileImageUrl
+        profileImageUrl: resolveApiResourceUrl(response.profileImageUrl) as string
       };
       
       
@@ -91,17 +91,14 @@ export const userService = {
       const formData = new FormData();
       formData.append('avatar', file);
       
-      const response = await apiClient.post<{ imageUrl: string }>('/Auth/upload-avatar', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await apiClient.upload<{ imageUrl: string }>('/Auth/upload-avatar', formData);
+      const absoluteUrl = resolveApiResourceUrl(response?.imageUrl) as string;
       
-      if (!response?.imageUrl) {
+      if (!absoluteUrl) {
         throw new Error('Failed to upload avatar');
       }
       
-      return response;
+      return { imageUrl: absoluteUrl };
     } catch (error) {
       throw error;
     }

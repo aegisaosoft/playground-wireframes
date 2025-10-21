@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from '@/lib/api-client';
+import { resolveApiResourceUrl } from '@/lib/api-client';
 
 export interface LoginRequest {
   email: string;
@@ -77,7 +78,7 @@ export const authService = {
           role: backendResponse.user.role,
           isEmailVerified: backendResponse.user.isEmailVerified,
           isActive: backendResponse.user.isActive,
-          profileImageUrl: backendResponse.user.profileImageUrl
+          profileImageUrl: resolveApiResourceUrl(backendResponse.user.profileImageUrl) as string
         }
       }
     };
@@ -135,7 +136,7 @@ export const authService = {
           role: backendResponse.user.role,
           isEmailVerified: backendResponse.user.isEmailVerified,
           isActive: backendResponse.user.isActive,
-          profileImageUrl: backendResponse.user.profileImageUrl
+          profileImageUrl: resolveApiResourceUrl(backendResponse.user.profileImageUrl) as string
         }
       }
     };
@@ -230,7 +231,7 @@ export const authService = {
           role: backendResponse.user.role,
           isEmailVerified: backendResponse.user.isEmailVerified,
           isActive: backendResponse.user.isActive,
-          profileImageUrl: backendResponse.user.profileImageUrl
+          profileImageUrl: resolveApiResourceUrl(backendResponse.user.profileImageUrl) as string
         }
       }
     };
