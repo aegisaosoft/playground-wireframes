@@ -47,6 +47,7 @@ import {
   Ticket
 } from 'lucide-react';
 import { SocialAccountsInput, SocialAccounts } from '@/components/SocialAccountsInput';
+import { API_URL } from '@/config/api';
 
 // No mock data - using real API calls
 
@@ -353,9 +354,11 @@ export default function MyAccount() {
       formData.append('avatar', file);
       
       const token = localStorage.getItem('auth_token');
-      
-      
-      const response = await fetch('/api/Auth/upload-avatar', {
+
+      import { API_URL } from '@/config/api';
+
+      // Then change line 372 to:
+      const response = await fetch(`${API_URL}/Auth/upload-avatar`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
