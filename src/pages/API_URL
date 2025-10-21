@@ -355,9 +355,6 @@ export default function MyAccount() {
       
       const token = localStorage.getItem('auth_token');
 
-      import { API_URL } from '@/config/api';
-
-      // Then change line 372 to:
       const response = await fetch(`${API_URL}/Auth/upload-avatar`, {
         method: 'POST',
         headers: {
