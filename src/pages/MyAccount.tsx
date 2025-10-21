@@ -1,4 +1,5 @@
 import { API_URL } from '@/config/api';
+import { userService } from '@/services/user.service';
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -334,71 +335,50 @@ export default function MyAccount() {
   };
 
   const handleProfilePicUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-    // Show preview immediately
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setProfilePic(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
-
-    // Upload to backend
-    try {
-      setIsLoading(true);
-      
-      const formData = new FormData();
-      formData.append('avatar', file);
-      
-      const token = localStorage.getItem('auth_token');
-
-      const response = await fetch(`${API_URL}/Auth/upload-avatar`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-        // Don't set Content-Type - browser will set it with boundary
-      });
-
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Upload failed');
-      }
-
-      const data = await response.json();
-      
-      // Update the user object in localStorage with new avatar URL
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
-        if (!userData.profile) {
-          userData.profile = {};
-        }
-        userData.profile.profileImageUrl = data.imageUrl;
-        localStorage.setItem('user', JSON.stringify(userData));
-      }
-      
-      toast({
-        title: "Avatar Uploaded",
-        description: `Image saved successfully!`,
-      });
-      
-      
-    } catch (error) {
-      toast({
-        title: "Upload Failed",
-        description: "Failed to upload avatar. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  // Show preview immediately
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    setProfilePic(e.target?.result as string);
   };
+  reader.readAsDataURL(file);
 
-  const copyPrivateLink = (privateSlug: string) => {
+  // Upload to backend using userService
+  try {
+    setIsLoading(true);
+    
+    const data = await userService.uploadAvatar(file);
+    
+    // Update localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const userData = JSON.parse(storedUser);
+      if (!userData.profile) {
+        userData.profile = {};
+      }
+      userData.profile.profileImageUrl = data.imageUrl;
+      localStorage.setItem('user', JSON.stringify(userData));
+    }
+    
+    toast({
+      title: "Avatar Uploaded",
+      description: "Image saved successfully!",
+    });
+    
+  } catch (error) {
+    toast({
+      title: "Upload Failed",
+      description: "Failed to upload avatar. Please try again.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsLoading(false);
+  }
+ };
+
+ const copyPrivateLink = (privateSlug: string) => {
     const privateUrl = `${window.location.origin}/experience/private/${privateSlug}`;
     navigator.clipboard.writeText(privateUrl).then(() => {
       toast({
