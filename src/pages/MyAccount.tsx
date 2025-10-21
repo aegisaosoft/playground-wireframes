@@ -49,8 +49,6 @@ import {
 } from 'lucide-react';
 import { SocialAccountsInput, SocialAccounts } from '@/components/SocialAccountsInput';
 
-// No mock data - using real API calls
-
 type SidebarItem = 'profile' | 'applications' | 'tickets' | 'hosting' | 'saved' | 'following' | 'brand' | 'settings';
 
 export default function MyAccount() {
