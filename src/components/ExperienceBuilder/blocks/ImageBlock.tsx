@@ -23,6 +23,23 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
       return;
     }
 
+    // Validate extension and size to match backend rules
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    const fileName = file.name || '';
+    const ext = (fileName.slice(fileName.lastIndexOf('.')) || '').toLowerCase();
+    if (!allowedExtensions.includes(ext)) {
+      showError('Unsupported Format', 'Use JPG, JPEG, PNG, GIF, or WEBP.');
+      return;
+    }
+
+    // Backend limit for experience images is 20MB
+    const maxBytes = 20 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      const sizeMb = (file.size / 1024 / 1024).toFixed(2);
+      showError('File Too Large', `Max size is 20MB. Your file is ${sizeMb}MB.`);
+      return;
+    }
+
     setIsUploading(true);
     
     try {
@@ -35,7 +52,7 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
     } finally {
       setIsUploading(false);
     }
-  }, [data, onChange]);
+  }, [data, onChange, showError]);
 
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -161,7 +178,7 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp,image/gif"
         onChange={handleFileSelect}
         className="hidden"
       />

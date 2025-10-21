@@ -828,11 +828,11 @@ const ExperienceEdit = () => {
       }
 
       // Extract and add gallery images with their alt text
-      const galleryBlock = blocks.find(b => b.type === 'gallery');
+      const galleryBlockDraft = blocks.find(b => b.type === 'gallery');
       
-      if (galleryBlock?.data?.images && Array.isArray(galleryBlock.data.images)) {
+      if (galleryBlockDraft?.data?.images && Array.isArray(galleryBlockDraft.data.images)) {
         // Filter images that have new files to upload
-        const imagesToUpload = galleryBlock.data.images
+        const imagesToUpload = galleryBlockDraft.data.images
           .filter((img: any) => img.file !== null && img.file !== undefined);
         
         
@@ -853,27 +853,81 @@ const ExperienceEdit = () => {
       } else {
       }
 
-      // Debug: Log all FormData entries
-      for (let pair of formData.entries()) {
-      }
-      
-      // Send update with all data including images
-      const response = await fetch(`/api/Experiences/${experienceId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-          // Don't set Content-Type - browser will set it with boundary for multipart
-        },
-        body: formData
-      });
+      // Build update payload and use API client upload helper (proper multipart + API domain)
+      const updateData: Partial<CreateExperienceRequest> = {
+        title: titleText,
+        categorySlug: titleCategory,
+        description: descriptionBlock?.data?.content,
+        location: locationBlock?.data?.location,
+        city: '',
+        country: '',
+        startDate: datesBlock?.data?.startDate ? (
+          datesBlock.data.startDate instanceof Date ? 
+            datesBlock.data.startDate.toISOString().split('T')[0] : 
+            new Date(datesBlock.data.startDate).toISOString().split('T')[0]
+        ) : undefined,
+        endDate: datesBlock?.data?.endDate ? (
+          datesBlock.data.endDate instanceof Date ? 
+            datesBlock.data.endDate.toISOString().split('T')[0] : 
+            new Date(datesBlock.data.endDate).toISOString().split('T')[0]
+        ) : undefined,
+        agendaItems,
+        highlights,
+        ticketTiers: ticketsBlock?.data?.tiers ? ticketsBlock.data.tiers.map((tier: any, index: number) => ({
+          name: tier.name || 'Standard Ticket',
+          description: tier.description || '',
+          price: tier.price || 0,
+          quantity: tier.quantity || 10,
+          benefits: tier.benefits || [],
+          isPopular: tier.isPopular || false,
+          displayOrder: index
+        })) : undefined,
+        faqItems: faqBlock?.data?.items ? faqBlock.data.items.map((item: any, index: number) => ({
+          question: item.question || '',
+          answer: item.answer || '',
+          displayOrder: index
+        })) : undefined,
+        resources: resourcesBlock?.data?.resources ? resourcesBlock.data.resources.map((item: any, index: number) => ({
+          title: item.title || '',
+          url: item.url || '',
+          description: item.description || '',
+          type: item.type || 'link',
+          displayOrder: index
+        })) : undefined,
+        meetupInstructions: logisticsBlock?.data?.meetupInstructions,
+        checkInNotes: logisticsBlock?.data?.checkInNotes,
+        emergencyContactName: logisticsBlock?.data?.emergencyContact?.name,
+        emergencyContactPhone: logisticsBlock?.data?.emergencyContact?.phone,
+        additionalInfo: logisticsBlock?.data?.additionalInfo,
+        status: 'draft'
+      };
 
-      if (!response.ok) {
-        throw new Error('Failed to save draft');
+      const featuredImageFile = imageBlock?.data?.file as File | undefined;
+
+      const galleryBlock = blocks.find(b => b.type === 'gallery');
+      let galleryFiles: File[] | undefined;
+      let galleryAlts: string[] | undefined;
+      if (galleryBlock?.data?.images && Array.isArray(galleryBlock.data.images)) {
+        const imagesToUpload = galleryBlock.data.images
+          .filter((img: any) => img.file !== null && img.file !== undefined);
+        if (imagesToUpload.length > 0) {
+          galleryFiles = [];
+          galleryAlts = [];
+          imagesToUpload.forEach((img: any) => {
+            galleryFiles!.push(img.file);
+            galleryAlts!.push(img.alt || '');
+          });
+        }
       }
 
-      const data = await response.json();
-      
-      
+      await experiencesService.updateWithFiles(
+        experienceId,
+        updateData,
+        featuredImageFile,
+        galleryFiles,
+        galleryAlts
+      );
+
       setIsPublic(false);
       
     } catch (error) {
@@ -1088,27 +1142,80 @@ const ExperienceEdit = () => {
       } else {
       }
 
-      // Debug: Log all FormData entries
-      for (let pair of formData.entries()) {
-      }
-      
-      // Send update with all data including images
-      const response = await fetch(`/api/Experiences/${experienceId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-          // Don't set Content-Type - browser will set it with boundary
-        },
-        body: formData
-      });
+      const updateData: Partial<CreateExperienceRequest> = {
+        status: 'published',
+        title: titleText,
+        categorySlug: titleCategory,
+        description: descriptionBlock?.data?.content,
+        location: locationBlock?.data?.location,
+        city: '',
+        country: '',
+        startDate: datesBlock?.data?.startDate ? (
+          datesBlock.data.startDate instanceof Date ? 
+            datesBlock.data.startDate.toISOString().split('T')[0] : 
+            new Date(datesBlock.data.startDate).toISOString().split('T')[0]
+        ) : undefined,
+        endDate: datesBlock?.data?.endDate ? (
+          datesBlock.data.endDate instanceof Date ? 
+            datesBlock.data.endDate.toISOString().split('T')[0] : 
+            new Date(datesBlock.data.endDate).toISOString().split('T')[0]
+        ) : undefined,
+        agendaItems,
+        highlights,
+        ticketTiers: ticketsBlock?.data?.tiers ? ticketsBlock.data.tiers.map((tier: any, index: number) => ({
+          name: tier.name || 'Standard Ticket',
+          description: tier.description || '',
+          price: tier.price || 0,
+          quantity: tier.quantity || 10,
+          benefits: tier.benefits || [],
+          isPopular: tier.isPopular || false,
+          displayOrder: index
+        })) : undefined,
+        faqItems: faqBlock?.data?.items ? faqBlock.data.items.map((item: any, index: number) => ({
+          question: item.question || '',
+          answer: item.answer || '',
+          displayOrder: index
+        })) : undefined,
+        resources: resourcesBlock?.data?.resources ? resourcesBlock.data.resources.map((item: any, index: number) => ({
+          title: item.title || '',
+          url: item.url || '',
+          description: item.description || '',
+          type: item.type || 'link',
+          displayOrder: index
+        })) : undefined,
+        meetupInstructions: logisticsBlock?.data?.meetupInstructions,
+        checkInNotes: logisticsBlock?.data?.checkInNotes,
+        emergencyContactName: logisticsBlock?.data?.emergencyContact?.name,
+        emergencyContactPhone: logisticsBlock?.data?.emergencyContact?.phone,
+        additionalInfo: logisticsBlock?.data?.additionalInfo
+      };
 
-      if (!response.ok) {
-        throw new Error('Failed to publish');
+      const featuredImageFile = imageBlock?.data?.file as File | undefined;
+
+      const galleryBlock = blocks.find(b => b.type === 'gallery');
+      let galleryFiles: File[] | undefined;
+      let galleryAlts: string[] | undefined;
+      if (galleryBlock?.data?.images && Array.isArray(galleryBlock.data.images)) {
+        const imagesToUpload = galleryBlock.data.images
+          .filter((img: any) => img.file !== null && img.file !== undefined);
+        if (imagesToUpload.length > 0) {
+          galleryFiles = [];
+          galleryAlts = [];
+          imagesToUpload.forEach((img: any) => {
+            galleryFiles!.push(img.file);
+            galleryAlts!.push(img.alt || '');
+          });
+        }
       }
 
-      const data = await response.json();
-      
-      
+      await experiencesService.updateWithFiles(
+        experienceId,
+        updateData,
+        featuredImageFile,
+        galleryFiles,
+        galleryAlts
+      );
+
       toast({
         title: "Experience Published!",
         description: "Your experience is now live and visible to everyone.",
