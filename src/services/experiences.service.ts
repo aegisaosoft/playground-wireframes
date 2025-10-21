@@ -182,6 +182,11 @@ export const experiencesService = {
    * Create new experience
    */
   async create(data: CreateExperienceRequest, featuredImage?: File, galleryImages?: File[], galleryAlts?: string[]): Promise<Experience> {
+    // Debug: log payload shape (non-sensitive)
+    try {
+      console.log('[experiencesService.create] data keys:', Object.keys(data || {}));
+      console.log('[experiencesService.create] featuredImage?', !!featuredImage, 'gallery count:', galleryImages?.length || 0);
+    } catch {}
     const formData = new FormData();
     // Sanitize: backend expects the file in 'featuredImage'; avoid sending any 'image'/'featuredImageUrl' text fields
     const payload: any = { ...data };
@@ -246,6 +251,10 @@ export const experiencesService = {
   ): Promise<Experience> {
     
     const formData = new FormData();
+    try {
+      console.log('[experiencesService.updateWithFiles] data keys:', Object.keys(data || {}));
+      console.log('[experiencesService.updateWithFiles] featuredImage?', !!featuredImage, 'gallery count:', galleryImages?.length || 0);
+    } catch {}
     const payload: any = { ...data };
     delete payload.image;
     delete payload.featuredImageUrl;

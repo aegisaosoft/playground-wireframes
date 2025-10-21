@@ -511,11 +511,14 @@ const ExperienceBuilder = () => {
         additionalInfo: logisticsBlock?.data?.additionalInfo
       };
 
-      // Extract featured image file if exists
-      const featuredImageFile = imageBlock?.data?.file as File | undefined;
-
-      if (featuredImageFile) {
-        formData.append('featuredImage', featuredImageFile);
+      // Extract featured image file if exists (fallback: reconstruct from blob URL)
+      let featuredImageFile = imageBlock?.data?.file as File | undefined;
+      if (!featuredImageFile && imageBlock?.data?.url && typeof imageBlock.data.url === 'string' && imageBlock.data.url.startsWith('blob:')) {
+        try {
+          const blob = await fetch(imageBlock.data.url).then(r => r.blob());
+          const inferredName = `featured.${(blob.type.split('/')[1] || 'jpg').replace('jpeg','jpg')}`;
+          featuredImageFile = new File([blob], inferredName, { type: blob.type || 'image/jpeg' });
+        } catch {}
       }
 
       // Extract gallery images with alt texts
@@ -535,10 +538,11 @@ const ExperienceBuilder = () => {
       // Save draft via API
       const savedExperience = await experiencesService.create(createRequest, featuredImageFile, galleryFiles, galleryAlts);
 
-    } catch (error) {
+    } catch (error: any) {
+      const message = error?.message || 'Failed to save draft. Please try again.';
       toast({
         title: "Error Saving Draft",
-        description: "Failed to save draft. Please try again.",
+        description: message,
         variant: "destructive",
       });
     }
@@ -680,11 +684,14 @@ const ExperienceBuilder = () => {
         additionalInfo: logisticsBlock?.data?.additionalInfo
       };
 
-      // Extract featured image file if exists
-      const featuredImageFile = imageBlock?.data?.file as File | undefined;
-      
-      if (featuredImageFile) {
-        formData.append('featuredImage', featuredImageFile);
+      // Extract featured image file if exists (fallback: reconstruct from blob URL)
+      let featuredImageFile = imageBlock?.data?.file as File | undefined;
+      if (!featuredImageFile && imageBlock?.data?.url && typeof imageBlock.data.url === 'string' && imageBlock.data.url.startsWith('blob:')) {
+        try {
+          const blob = await fetch(imageBlock.data.url).then(r => r.blob());
+          const inferredName = `featured.${(blob.type.split('/')[1] || 'jpg').replace('jpeg','jpg')}`;
+          featuredImageFile = new File([blob], inferredName, { type: blob.type || 'image/jpeg' });
+        } catch {}
       }
       
       // Extract gallery images with alt texts
@@ -714,10 +721,11 @@ const ExperienceBuilder = () => {
       // Redirect to the experiences page to see the created experience
       navigate('/experiences');
 
-    } catch (error) {
+    } catch (error: any) {
+      const message = error?.message || 'Failed to create experience. Please try again.';
       toast({
         title: "Error Creating Experience",
-        description: "Failed to create experience. Please try again.",
+        description: message,
         variant: "destructive",
       });
     }
