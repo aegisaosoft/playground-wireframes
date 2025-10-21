@@ -1,3 +1,4 @@
+import { API_URL } from '@/config/api';
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -47,7 +48,6 @@ import {
   Ticket
 } from 'lucide-react';
 import { SocialAccountsInput, SocialAccounts } from '@/components/SocialAccountsInput';
-import { API_URL } from '@/config/api';
 
 // No mock data - using real API calls
 
