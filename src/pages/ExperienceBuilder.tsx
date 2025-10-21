@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Mic, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { experiencesService, CreateExperienceRequest } from '@/services/experiences.service';
+import { brandsService } from '@/services/brands.service';
 import { useUser } from '@/contexts/UserContext';
 
 const ExperienceBuilder = () => {
@@ -452,6 +453,18 @@ const ExperienceBuilder = () => {
       const highlights = highlightsBlock?.data?.highlights ? 
         highlightsBlock.data.highlights.map((item: any) => item.text || item) : [];
 
+      // If a brand host is selected, ensure current user is a member before creating
+      let hostFields: Partial<CreateExperienceRequest> = {};
+      if (selectedHost?.type === 'brand' && selectedHost?.id && user?.id) {
+        try {
+          await brandsService.addMemberToBrand(selectedHost.id, user.id, 'member');
+          hostFields = { hostId: selectedHost.id, hostType: 'brand' } as any;
+        } catch {
+          // Ignore if already a member or if backend rejects; creation may still succeed if allowed
+          hostFields = { hostId: selectedHost.id, hostType: 'brand' } as any;
+        }
+      }
+
       const createRequest: CreateExperienceRequest = {
         title: titleText,
         description: description,
@@ -474,9 +487,8 @@ const ExperienceBuilder = () => {
         currency: 'USD',
         timezone: 'UTC',
         categorySlug: titleData.category || 'tech',
-        // Host information
-        hostId: selectedHost.id,
-        hostType: selectedHost.type,
+        // Optional host assignment (brand)
+        ...(hostFields as any),
         agendaItems: agendaItems.length > 0 ? agendaItems : undefined,
         highlights: highlights.length > 0 ? highlights : undefined,
         ticketTiers: ticketsBlock?.data?.tiers && ticketsBlock.data.tiers.length > 0 ? 
@@ -625,6 +637,17 @@ const ExperienceBuilder = () => {
         highlightsBlock.data.highlights.map((item: any) => item.text || item) : [];
 
       // Create experience request - Always publish when using handlePublish
+      // If a brand host is selected, ensure current user is a member before publishing
+      let hostFieldsPub: Partial<CreateExperienceRequest> = {};
+      if (selectedHost?.type === 'brand' && selectedHost?.id && user?.id) {
+        try {
+          await brandsService.addMemberToBrand(selectedHost.id, user.id, 'member');
+          hostFieldsPub = { hostId: selectedHost.id, hostType: 'brand' } as any;
+        } catch {
+          hostFieldsPub = { hostId: selectedHost.id, hostType: 'brand' } as any;
+        }
+      }
+
       const createRequest: CreateExperienceRequest = {
         title: titleText,
         description: description,
@@ -647,9 +670,8 @@ const ExperienceBuilder = () => {
         currency: 'USD',
         timezone: 'UTC',
         categorySlug: titleData.category || 'tech', // Default to 'tech' if not selected
-        // Host information
-        hostId: selectedHost.id,
-        hostType: selectedHost.type,
+        // Optional host assignment (brand)
+        ...(hostFieldsPub as any),
         agendaItems: agendaItems.length > 0 ? agendaItems : undefined,
         highlights: highlights.length > 0 ? highlights : undefined,
         ticketTiers: ticketsBlock?.data?.tiers && ticketsBlock.data.tiers.length > 0 ? 

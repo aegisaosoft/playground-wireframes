@@ -1384,39 +1384,42 @@ export default function MyAccount() {
                             <Star className="w-3 h-3 mr-1" />
                                  {brand?.rating || 0} rating
                                </Badge>
-                               <Badge variant="secondary" className="bg-green-500/20 text-green-500">
-                                 <Building className="w-3 h-3 mr-1" />
-                                 {brand?.role || 'Owner'}
+                          <Badge variant="secondary" className="bg-green-500/20 text-green-500">
+                            <Building className="w-3 h-3 mr-1" />
+                            {brand?.role || 'Owner'}
                           </Badge>
                         </div>
                       </div>
                          </div>
                          <div className="flex flex-col gap-2">
                            <div className="flex gap-2">
-                             <Button 
+                            <Button 
                                variant="outline" 
                                size="sm" 
                                className="border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan/10"
-                               onClick={() => handleEditBrand(brand)}
+                              onClick={() => handleEditBrand(brand)}
+                              disabled={(brand?.role || '').toLowerCase() !== 'owner'}
                              >
                                <Edit className="w-4 h-4 mr-2" />
                                Edit Brand Page
                              </Button>
-                             <Button 
+                            <Button 
                                variant="outline" 
                                size="sm" 
                                className="border-neon-green/40 text-neon-green hover:bg-neon-green/10"
-                               onClick={() => handleAddMember(brand)}
+                              onClick={() => handleAddMember(brand)}
+                              disabled={(brand?.role || '').toLowerCase() !== 'owner'}
                              >
                                <UserPlus className="w-4 h-4 mr-2" />
                                Add Member
                              </Button>
                            </div>
-                           <Button 
+                          <Button 
                              variant="outline" 
                              size="sm" 
                              className="border-neon-purple/40 text-neon-purple hover:bg-neon-purple/10"
-                             onClick={() => handleViewMembers(brand)}
+                            onClick={() => handleViewMembers(brand)}
+                            disabled={(brand?.role || '').toLowerCase() !== 'owner'}
                            >
                              <Users className="w-4 h-4 mr-2" />
                              Members List

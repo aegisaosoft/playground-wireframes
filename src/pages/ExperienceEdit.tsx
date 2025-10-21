@@ -899,6 +899,8 @@ const ExperienceEdit = () => {
         emergencyContactName: logisticsBlock?.data?.emergencyContact?.name,
         emergencyContactPhone: logisticsBlock?.data?.emergencyContact?.phone,
         additionalInfo: logisticsBlock?.data?.additionalInfo,
+        // Optional host assignment
+        ...(selectedHost?.id && selectedHost?.type ? { hostId: selectedHost.id, hostType: selectedHost.type } as any : {}),
         status: 'draft'
       };
 
@@ -1187,7 +1189,9 @@ const ExperienceEdit = () => {
         checkInNotes: logisticsBlock?.data?.checkInNotes,
         emergencyContactName: logisticsBlock?.data?.emergencyContact?.name,
         emergencyContactPhone: logisticsBlock?.data?.emergencyContact?.phone,
-        additionalInfo: logisticsBlock?.data?.additionalInfo
+        additionalInfo: logisticsBlock?.data?.additionalInfo,
+        // Optional host assignment
+        ...(selectedHost?.id && selectedHost?.type ? { hostId: selectedHost.id, hostType: selectedHost.type } as any : {})
       };
 
       const featuredImageFile = imageBlock?.data?.file as File | undefined;
