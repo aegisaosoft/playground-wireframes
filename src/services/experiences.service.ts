@@ -3,7 +3,7 @@
  * Handles CRUD operations for experiences/retreats
  */
 
-import { apiClient } from '@/lib/api-client';
+import { apiClient, resolveApiResourceUrl } from '@/lib/api-client';
 
 export interface GalleryImage {
   id: string;
@@ -129,32 +129,53 @@ export interface CreateExperienceRequest {
 }
 
 export const experiencesService = {
+  /** Normalize image URLs to absolute API URLs */
+  _normalize(exp: any): any {
+    if (!exp || typeof exp !== 'object') return exp;
+    if ('featuredImageUrl' in exp) {
+      exp.featuredImageUrl = resolveApiResourceUrl(exp.featuredImageUrl) as any;
+    }
+    if ('image' in exp) {
+      exp.image = resolveApiResourceUrl(exp.image) as any;
+    }
+    if ('gallery' in exp && Array.isArray(exp.gallery)) {
+      exp.gallery = exp.gallery.map((g: any) => ({
+        ...g,
+        url: resolveApiResourceUrl(g?.url) as any,
+      }));
+    }
+    return exp;
+  },
   /**
    * Get all experiences
    */
   async getAll(): Promise<Experience[]> {
-    return apiClient.get<Experience[]>('/Experiences');
+    const list = await apiClient.get<any[]>('/Experiences');
+    return list.map(e => experiencesService._normalize(e));
   },
 
   /**
    * Get experience by ID
    */
   async getById(id: string): Promise<Experience> {
-    return apiClient.get<Experience>(`/Experiences/${id}`);
+    const exp = await apiClient.get<any>(`/Experiences/${id}`);
+    return experiencesService._normalize(exp);
   },
 
   /**
    * Get current user's experiences
    */
   async getMyExperiences(): Promise<Experience[]> {
-    return apiClient.get<Experience[]>('/Experiences/my');
+    const list = await apiClient.get<any[]>('/Experiences/my');
+    return list.map(e => experiencesService._normalize(e));
   },
 
   /**
    * Search experiences
    */
   async search(query: string): Promise<Experience[]> {
-    return apiClient.get<Experience[]>(`/Experiences/search?q=${encodeURIComponent(query)}`);
+    const list = await apiClient.get<any[]>(`/Experiences/search?q=${encodeURIComponent(query)}`);
+    return list.map(e => experiencesService._normalize(e));
   },
 
   /**
@@ -198,7 +219,8 @@ export const experiencesService = {
     for (let pair of formData.entries()) {
     }
     
-    return apiClient.upload<Experience>('/Experiences', formData);
+    const created = await apiClient.upload<any>('/Experiences', formData);
+    return experiencesService._normalize(created);
   },
 
   /**
@@ -256,7 +278,8 @@ export const experiencesService = {
     for (let pair of formData.entries()) {
     }
     
-    return apiClient.upload<Experience>(`/Experiences/${id}`, formData, { method: 'PUT' });
+    const updated = await apiClient.upload<any>(`/Experiences/${id}`, formData, { method: 'PUT' });
+    return experiencesService._normalize(updated);
   },
 
   /**
@@ -279,7 +302,8 @@ export const experiencesService = {
   async uploadImage(id: string, file: File): Promise<{ imageUrl: string }> {
     const formData = new FormData();
     formData.append('image', file);
-    return apiClient.upload<{ imageUrl: string }>(`/Experiences/${id}/image`, formData);
+    const res = await apiClient.upload<{ imageUrl: string }>(`/Experiences/${id}/upload-image`, formData);
+    return { imageUrl: resolveApiResourceUrl(res?.imageUrl) as string };
   },
 
   async getTicketSalesCount(id: string): Promise<{ [tierId: string]: number }> {

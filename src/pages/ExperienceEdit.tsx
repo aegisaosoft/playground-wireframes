@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Mic, X, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { experiencesService } from '@/services/experiences.service';
+import { resolveApiResourceUrl } from '@/lib/api-client';
 import { useUser } from '@/contexts/UserContext';
 
 // Mock data - in real app, this would come from API
@@ -305,11 +306,12 @@ const ExperienceEdit = () => {
 
         // Add image block if featured image exists
         if (experience.featuredImageUrl) {
+          const resolvedUrl = (resolveApiResourceUrl(experience.featuredImageUrl) as string) || experience.featuredImageUrl;
           defaultBlocks.push({
             id: 'image-default',
             type: 'image' as BlockType,
             data: {
-              url: experience.featuredImageUrl, // Existing image URL
+              url: resolvedUrl, // Existing image URL (absolute)
               file: null // No file yet - user can replace it
             },
             order: blockOrder++

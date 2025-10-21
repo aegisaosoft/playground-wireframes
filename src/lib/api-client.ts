@@ -166,7 +166,7 @@ class ApiClient {
 
     const config: RequestInit = {
       ...options,
-      method: 'POST',
+      method: (options && options.method) ? options.method : 'POST',
       headers,
       body: formData,
     };

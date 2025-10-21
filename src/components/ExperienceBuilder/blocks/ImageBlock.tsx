@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { resolveApiResourceUrl } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -75,10 +76,14 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
     fileInputRef.current?.click();
   };
 
+  const displayUrl = data.url
+    ? (data.url.startsWith('blob:') ? data.url : (resolveApiResourceUrl(data.url) as string))
+    : '';
+
   return (
     <div className="space-y-4">
       {/* Hide Overlays Toggle */}
-      {data.url && (
+      {displayUrl && (
         <div className="flex items-center justify-between p-4 bg-black/20 rounded-lg border border-white/10">
           <div className="space-y-1">
             <Label htmlFor="hide-overlays" className="text-sm font-medium text-foreground">
@@ -96,7 +101,7 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
         </div>
       )}
 
-      {!data.url ? (
+      {!displayUrl ? (
         <div
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -124,7 +129,7 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ data, onChange }) => {
       ) : (
         <div className="relative w-full bg-black/20 rounded-xl border border-white/10 overflow-hidden group" style={{ aspectRatio: '4/3' }}>
           <img
-            src={data.url}
+            src={displayUrl}
             alt={data.alt || 'Cover image'}
             className="w-full h-full object-cover"
           />

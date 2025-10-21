@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api-client';
+import { apiClient, resolveApiResourceUrl } from '@/lib/api-client';
 import { encryptionService } from './encryption.service';
 import { maskStripeAccountId } from '@/utils/account-masking';
 
@@ -120,12 +120,14 @@ class BrandsService {
       // Map backend BrandDto array to frontend BrandData array
       const brandDataArray: BrandData[] = brandsArray.map(brandDto => {
         
+        const logoUrl = resolveApiResourceUrl(brandDto.LogoUrl || brandDto.logoUrl) as string | undefined;
+        const bannerUrl = resolveApiResourceUrl(brandDto.CoverImageUrl || brandDto.coverImageUrl) as string | undefined;
         return {
         id: brandDto.Id || brandDto.id,
         name: brandDto.Name || brandDto.name || 'Unknown Brand',
         description: brandDto.Description || brandDto.description || '',
-        logo: brandDto.LogoUrl || brandDto.logoUrl,
-        banner: brandDto.CoverImageUrl || brandDto.coverImageUrl,
+        logo: logoUrl,
+        banner: bannerUrl,
         categoryTitle: 'Professional Host', // Default category
         followers: brandDto.FollowersCount || brandDto.followersCount || 0,
         rating: brandDto.AverageRating || brandDto.averageRating || 0,
@@ -166,8 +168,8 @@ class BrandsService {
         id: response.data.Id || response.data.id,
         name: response.data.Name || response.data.name || 'Unknown Brand',
         description: response.data.Description || response.data.description || '',
-        logo: response.data.LogoUrl || response.data.logoUrl,
-        banner: response.data.CoverImageUrl || response.data.coverImageUrl,
+        logo: resolveApiResourceUrl(response.data.LogoUrl || response.data.logoUrl) as string | undefined,
+        banner: resolveApiResourceUrl(response.data.CoverImageUrl || response.data.coverImageUrl) as string | undefined,
         categoryTitle: 'Professional Host', // Default category
         followers: response.data.FollowersCount || response.data.followersCount || 0,
         rating: response.data.AverageRating || response.data.averageRating || 0,
@@ -227,6 +229,10 @@ class BrandsService {
       
       
       const response = await apiClient.upload<BrandResponse>('/Brands/create', formData);
+      if (response?.data) {
+        (response.data as any).LogoUrl = resolveApiResourceUrl((response.data as any).LogoUrl || (response.data as any).logoUrl) as any;
+        (response.data as any).CoverImageUrl = resolveApiResourceUrl((response.data as any).CoverImageUrl || (response.data as any).coverImageUrl) as any;
+      }
       return response;
     } catch (error) {
       throw error;
@@ -270,6 +276,10 @@ class BrandsService {
       
       
       const response = await apiClient.upload<BrandResponse>('/Brands/save', formData);
+      if (response?.data) {
+        (response.data as any).LogoUrl = resolveApiResourceUrl((response.data as any).LogoUrl || (response.data as any).logoUrl) as any;
+        (response.data as any).CoverImageUrl = resolveApiResourceUrl((response.data as any).CoverImageUrl || (response.data as any).coverImageUrl) as any;
+      }
       return response;
     } catch (error) {
       throw error;
@@ -284,13 +294,8 @@ class BrandsService {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await apiClient.post<{ url: string }>('/Brands/upload-logo', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      return response;
+      const response = await apiClient.upload<{ url: string }>('/Brands/upload-logo', formData);
+      return { url: resolveApiResourceUrl(response?.url) as string };
     } catch (error) {
       throw error;
     }
@@ -304,13 +309,8 @@ class BrandsService {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await apiClient.post<{ url: string }>('/Brands/upload-banner', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      return response;
+      const response = await apiClient.upload<{ url: string }>('/Brands/upload-banner', formData);
+      return { url: resolveApiResourceUrl(response?.url) as string };
     } catch (error) {
       throw error;
     }
@@ -328,8 +328,8 @@ class BrandsService {
         id: response.data.Id,
         name: response.data.Name,
         description: response.data.Description || '',
-        logo: response.data.LogoUrl,
-        banner: response.data.CoverImageUrl,
+        logo: resolveApiResourceUrl(response.data.LogoUrl) as string | undefined,
+        banner: resolveApiResourceUrl(response.data.CoverImageUrl) as string | undefined,
         categoryTitle: 'Professional Host',
         followers: response.data.FollowersCount || 0,
         rating: response.data.AverageRating || 0,
@@ -394,8 +394,8 @@ class BrandsService {
         id: response.data.Id,
         name: response.data.Name,
         description: response.data.Description || '',
-        logo: response.data.LogoUrl,
-        banner: response.data.CoverImageUrl,
+        logo: resolveApiResourceUrl(response.data.LogoUrl) as string | undefined,
+        banner: resolveApiResourceUrl(response.data.CoverImageUrl) as string | undefined,
         categoryTitle: 'Professional Host',
         followers: response.data.FollowersCount || 0,
         rating: response.data.AverageRating || 0,

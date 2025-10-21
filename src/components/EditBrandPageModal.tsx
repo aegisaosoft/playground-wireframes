@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { brandsService, BrandDto } from '@/services/brands.service';
+import { resolveApiResourceUrl } from '@/lib/api-client';
 import { useVoiceRecognition } from '@/hooks/useVoiceRecognition';
 import { maskStripeAccountId } from '@/utils/account-masking';
 
@@ -113,8 +114,8 @@ export const EditBrandPageModal = ({
       console.log('📝 initialData.logo:', initialData.logo);
       console.log('📝 initialData.banner:', initialData.banner);
       setBrandData(initialData);
-      setLogoPreview(initialData.logo || null);
-      setBannerPreview(initialData.banner || null);
+      setLogoPreview((resolveApiResourceUrl(initialData.logo) as string) || null);
+      setBannerPreview((resolveApiResourceUrl(initialData.banner) as string) || null);
     } else {
       // Set empty values for new brand
       const defaultData = {
@@ -211,30 +212,34 @@ export const EditBrandPageModal = ({
         : await brandsService.createBrand(apiBrandData, logoFile || undefined, bannerFile || undefined);
       
       console.log('🔄 Brand save response:', response);
-      console.log('🖼️ Logo URL from response:', response.data?.LogoUrl);
-      console.log('🖼️ Banner URL from response:', response.data?.CoverImageUrl);
+      const respLogo = (response as any)?.data?.LogoUrl ?? (response as any)?.data?.logoUrl;
+      const respBanner = (response as any)?.data?.CoverImageUrl ?? (response as any)?.data?.coverImageUrl;
+      const resolvedLogo = resolveApiResourceUrl(respLogo) as string | undefined;
+      const resolvedBanner = resolveApiResourceUrl(respBanner) as string | undefined;
+      console.log('🖼️ Logo URL from response (resolved):', resolvedLogo);
+      console.log('🖼️ Banner URL from response (resolved):', resolvedBanner);
       
       // Update brand data with the response - map backend BrandDto to frontend BrandData
       const updatedBrandData = {
         ...brandData,
-        id: response.data?.Id || brandData.id,
-        name: response.data?.Name || brandData.name,
-        description: response.data?.Description || brandData.description,
-        logo: response.data?.LogoUrl || brandData.logo,
-        banner: response.data?.CoverImageUrl || brandData.banner,
-        followers: response.data?.FollowersCount || brandData.followers,
-        rating: response.data?.AverageRating || brandData.rating,
-        experiencesCount: response.data?.ExperiencesCount || brandData.experiencesCount,
-        participantsCount: response.data?.ParticipantsCount || brandData.participantsCount,
-        tagline: response.data?.Tagline || brandData.tagline,
-        website: response.data?.Website || brandData.website,
-        email: response.data?.Email || brandData.email,
-        phone: response.data?.Phone || brandData.phone,
-        instagram: response.data?.Instagram || brandData.instagram,
-        twitter: response.data?.Twitter || brandData.twitter,
-        linkedin: response.data?.LinkedIn || brandData.linkedin,
-        facebook: response.data?.Facebook || brandData.facebook,
-        isVerified: response.data?.IsVerified || brandData.isVerified
+        id: (response as any)?.data?.Id || (response as any)?.data?.id || brandData.id,
+        name: (response as any)?.data?.Name || (response as any)?.data?.name || brandData.name,
+        description: (response as any)?.data?.Description || (response as any)?.data?.description || brandData.description,
+        logo: resolvedLogo ?? brandData.logo,
+        banner: resolvedBanner ?? brandData.banner,
+        followers: (response as any)?.data?.FollowersCount || (response as any)?.data?.followersCount || brandData.followers,
+        rating: (response as any)?.data?.AverageRating || (response as any)?.data?.averageRating || brandData.rating,
+        experiencesCount: (response as any)?.data?.ExperiencesCount || (response as any)?.data?.experiencesCount || brandData.experiencesCount,
+        participantsCount: (response as any)?.data?.ParticipantsCount || (response as any)?.data?.participantsCount || brandData.participantsCount,
+        tagline: (response as any)?.data?.Tagline || (response as any)?.data?.tagline || brandData.tagline,
+        website: (response as any)?.data?.Website || (response as any)?.data?.website || brandData.website,
+        email: (response as any)?.data?.Email || (response as any)?.data?.email || brandData.email,
+        phone: (response as any)?.data?.Phone || (response as any)?.data?.phone || brandData.phone,
+        instagram: (response as any)?.data?.Instagram || (response as any)?.data?.instagram || brandData.instagram,
+        twitter: (response as any)?.data?.Twitter || (response as any)?.data?.twitter || brandData.twitter,
+        linkedin: (response as any)?.data?.LinkedIn || (response as any)?.data?.linkedin || brandData.linkedin,
+        facebook: (response as any)?.data?.Facebook || (response as any)?.data?.facebook || brandData.facebook,
+        isVerified: (response as any)?.data?.IsVerified || (response as any)?.data?.isVerified || brandData.isVerified
       };
 
       await onSave(updatedBrandData);
