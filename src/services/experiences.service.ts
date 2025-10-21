@@ -183,9 +183,13 @@ export const experiencesService = {
    */
   async create(data: CreateExperienceRequest, featuredImage?: File, galleryImages?: File[], galleryAlts?: string[]): Promise<Experience> {
     const formData = new FormData();
+    // Sanitize: backend expects the file in 'featuredImage'; avoid sending any 'image'/'featuredImageUrl' text fields
+    const payload: any = { ...data };
+    delete payload.image;
+    delete payload.featuredImageUrl;
     
     // Append all text fields (excluding arrays/objects)
-    Object.entries(data).forEach(([key, value]) => {
+    Object.entries(payload).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         // Handle arrays and objects as JSON strings
         if (Array.isArray(value)) {
@@ -242,9 +246,12 @@ export const experiencesService = {
   ): Promise<Experience> {
     
     const formData = new FormData();
+    const payload: any = { ...data };
+    delete payload.image;
+    delete payload.featuredImageUrl;
     
     // Append all text fields (excluding arrays/objects)
-    Object.entries(data).forEach(([key, value]) => {
+    Object.entries(payload).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         // Handle arrays and objects as JSON strings
         if (Array.isArray(value)) {
