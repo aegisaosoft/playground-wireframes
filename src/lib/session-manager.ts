@@ -54,7 +54,7 @@ class SessionManager {
         localStorage.setItem(this.userKey, JSON.stringify(sessionData.user));
       }
 
-      console.log('💾 Session saved successfully');
+      // Debug log removed
     } catch (error) {
       console.error('❌ Failed to save session:', error);
     }
