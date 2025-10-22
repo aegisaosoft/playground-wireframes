@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { BeautifulNotification, NotificationType } from "@/components/BeautifulNotification";
 import { VoiceOnboardingModal } from "@/components/VoiceOnboarding";
 import { authService } from "@/services/auth.service";
 import { userService } from "@/services/user.service";
@@ -30,6 +31,8 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<{ title: string; description: string } | null>(null);
+  const [notification, setNotification] = useState<{ id: string; type: NotificationType; title: string; message: string } | null>(null);
   const [availableAvatars, setAvailableAvatars] = useState<string[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -43,12 +46,20 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
     setIsLoading(true);
 
     try {
+      setAuthError(null);
       if (isSignUp) {
         const res = await authService.signUp({ email, password, name: email.split('@')[0] });
         
-        // Check if email verification is needed
+        // If API requires email verification (no token/user provided), show friendly notice
         if (!res.token || !res.user) {
-          onClose();
+          setNotification({
+            id: Date.now().toString(),
+            type: 'info',
+            title: 'Verify your email',
+            message: `We\'ve sent a verification link to ${email}. Please verify and then sign in.`
+          });
+          // Switch to login view so user can sign in after verifying
+          setIsSignUp(false);
           return;
         }
         
@@ -81,25 +92,51 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
       setPassword("");
       setConfirmPassword("");
     } catch (error) {
-      // Use the specific error message from the backend
-      const errorMessage = error instanceof Error ? error.message : 
-        (isSignUp ? "Sign up failed. Check details and try again." : "Invalid email or password.");
-      
-      // Check if this is a verified account signup attempt
+      const raw = error instanceof Error ? error.message : (isSignUp ? "SIGN_UP_FAILED" : "INVALID_CREDENTIALS");
+
+      const formatAuthError = (code: string): { title: string; description: string } => {
+        switch (true) {
+          case /EMAIL_NOT_VERIFIED_RESENT/i.test(code):
+            return {
+              title: "Verify your email",
+              description: `We've sent a new verification link to ${email}. Please verify, then sign in.`
+            };
+          case /EMAIL_NOT_VERIFIED/i.test(code):
+            return {
+              title: "Email not verified",
+              description: `Please verify ${email} to continue. You can request a new link from the login form.`
+            };
+          case /ACCOUNT_EXISTS_VERIFIED/i.test(code):
+            return {
+              title: "Account already exists",
+              description: "This email is already registered. Please sign in instead."
+            };
+          case /INVALID_CREDENTIALS|UNAUTHORIZED|401/i.test(code):
+            return {
+              title: "Check your details",
+              description: "The email or password you entered is incorrect."
+            };
+          default:
+            return {
+              title: "Authentication error",
+              description: isSignUp ? "Sign up failed. Check details and try again." : "We couldn't sign you in. Please try again."
+            };
+        }
+      };
+
+      const pretty = formatAuthError(raw);
+
+      setAuthError(pretty);
+      // Gentle toast to complement inline message
+      setNotification({ id: Date.now().toString(), type: 'error', title: pretty.title, message: pretty.description });
+
+      // Special handling: switch to login if trying to sign up an existing verified account
       if (isSignUp && error instanceof Error && error.message.includes("ACCOUNT_EXISTS_VERIFIED")) {
         // Switch to login mode and show helpful message
         setIsSignUp(false);
-        toast({ 
-          title: "Account Already Exists", 
-          description: "An account with this email already exists. Please log in instead.",
-          variant: "default" 
-        });
+        toast({ title: "Account Already Exists", description: "Please log in instead.", variant: "default" });
       } else {
-        toast({ 
-          title: "Authentication error", 
-          description: errorMessage, 
-          variant: "destructive" 
-        });
+        // no-op, pretty toast already shown
       }
     } finally {
       setIsLoading(false);
@@ -179,6 +216,18 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
           </DialogTitle>
         </DialogHeader>
         
+        {notification && (
+          <BeautifulNotification
+            id={notification.id}
+            type={notification.type}
+            title={notification.title}
+            message={notification.message}
+            duration={6000}
+            variant="inline"
+            onClose={() => setNotification(null)}
+          />
+        )}
+
         <div className="space-y-4">
           <Button
             variant="outline"

@@ -16,6 +16,7 @@ export interface BeautifulNotificationProps {
   showActions?: boolean;
   confirmText?: string;
   cancelText?: string;
+  variant?: 'overlay' | 'inline';
 }
 
 export const BeautifulNotification: React.FC<BeautifulNotificationProps> = ({
@@ -29,7 +30,8 @@ export const BeautifulNotification: React.FC<BeautifulNotificationProps> = ({
   onCancel,
   showActions = false,
   confirmText = 'Confirm',
-  cancelText = 'Cancel'
+  cancelText = 'Cancel',
+  variant = 'overlay'
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
@@ -99,42 +101,43 @@ export const BeautifulNotification: React.FC<BeautifulNotificationProps> = ({
   const getBackgroundColor = () => {
     switch (type) {
       case 'success':
-        return 'bg-neon-green/5';
+        return variant === 'inline' ? 'bg-neon-green/20' : 'bg-neon-green/5';
       case 'error':
-        return 'bg-red-500/5';
+        return variant === 'inline' ? 'bg-red-500/25' : 'bg-red-500/5';
       case 'warning':
-        return 'bg-yellow-500/5';
+        return variant === 'inline' ? 'bg-yellow-500/20' : 'bg-yellow-500/5';
       case 'info':
-        return 'bg-neon-cyan/5';
+        return variant === 'inline' ? 'bg-neon-cyan/20' : 'bg-neon-cyan/5';
       default:
-        return 'bg-neon-cyan/5';
+        return variant === 'inline' ? 'bg-neon-cyan/20' : 'bg-neon-cyan/5';
     }
   };
 
   return (
     <div
       className={`
-        fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[9999]
-        w-full max-w-md mx-4
+        ${variant === 'overlay' ? 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[9999] w-full max-w-md mx-4' : 'relative w-full my-2'}
         ${getBackgroundColor()}
         ${getBorderColor()}
-        border-2 rounded-2xl p-6 shadow-2xl backdrop-blur-sm
+        border-2 rounded-2xl ${variant === 'inline' ? 'p-4' : 'p-6'} shadow-2xl ${variant === 'overlay' ? 'backdrop-blur-sm' : ''}
         transition-all duration-300 ease-out
         ${isVisible && !isLeaving 
           ? 'opacity-100 scale-100 translate-y-0' 
-          : 'opacity-0 scale-95 translate-y-4'
+          : 'opacity-0 scale-95 translate-y-2'
         }
-        ${isLeaving ? 'opacity-0 scale-95 translate-y-4' : ''}
+        ${isLeaving ? 'opacity-0 scale-95 translate-y-2' : ''}
       `}
     >
       {/* Glow effect */}
-      <div className={`
-        absolute inset-0 rounded-2xl blur-xl -z-10
-        ${type === 'success' ? 'bg-neon-green/20' : ''}
-        ${type === 'error' ? 'bg-red-400/20' : ''}
-        ${type === 'warning' ? 'bg-yellow-400/20' : ''}
-        ${type === 'info' ? 'bg-neon-cyan/20' : ''}
-      `} />
+      {variant === 'overlay' && (
+        <div className={`
+          absolute inset-0 rounded-2xl blur-xl -z-10
+          ${type === 'success' ? 'bg-neon-green/20' : ''}
+          ${type === 'error' ? 'bg-red-400/20' : ''}
+          ${type === 'warning' ? 'bg-yellow-400/20' : ''}
+          ${type === 'info' ? 'bg-neon-cyan/20' : ''}
+        `} />
+      )}
       
       <div className="relative">
         {/* Header */}
@@ -159,7 +162,7 @@ export const BeautifulNotification: React.FC<BeautifulNotificationProps> = ({
 
         {/* Message */}
         {message && (
-          <p className="text-muted-foreground mb-4 leading-relaxed">
+          <p className={`mb-4 leading-relaxed ${variant === 'inline' ? 'text-foreground' : 'text-muted-foreground'}`}>
             {message}
           </p>
         )}
