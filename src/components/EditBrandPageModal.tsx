@@ -121,7 +121,7 @@ export const EditBrandPageModal = ({
       setBrandData(initialData);
       const logoUrl = (resolveApiResourceUrl(initialData.logo) as string) || '';
       const bannerUrl = (resolveApiResourceUrl(initialData.banner) as string) || '';
-      setLogoPreview(logoUrl || '/avatars/avatar1.jpg');
+      setLogoPreview(logoUrl || null);
       // Preview default banner image if none set; this is for display only
       setBannerPreview(bannerUrl || '/default-retreat-banner.png');
     } else {
