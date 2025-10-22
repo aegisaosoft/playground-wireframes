@@ -21,7 +21,8 @@ import {
   ArrowLeft,
   Calendar,
   MapPin,
-  Clock
+  Clock,
+  User
 } from 'lucide-react';
 import { paymentsService } from '@/services/payments.service';
 import { experiencesService } from '@/services/experiences.service';
@@ -363,14 +364,15 @@ export const PaymentPage: React.FC = () => {
           return;
         }
 
-        // Check if host has a brand
-        const brand = await brandsService.getBrandByUserId(hostId);
-        setHostBrand(brand);
-
-        if (!brand) {
-          setError('No payment setup - Host has not created a brand page');
-          setIsLoading(false);
-          return;
+        // Only check brand if this experience is hosted by a brand
+        if ((exp as any)?.hostType === 'brand') {
+          const brand = await brandsService.getBrandByUserId(hostId);
+          setHostBrand(brand);
+          if (!brand) {
+            setError('No payment setup - Host has not created a brand page');
+            setIsLoading(false);
+            return;
+          }
         }
 
         // Note: Stripe status validation will be handled by the backend during checkout
