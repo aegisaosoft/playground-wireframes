@@ -20,6 +20,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Users as UsersIcon, Building, ArrowLeft, CreditCard } from 'lucide-react';
+import { useUser } from '@/contexts/UserContext';
 import { Link } from 'react-router-dom';
 
 const Settings = () => {
@@ -298,6 +299,21 @@ const Settings = () => {
     }, 300);
     return () => clearTimeout(t);
   }, [searchTerm, section]);
+
+  const { isAuthenticated } = useUser();
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-dark flex items-center justify-center">
+        <Card className="bg-white/5 border-white/10 rounded-2xl p-8 text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-4">Please Login</h1>
+          <p className="text-muted-foreground mb-6">You need to be logged in to access Settings.</p>
+          <Link to="/experiences">
+            <Button className="bg-gradient-neon text-background hover:opacity-90 shadow-neon">Go to Experiences</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <>

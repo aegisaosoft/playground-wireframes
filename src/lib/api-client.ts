@@ -23,6 +23,10 @@ console.log('API Base URL:', API_FULL_URL);
 export function resolveApiResourceUrl(path: string | undefined | null): string | undefined | null {
   if (!path) return path as any;
   if (/^https?:\/\//i.test(path)) return path;
+  // Keep avatar assets on frontend origin
+  if (path.startsWith('/avatars/') || /^[\w.-]+\.(png|jpg|jpeg|gif|webp)$/i.test(path) && path.toLowerCase().includes('avatar')) {
+    return path; // served by frontend /public
+  }
   // Static files (e.g., /images/...) are hosted at the API root, not under /api
   if (path.startsWith('/')) return `${API_BASE_URL}${path}`;
   // Handle bare filenames by prefixing with /images/
