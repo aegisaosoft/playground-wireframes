@@ -142,34 +142,51 @@ export default function RetreatPage() {
               } : prev);
             }
           } catch (e) {
-            // Not a user (likely a brand). Try brand logo by slug derived from hostName
-            try {
-              const slug = (experience.hostName || '').toLowerCase()
-                .replace(/[^a-z0-9\s-]/g, '')
-                .replace(/\s+/g, '-')
-                .replace(/^-+|-+$/g, '');
-              if (slug) {
-                const brand = await brandsService.getBrandBySlug(slug);
-                if (brand?.logo) {
-                  setRetreatData(prev => prev ? {
-                    ...prev,
-                    organizer: {
-                      ...prev.organizer,
-                      avatar: resolveApiResourceUrl(brand.logo) as string
-                    }
-                  } : prev);
-                } else {
-                  const list = await getAvatarList();
-                  setRetreatData(prev => prev ? {
-                    ...prev,
-                    organizer: {
-                      ...prev.organizer,
-                      avatar: list[1] || list[0]
-                    }
-                  } : prev);
+            // Try find user by name when host is a user
+            if ((experience as any)?.hostType !== 'brand' && experience.hostName) {
+              try {
+                const results = await userService.searchUsers(String(experience.hostName));
+                if (results && results.length > 0) {
+                  const match = results.find(r => r.name?.toLowerCase() === String(experience.hostName).toLowerCase()) || results[0];
+                  if (match?.avatarUrl) {
+                    setRetreatData(prev => prev ? {
+                      ...prev,
+                      organizer: { ...prev.organizer, avatar: match.avatarUrl }
+                    } : prev);
+                  }
                 }
-              }
-            } catch {}
+              } catch {}
+            }
+            // Only try brand lookup if API says hostType is brand
+            if ((experience as any)?.hostType === 'brand') {
+              try {
+                const slug = (experience.hostName || '').toLowerCase()
+                  .replace(/[^a-z0-9\s-]/g, '')
+                  .replace(/\s+/g, '-')
+                  .replace(/^-+|-+$/g, '');
+                if (slug) {
+                  const brand = await brandsService.getBrandBySlug(slug);
+                  if (brand?.logo) {
+                    setRetreatData(prev => prev ? {
+                      ...prev,
+                      organizer: {
+                        ...prev.organizer,
+                        avatar: resolveApiResourceUrl(brand.logo) as string
+                      }
+                    } : prev);
+                  } else {
+                    const list = await getAvatarList();
+                    setRetreatData(prev => prev ? {
+                      ...prev,
+                      organizer: {
+                        ...prev.organizer,
+                        avatar: list[1] || list[0]
+                      }
+                    } : prev);
+                  }
+                }
+              } catch {}
+            }
           }
         }
 

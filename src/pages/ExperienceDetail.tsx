@@ -241,9 +241,20 @@ const ExperienceDetail = () => {
             }
           } catch {}
         }
-        if (!organizerAvatar && data.hostName) {
+        // Fallback: search user by hostName if no hostId or profile not found
+        if (!organizerAvatar && (data as any)?.hostType !== 'brand' && data.hostName) {
           try {
-            const slug = String(data.hostName).toLowerCase()
+            const results = await userService.searchUsers(String(data.hostName));
+            if (results && results.length > 0) {
+              const match = results.find(r => r.name?.toLowerCase() === String(data.hostName).toLowerCase()) || results[0];
+              organizerAvatar = match?.avatarUrl || organizerAvatar;
+            }
+          } catch {}
+        }
+        // Only try brand lookup when API indicates the host is a brand
+        if (!organizerAvatar && (data as any)?.hostType === 'brand') {
+          try {
+            const slug = String(data.hostName || '').toLowerCase()
               .replace(/[^a-z0-9\s-]/g, '')
               .replace(/\s+/g, '-')
               .replace(/^-+|-+$/g, '');
