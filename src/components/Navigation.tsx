@@ -11,6 +11,7 @@ import { BrandData } from "@/components/BrandEditor";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
 import { BrandLogo } from "@/components/BrandLogo";
 import { useUser } from "@/contexts/UserContext";
+import { Settings } from "lucide-react";
 
 interface NavigationProps {
   onCreateRetreat?: (retreat: Omit<Retreat, 'id'>) => void;
@@ -111,6 +112,10 @@ export const Navigation = ({
     }
     setIsAccountModalOpen(false);
   };
+  const isAdmin = !!(user && (
+    (/admin/i.test((user as any).role || '')) ||
+    (/admin/i.test((user as any).profile?.role || ''))
+  ));
   return (
     <nav className="w-full bg-background border-b border-border px-6 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -150,6 +155,18 @@ export const Navigation = ({
           
           {/* Notification Bell - only show when user is logged in */}
           {user && <NotificationDropdown />}
+
+          {/* Admin Settings button (between Create Experience and login) */}
+          {user && isAdmin && (
+            <Link to="/settings">
+              <Button
+                variant="outline"
+                className="bg-transparent border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-background transition-all font-semibold"
+              >
+                Settings
+              </Button>
+            </Link>
+          )}
           
           {user ? (
             <Link to="/account">

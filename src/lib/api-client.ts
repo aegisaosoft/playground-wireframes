@@ -68,11 +68,7 @@ class ApiClient {
       ...customHeaders,
     };
 
-    const token = this.getAuthToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
+    // Cookie-based auth: no Authorization header
     return headers;
   }
 
@@ -82,6 +78,7 @@ class ApiClient {
   private async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     const config: RequestInit = {
+      credentials: 'include',
       ...options,
       headers: this.buildHeaders(options.headers),
     };
@@ -157,17 +154,11 @@ class ApiClient {
    */
   async upload<T>(endpoint: string, formData: FormData, options?: Omit<RequestOptions, 'headers'>): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    const token = this.getAuthToken();
-    
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
 
     const config: RequestInit = {
+      credentials: 'include',
       ...options,
       method: (options && options.method) ? options.method : 'POST',
-      headers,
       body: formData,
     };
 

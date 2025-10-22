@@ -30,6 +30,7 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import MyAccount from "./pages/MyAccount";
 import UserProfile from "./pages/UserProfile";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
           <Route path="/profile/:userId" element={<Layout><UserProfile /></Layout>} />
           <Route path="/organizer/dashboard" element={<Layout><OrganizerDashboard /></Layout>} />
           <Route path="/account" element={<Layout><MyAccount /></Layout>} />
+          <Route path="/settings" element={<Layout><Settings /></Layout>} />
           <Route path="/payment/:experienceId" element={<PaymentPage />} />
           <Route path="/payment/success" element={<PaymentSuccessPage />} />
           <Route path="/payment/cancel" element={<PaymentCancelPage />} />

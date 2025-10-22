@@ -149,6 +149,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const login = (userData: UserProfile, token?: string) => {
     setUser(userData);
+    try {
+      console.log('[UserContext] login()', { role: (userData as any).role, profileRole: (userData as any).profile?.role });
+      localStorage.setItem('debug_context_role', String((userData as any).role || ''));
+      // Persist to session manager (keep role with token)
+      sessionManager.saveSession({ user: userData, token });
+    } catch {}
     
     // Save to session manager
     if (token) {
@@ -209,6 +215,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       setIsLoading(true);
       const profile = await userService.getCurrentUser();
       setUser(profile);
+      try {
+        console.log('[UserContext] refreshUser()', { role: profile.role });
+        localStorage.setItem('debug_context_role', String(profile.role || ''));
+      } catch {}
       
       // Update localStorage with fresh data
       const updatedUser = {

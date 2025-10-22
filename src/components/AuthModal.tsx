@@ -82,7 +82,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
             localStorage.setItem('user', JSON.stringify(u));
           } catch {}
         }
-        onLogin({ name: res.user.name, email: res.user.email }, false);
+        onLogin({ name: res.user.name, email: res.user.email, profile: res.user.profile }, false);
         onClose();
         navigate('/account');
       }

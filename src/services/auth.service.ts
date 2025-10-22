@@ -5,6 +5,7 @@
 
 import { apiClient } from '@/lib/api-client';
 import { resolveApiResourceUrl } from '@/lib/api-client';
+import { sessionManager } from '@/lib/session-manager';
 
 export interface LoginRequest {
   email: string;
@@ -82,11 +83,32 @@ export const authService = {
         }
       }
     };
+    try {
+      console.log('[Auth] Login success', {
+        userId: backendResponse.user.id,
+        email: backendResponse.user.email,
+        role: backendResponse.user.role
+      });
+      // Persist a simple debug flag for quick inspection
+      localStorage.setItem('debug_last_role', String(backendResponse.user.role || ''));
+    } catch {}
     
     // Store token and user data in localStorage
     localStorage.setItem('user', JSON.stringify(response.user));
     localStorage.setItem('auth_token', response.token);
-    
+    try {
+      // Save to unified session (includes role)
+      sessionManager.saveSession({ user: {
+        id: response.user.id,
+        email: response.user.email,
+        name: response.user.name,
+        role: response.user.profile?.role,
+        isEmailVerified: response.user.profile?.isEmailVerified,
+        isActive: response.user.profile?.isActive,
+        createdAt: new Date().toISOString(),
+        profileImageUrl: response.user.profile?.profileImageUrl
+      } as any, token: response.token });
+    } catch {}
     
     return response;
   },
@@ -140,10 +162,30 @@ export const authService = {
         }
       }
     };
+    try {
+      console.log('[Auth] Signup immediate login success', {
+        userId: backendResponse.user.id,
+        email: backendResponse.user.email,
+        role: backendResponse.user.role
+      });
+      localStorage.setItem('debug_last_role', String(backendResponse.user.role || ''));
+    } catch {}
     
     // Store token and user data in localStorage
     localStorage.setItem('user', JSON.stringify(response.user));
     localStorage.setItem('auth_token', response.token);
+    try {
+      sessionManager.saveSession({ user: {
+        id: response.user.id,
+        email: response.user.email,
+        name: response.user.name,
+        role: response.user.profile?.role,
+        isEmailVerified: response.user.profile?.isEmailVerified,
+        isActive: response.user.profile?.isActive,
+        createdAt: new Date().toISOString(),
+        profileImageUrl: response.user.profile?.profileImageUrl
+      } as any, token: response.token });
+    } catch {}
     
     return response;
   },
@@ -179,6 +221,10 @@ export const authService = {
   logout(): void {
     localStorage.removeItem('user');
     localStorage.removeItem('auth_token');
+    try {
+      // Clear unified session so role/token are removed together
+      sessionManager.clearSession();
+    } catch {}
   },
 
   /**
