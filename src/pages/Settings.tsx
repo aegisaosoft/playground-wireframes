@@ -20,6 +20,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Users as UsersIcon, Building, ArrowLeft, CreditCard } from 'lucide-react';
+import { resolveApiResourceUrl } from '@/lib/api-client';
 import { paymentsService, type PaymentSessionRow } from '@/services/payments.service';
 import { useUser } from '@/contexts/UserContext';
 import { Link } from 'react-router-dom';
@@ -174,7 +175,7 @@ const Settings = () => {
         return (
           <div className="flex items-center gap-3">
             <Avatar className="w-8 h-8">
-              <AvatarImage src={u.profileImageUrl} />
+              <AvatarImage src={resolveApiResourceUrl(u.profileImageUrl) || '/swfault_awatar.png'} />
               <AvatarFallback className="bg-neon-cyan/20 text-neon-cyan">
                 {u.name?.[0]?.toUpperCase() || 'U'}
               </AvatarFallback>
@@ -430,7 +431,7 @@ const Settings = () => {
                           <div key={u.id} className="py-3 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <Avatar className="w-10 h-10">
-                                <AvatarImage src={(u as any).avatarUrl || (u as any).avatar} />
+                                <AvatarImage src={resolveApiResourceUrl((u as any).avatarUrl || (u as any).avatar) || '/swfault_awatar.png'} />
                                 <AvatarFallback className="bg-neon-cyan/20 text-neon-cyan">
                                   {u.name?.[0]?.toUpperCase() || 'U'}
                                 </AvatarFallback>
