@@ -119,7 +119,7 @@ export default function RetreatPage() {
         setRetreatData(retreatDetail);
 
         // Fallback: if organizer avatar missing, fetch by hostId
-        if ((!retreatDetail.organizer.avatar || retreatDetail.organizer.avatar === '/placeholder.svg') && (experience.hostId || experience.host?.id)) {
+        if ((!retreatDetail.organizer.avatar) && (experience.hostId || experience.host?.id)) {
           try {
             const hostProfile = await userService.getUserProfile(experience.hostId || experience.host.id);
             if (hostProfile?.profileImageUrl) {
@@ -174,7 +174,7 @@ export default function RetreatPage() {
         }
 
         // Final fallback: if current user is the host, use local profile image
-        if ((!retreatDetail.organizer.avatar || retreatDetail.organizer.avatar === '/placeholder.svg') && user?.profile?.profileImageUrl) {
+        if ((!retreatDetail.organizer.avatar) && user?.profile?.profileImageUrl) {
           const sameUser = (user?.name || '').toLowerCase() === (retreatDetail.organizer.name || '').toLowerCase();
           if (sameUser) {
             setRetreatData(prev => prev ? {

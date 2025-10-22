@@ -38,7 +38,7 @@ export const RetreatCreationModal = ({ isOpen, onClose, onCreateRetreat }: Retre
     
     // Create retreat object
     const newRetreat = {
-      image: imagePreview || "/placeholder.svg",
+      image: imagePreview || "/default-retreat-banner.png",
       location: location,
       date: formattedDate,
       title: retreatName,

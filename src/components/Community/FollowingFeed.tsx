@@ -62,14 +62,14 @@ const mockUpdates: FeedUpdate[] = [
     organizer: {
       id: 'org1',
       name: 'Wellness Collective',
-      avatar: '/placeholder.svg',
+      avatar: '/swfault_awatar.png',
       isFollowing: true
     },
     timestamp: new Date('2024-01-15T10:30:00'),
     updateType: 'New Experience',
     content: {
       text: 'Just launched our most requested retreat! 🧘‍♀️ Join us for 7 days of mindfulness and mountain views in the Swiss Alps.',
-      image: '/placeholder.svg',
+      image: '/default-retreat-banner.png',
       experienceLink: '/experience/swiss-wellness'
     },
     actions: {
@@ -82,7 +82,7 @@ const mockUpdates: FeedUpdate[] = [
       title: 'Swiss Alps Wellness Retreat',
       location: 'Zermatt, Switzerland',
       dates: 'Jul 15-22, 2024',
-      image: '/placeholder.svg',
+      image: '/default-retreat-banner.png',
       price: '$2,800'
     }
   },
@@ -91,7 +91,7 @@ const mockUpdates: FeedUpdate[] = [
     organizer: {
       id: 'org2',
       name: 'Tech Nomads',
-      avatar: '/placeholder.svg',
+      avatar: '/swfault_awatar.png',
       isFollowing: true
     },
     timestamp: new Date('2024-01-14T16:20:00'),
@@ -117,7 +117,7 @@ const mockUpdates: FeedUpdate[] = [
     organizer: {
       id: 'org3',
       name: 'Adventure Seekers',
-      avatar: '/placeholder.svg',
+      avatar: '/swfault_awatar.png',
       isFollowing: true
     },
     timestamp: new Date('2024-01-13T14:15:00'),
