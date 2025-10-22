@@ -57,13 +57,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           setBrandPreferences(sessionData.brandPreferences || null);
         }
         
-        // Check if we have a token for API validation
-        const token = sessionManager.getToken();
-        if (!token) {
-          setUser(null);
-          return;
-        }
-
         // Validate session with API (but don't fail if API is unavailable)
         try {
           const profile = await userService.getCurrentUser();
@@ -72,7 +65,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           // Update session with fresh data
           sessionManager.saveSession({
             user: profile,
-            token: token
+            // Keep token if present, but not required for cookie-based auth
+            token: sessionManager.getToken() || undefined
           });
           
         } catch (apiError) {
