@@ -3,8 +3,12 @@
  */
 
 // Read from environment variable (compat with non-Vite type checking)
-const API_BASE_URL = (import.meta as any)?.env?.VITE_API_URL || 
-  'https://goplayground-web-api-2025-cgbkabcxh6abccd6.canadacentral-01.azurewebsites.net';
+const ENV_BASE = (import.meta as any)?.env?.VITE_API_URL as string | undefined;
+// Smart default: when running locally without an env, target local API; otherwise Azure
+const DEFAULT_BASE = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
+  ? 'https://localhost:7183'
+  : 'https://goplayground-web-api-2025-cgbkabcxh6abccd6.canadacentral-01.azurewebsites.net';
+const API_BASE_URL = ENV_BASE || DEFAULT_BASE;
 
 // Add /api to base URL
 const API_FULL_URL = `${API_BASE_URL}/api`;
@@ -21,6 +25,10 @@ export function resolveApiResourceUrl(path: string | undefined | null): string |
   if (/^https?:\/\//i.test(path)) return path;
   // Static files (e.g., /images/...) are hosted at the API root, not under /api
   if (path.startsWith('/')) return `${API_BASE_URL}${path}`;
+  // Handle bare filenames by prefixing with /images/
+  if (/^[\w.-]+\.(png|jpg|jpeg|gif|webp)$/i.test(path)) {
+    return `${API_BASE_URL}/images/${path}`;
+  }
   return `${API_BASE_URL}/${path}`;
 }
 
@@ -68,7 +76,14 @@ class ApiClient {
       ...customHeaders,
     };
 
-    // Cookie-based auth: no Authorization header
+    // Add Bearer token if present (fallback for JWT-auth APIs)
+    try {
+      const token = this.getAuthToken();
+      if (token && !headers['Authorization']) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    } catch {}
+
     return headers;
   }
 

@@ -590,29 +590,7 @@ export const EditBrandPageModal = ({
                     </Button>
                   )}
                 </div>
-                {/* Preset banner gallery: do not show if none exist; avatars allowed visually per request not uploaded */}
-                {availableAvatars.length > 0 && (
-                  <div className="pt-1">
-                    <Label className="text-xs text-[hsl(var(--foreground))]">Or choose from gallery</Label>
-                    <div className="grid grid-cols-6 gap-2 mt-2">
-                      {availableAvatars.map((url) => {
-                        const file = url.split('/').pop() as string;
-                        const isSelected = selectedBannerUrl === url;
-                        return (
-                          <button
-                            key={url}
-                            type="button"
-                            onClick={() => { setSelectedBannerUrl(url); setBannerFile(null); setBannerPreview(url); }}
-                            className={`overflow-hidden border ${isSelected ? 'border-neon-cyan' : 'border-white/20'} w-full h-12 rounded`}
-                            title={file}
-                          >
-                            <img src={url} alt={file} className="w-full h-full object-cover" />
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+                {/* Banner preset gallery intentionally removed per request. Upload only. */}
               </div>
             </div>
           </div>

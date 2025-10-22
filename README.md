@@ -71,3 +71,20 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Local Development Setup
+
+1. Start the API:
+   - In `ExperiencesPlatformAPI`, run: `dotnet run --launch-profile http`
+   - API will be at `http://localhost:5069` (per `Properties/launchSettings.json`)
+2. Point the frontend to the local API:
+   - Create a file `playground-wireframes/.env.local` with the following:
+
+     VITE_API_URL=http://localhost:5069
+
+3. Start the frontend:
+   - In `playground-wireframes`, run: `npm run dev`
+
+4. Notes:
+   - The frontend uses cookie-based auth; CORS with credentials is enabled.
+   - If you change the API port, update `VITE_API_URL` accordingly.

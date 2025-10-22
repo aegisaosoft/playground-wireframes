@@ -158,12 +158,9 @@ export const Navigation = ({
 
           {/* Admin Settings button (between Create Experience and login) */}
           {user && isAdmin && (
-            <Link to="/settings">
-              <Button
-                variant="outline"
-                className="bg-transparent border-neon-purple text-neon-purple hover:bg-neon-purple hover:text-background transition-all font-semibold"
-              >
-                Settings
+            <Link to="/settings" title="Settings">
+              <Button variant="ghost" className="p-2 hover:bg-white/10 text-foreground">
+                <Settings className="w-5 h-5" />
               </Button>
             </Link>
           )}

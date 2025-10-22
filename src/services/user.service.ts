@@ -69,6 +69,19 @@ export const userService = {
   },
 
   /**
+   * Get all users (admin use)
+   */
+  async getAllUsers(): Promise<UserProfile[]> {
+    try {
+      const response = await apiClient.get<{ success?: boolean; message?: string; data: UserProfile[] }>(`/Users`);
+      if ((response as any)?.data) return (response as any).data as UserProfile[];
+      return response as unknown as UserProfile[];
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
    * Update user profile
    */
   async updateProfile(profileData: Partial<UserProfile>): Promise<UserProfileResponse> {
