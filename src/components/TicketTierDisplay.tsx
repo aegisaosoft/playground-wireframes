@@ -7,6 +7,7 @@ import { Ticket, CreditCard, FileText, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { applicationsService } from '@/services/applications.service';
 import { experiencesService } from '@/services/experiences.service';
+import { useUser } from '@/contexts/UserContext';
 
 interface TicketTier {
   id: string;
@@ -34,6 +35,7 @@ export const TicketTierDisplay: React.FC<TicketTierDisplayProps> = ({
   const [loadingCapacity, setLoadingCapacity] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { isAuthenticated } = useUser();
 
   // Load per-tier capacity
   useEffect(() => {
@@ -53,6 +55,15 @@ export const TicketTierDisplay: React.FC<TicketTierDisplayProps> = ({
   }, [experienceId]);
 
   const handleBuyTicket = (tierId: string) => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "Please log in to purchase tickets.",
+        variant: "destructive",
+      });
+      navigate('/account');
+      return;
+    }
     if (!hostPayoutsEnabled) {
       toast({
         title: "Payments Unavailable",
@@ -125,7 +136,7 @@ export const TicketTierDisplay: React.FC<TicketTierDisplayProps> = ({
                  const isLoading = loadingTier === tier.id;
                  const tierInfo = tierCapacity?.find(t => t.tierId === tier.id);
                  const isTierSoldOut = tierInfo ? tierInfo.available <= 0 : false;
-                 const canPurchase = isPaid && hostPayoutsEnabled && !isTierSoldOut;
+                const canPurchase = isPaid && hostPayoutsEnabled && !isTierSoldOut && isAuthenticated;
           
           return (
                  <div
@@ -194,10 +205,11 @@ export const TicketTierDisplay: React.FC<TicketTierDisplayProps> = ({
                       {!canPurchase && (
                         <TooltipContent>
                           <p>
-                            {isTierSoldOut 
-                              ? 'This tier is sold out' 
-                              : 'Payments unavailable—host hasn\'t enabled payouts yet.'
-                            }
+                            {isTierSoldOut
+                              ? 'This tier is sold out'
+                              : (!isAuthenticated
+                                  ? 'Please log in to purchase tickets.'
+                                  : 'Payments unavailable—host hasn\'t enabled payouts yet.')}
                           </p>
                         </TooltipContent>
                       )}

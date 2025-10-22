@@ -27,6 +27,7 @@ import {
 import { paymentsService } from '@/services/payments.service';
 import { experiencesService } from '@/services/experiences.service';
 import { brandsService, BrandData } from '@/services/brands.service';
+import { useUser } from '@/contexts/UserContext';
 
 // Initialize Stripe with your publishable key
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51234567890abcdef');
@@ -342,6 +343,7 @@ export const PaymentPage: React.FC = () => {
   const [stripeStatus, setStripeStatus] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useUser();
 
 
   useEffect(() => {
@@ -404,6 +406,23 @@ export const PaymentPage: React.FC = () => {
       variant: "destructive",
     });
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/50 flex items-center justify-center">
+        <Card className="bg-white/5 border-white/20 max-w-md">
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-white mb-2">Login Required</h2>
+            <p className="text-white/70 mb-4">Please log in to continue to checkout.</p>
+            <Button onClick={() => navigate('/account')} className="bg-neon-cyan text-background hover:bg-neon-cyan/90">
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

@@ -1,5 +1,6 @@
 import { API_URL } from '@/config/api';
 import { userService } from '@/services/user.service';
+import { sessionManager } from '@/lib/session-manager';
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -61,6 +62,7 @@ export default function MyAccount() {
       : 'profile';
   });
   const [user, setUser] = useState<{ name: string; email: string; profile?: any } | null>(null);
+  const [authChecking, setAuthChecking] = useState(true);
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [socialAccounts, setSocialAccounts] = useState<SocialAccounts>({});
@@ -131,20 +133,42 @@ export default function MyAccount() {
   };
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const userData = JSON.parse(storedUser);
-      setUser(userData);
-      setName(userData.name);
-      setSocialAccounts(userData.socialAccounts || {});
-      // Load profile image from user profile; fallback to preset gallery if not set
-      if (userData.profile?.profileImageUrl) {
-        setProfilePic(userData.profile.profileImageUrl);
-      } else {
-        // Optional preset default
-        setProfilePic('/avatars/adventure-avatar.png');
+    (async () => {
+      try {
+        // Prefer session-managed user if present
+        const sessionUser = sessionManager.getCurrentUser();
+        if (sessionUser) {
+          setUser({ name: sessionUser.name || '', email: sessionUser.email || '', profile: sessionUser });
+          setName(sessionUser.name || '');
+          setSocialAccounts((sessionUser as any).socialAccounts || {});
+          setProfilePic(sessionUser.profileImageUrl || '/avatars/adventure-avatar.png');
+          return;
+        }
+
+        // Fallback: fetch from API to validate cookie session
+        const me = await userService.getCurrentUser().catch(() => null);
+        if (me) {
+          setUser({ name: me.name || '', email: me.email || '', profile: me });
+          setName(me.name || '');
+          setSocialAccounts((me as any).socialAccounts || {});
+          setProfilePic(me.profileImageUrl || '/avatars/adventure-avatar.png');
+          sessionManager.saveSession({ user: me });
+          return;
+        }
+
+        // Legacy fallback: localStorage
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          setUser(userData);
+          setName(userData.name);
+          setSocialAccounts(userData.socialAccounts || {});
+          setProfilePic(userData.profile?.profileImageUrl || '/avatars/adventure-avatar.png');
+        }
+      } finally {
+        setAuthChecking(false);
       }
-    }
+    })();
   }, []);
 
   // Fetch data based on active tab
@@ -1471,6 +1495,12 @@ export default function MyAccount() {
         return null;
     }
   };
+
+  if (authChecking) {
+    return (
+      <div className="min-h-screen bg-gradient-dark flex items-center justify-center text-muted-foreground">Checking authentication…</div>
+    );
+  }
 
   if (!user) {
     return (
