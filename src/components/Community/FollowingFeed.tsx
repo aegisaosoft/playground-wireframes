@@ -62,7 +62,7 @@ const mockUpdates: FeedUpdate[] = [
     organizer: {
       id: 'org1',
       name: 'Wellness Collective',
-      avatar: '/swfault_awatar.png',
+      avatar: '/avatars/default-avatar.png',
       isFollowing: true
     },
     timestamp: new Date('2024-01-15T10:30:00'),
@@ -91,7 +91,7 @@ const mockUpdates: FeedUpdate[] = [
     organizer: {
       id: 'org2',
       name: 'Tech Nomads',
-      avatar: '/swfault_awatar.png',
+      avatar: '/avatars/default-avatar.png',
       isFollowing: true
     },
     timestamp: new Date('2024-01-14T16:20:00'),
@@ -117,7 +117,7 @@ const mockUpdates: FeedUpdate[] = [
     organizer: {
       id: 'org3',
       name: 'Adventure Seekers',
-      avatar: '/swfault_awatar.png',
+      avatar: '/avatars/default-avatar.png',
       isFollowing: true
     },
     timestamp: new Date('2024-01-13T14:15:00'),

@@ -53,7 +53,7 @@ const Index = () => {
           agendaVisibility: 'public',
           organizer: {
             name: exp.hostName || exp.host?.name || 'Unknown Host',
-            avatar: exp.host?.profileImageUrl || '/swfault_awatar.png',
+            avatar: exp.host?.profileImageUrl || '/avatars/default-avatar.png',
             profileLink: `/host/${exp.hostId || exp.host?.id}`
           }
         }));
@@ -120,7 +120,7 @@ const Index = () => {
       id: Math.max(...retreats.map(r => r.id), 0) + 1,
       organizer: {
         name: userBrandData?.name || user?.name || "Unknown Host",
-        avatar: userBrandData?.logo || "/swfault_awatar.png"
+        avatar: userBrandData?.logo || "/avatars/default-avatar.png"
       }
     };
     setRetreats([retreat, ...retreats]);

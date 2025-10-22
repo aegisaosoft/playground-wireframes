@@ -19,7 +19,7 @@ const mockMessages: ChatMessage[] = [
     id: '1',
     userId: '1',
     userName: 'Alex Chen',
-    userAvatar: '/swfault_awatar.png',
+    userAvatar: '/avatars/default-avatar.png',
     content: 'Welcome everyone to Desert Code Camp! 🏜️ Excited to have you all here.',
     timestamp: new Date('2024-03-14T18:30:00'),
     isPinned: true,
@@ -29,7 +29,7 @@ const mockMessages: ChatMessage[] = [
     id: '2', 
     userId: '2',
     userName: 'Sarah Martinez',
-    userAvatar: '/swfault_awatar.png',
+    userAvatar: '/avatars/default-avatar.png',
     content: 'Just arrived! The sunset views are incredible 🌅',
     timestamp: new Date('2024-03-14T19:15:00'),
     reactions: [{ emoji: '❤️', users: ['1', '3'] }]
@@ -38,7 +38,7 @@ const mockMessages: ChatMessage[] = [
     id: '3',
     userId: '3', 
     userName: 'Mike Johnson',
-    userAvatar: '/swfault_awatar.png',
+    userAvatar: '/avatars/default-avatar.png',
     content: 'Has anyone seen the equipment list? Want to make sure I have everything for tomorrow.',
     timestamp: new Date('2024-03-14T20:00:00')
   }

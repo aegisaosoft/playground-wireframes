@@ -14,7 +14,7 @@ const mockRetreats = [
     image: "/default-retreat-banner.png",
     organizer: {
       name: "Mindful Wellness Co.",
-      avatar: "/swfault_awatar.png"
+      avatar: "/avatars/default-avatar.png"
     }
   },
   {
@@ -25,7 +25,7 @@ const mockRetreats = [
     image: "/default-retreat-banner.png",
     organizer: {
       name: "Mindful Wellness Co.",
-      avatar: "/swfault_awatar.png"
+      avatar: "/avatars/default-avatar.png"
     }
   }
 ];

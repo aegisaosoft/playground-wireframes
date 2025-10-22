@@ -1232,7 +1232,7 @@ export default function MyAccount() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <Avatar className="w-16 h-16">
-                          <AvatarImage src={host.avatar || '/swfault_awatar.png'} alt={host.name} />
+                          <AvatarImage src={host.avatar || '/avatars/default-avatar.png'} alt={host.name} />
                           <AvatarFallback className="bg-neon-pink/20 text-neon-pink text-lg">
                             {host.name.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>

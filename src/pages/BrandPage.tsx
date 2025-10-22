@@ -39,7 +39,7 @@ export const BrandPage = ({
   const [brandData, setBrandData] = useState<BrandData>({
     name: "Mindful Wellness Co.",
     description: "Creating transformative experiences that connect mind, body, and spirit. Our retreats are designed to help you disconnect from the chaos of daily life and reconnect with your inner wisdom through mindfulness, meditation, and holistic wellness practices.",
-    logo: "/swfault_awatar.png",
+    logo: "/avatars/default-avatar.png",
     banner: "/default-retreat-banner.png"
   });
   

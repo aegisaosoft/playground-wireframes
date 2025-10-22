@@ -77,7 +77,7 @@ export default function ExperiencePortal() {
           id: experience.hostId || experience.creatorId || 'unknown',
           name: experience.hostName || experience.host?.name || 'Unknown Host',
           email: experience.host?.email || '',
-          avatar: experience.host?.profileImageUrl || '/swfault_awatar.png',
+          avatar: experience.host?.profileImageUrl || '/avatars/default-avatar.png',
           bio: experience.host?.bio || '',
           role: 'organizer'
         },
@@ -89,7 +89,7 @@ export default function ExperiencePortal() {
             id: experience.hostId || experience.creatorId || 'unknown',
             name: experience.hostName || experience.host?.name || 'Unknown Host',
             email: experience.host?.email || '',
-            avatar: experience.host?.profileImageUrl || '/swfault_awatar.png',
+            avatar: experience.host?.profileImageUrl || '/avatars/default-avatar.png',
             role: 'organizer'
           },
           // Add approved applications as attendees
@@ -99,7 +99,7 @@ export default function ExperiencePortal() {
               id: app.userId || app.user?.id || 'unknown',
               name: app.userName || app.user?.name || 'Unknown User',
               email: app.userEmail || app.user?.email || '',
-              avatar: app.userProfileImageUrl || app.user?.profileImageUrl || '/swfault_awatar.png',
+              avatar: app.userProfileImageUrl || app.user?.profileImageUrl || '/avatars/default-avatar.png',
               role: 'attendee' as const
             }))
         ],

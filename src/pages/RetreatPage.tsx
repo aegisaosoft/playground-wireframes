@@ -100,7 +100,7 @@ export default function RetreatPage() {
           // Host information
           organizer: {
             name: experience.hostName || experience.host?.name || 'Unknown Host',
-            avatar: experience.host?.profileImageUrl || '/swfault_awatar.png',
+            avatar: experience.host?.profileImageUrl || '/avatars/default-avatar.png',
             bio: experience.host?.bio || '',
             socialAccounts: experience.host?.socialAccounts || {}
           },

@@ -35,7 +35,7 @@ const experiences = [
     category: { name: "Hacker House", color: "pink" as const },
     organizer: {
       name: "Alex Chen",
-      avatar: "/swfault_awatar.png",
+      avatar: "/avatars/default-avatar.png",
       bio: "Former Silicon Valley engineer turned desert philosopher. Founder of multiple startups."
     },
     agenda: [
@@ -115,7 +115,7 @@ const experiences = [
     category: { name: "Creative Collective", color: "cyan" as const },
     organizer: {
       name: "Yuki Tanaka",
-      avatar: "/swfault_awatar.png",
+      avatar: "/avatars/default-avatar.png",
       bio: "Tokyo native and tech community organizer. Expert in Japanese startup ecosystem."
     },
     agenda: [
@@ -164,7 +164,7 @@ const experiences = [
     category: { name: "Digital Nomad Hub", color: "yellow" as const },
     organizer: {
       name: "Maya Patel",
-      avatar: "/swfault_awatar.png",
+      avatar: "/avatars/default-avatar.png",
       bio: "Digital nomad veteran and wellness advocate. Building the future of remote work."
     },
     agenda: [

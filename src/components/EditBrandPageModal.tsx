@@ -653,8 +653,8 @@ export const EditBrandPageModal = ({
               <h3 className="text-lg font-semibold text-[hsl(var(--foreground))]">Stripe Integration</h3>
             </div>
             {/* Reuse the same StripeSettings component with brandId to get full Connect flow */}
-            {selectedBrand?.id && (
-              <StripeSettings brandId={selectedBrand.id} />
+            {(initialData?.id || brandData.id) && (
+              <StripeSettings brandId={(initialData?.id || brandData.id)!} />
             )}
           </div>
         </div>

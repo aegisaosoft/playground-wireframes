@@ -47,7 +47,7 @@ const initialRetreats: Retreat[] = [
     ],
     organizer: {
       name: "Sarah Williams",
-      avatar: "/swfault_awatar.png",
+      avatar: "/avatars/default-avatar.png",
       profileLink: "#"
     },
     extendedContent: [
@@ -107,7 +107,7 @@ const initialRetreats: Retreat[] = [
     agendaVisibility: 'private',
     organizer: {
       name: "Carlos Rodriguez",
-      avatar: "/swfault_awatar.png"
+      avatar: "/avatars/default-avatar.png"
     }
   },
   {
@@ -133,7 +133,7 @@ const initialRetreats: Retreat[] = [
     ],
     organizer: {
       name: "Sarah Williams",
-      avatar: "/swfault_awatar.png",
+      avatar: "/avatars/default-avatar.png",
       profileLink: "#"
     }
   },
@@ -151,7 +151,7 @@ const initialRetreats: Retreat[] = [
     agendaVisibility: 'public',
     organizer: {
       name: "Maria Santos",
-      avatar: "/swfault_awatar.png"
+      avatar: "/avatars/default-avatar.png"
     }
   },
   {
@@ -168,7 +168,7 @@ const initialRetreats: Retreat[] = [
     agendaVisibility: 'private',
     organizer: {
       name: "Klaus Mueller",
-      avatar: "/swfault_awatar.png"
+      avatar: "/avatars/default-avatar.png"
     }
   },
   {
@@ -185,7 +185,7 @@ const initialRetreats: Retreat[] = [
     agendaVisibility: 'public',
     organizer: {
       name: "Dimitri Papadopoulos",
-      avatar: "/swfault_awatar.png"
+      avatar: "/avatars/default-avatar.png"
     }
   }
 ];
