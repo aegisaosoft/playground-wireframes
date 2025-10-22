@@ -142,7 +142,7 @@ export default function MyAccount() {
         setProfilePic(userData.profile.profileImageUrl);
       } else {
         // Optional preset default
-        setProfilePic('/avatars/avatar1.jpg');
+        setProfilePic('/avatars/adventure-avatar.png');
       }
     }
   }, []);

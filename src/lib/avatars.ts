@@ -14,12 +14,8 @@ export async function getAvatarList(): Promise<string[]> {
       }
     }
   } catch {}
-  // Fallback to a sensible default set if no manifest
-  cachedList = [
-    '/avatars/avatar1.jpg',
-    '/avatars/avatar2.jpg',
-    '/avatars/avatar3.jpg'
-  ];
+  // No manifest => return empty, UI should hide galleries
+  cachedList = [];
   return cachedList;
 }
 

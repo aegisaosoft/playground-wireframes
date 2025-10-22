@@ -10,6 +10,8 @@ import { VoiceOnboardingModal } from "@/components/VoiceOnboarding";
 import { authService } from "@/services/auth.service";
 import { userService } from "@/services/user.service";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
+import { getAvatarManifest } from "@/lib/avatars";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -28,8 +30,13 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | null>(null);
+  const [availableAvatars, setAvailableAvatars] = useState<string[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    getAvatarManifest().then(setAvailableAvatars).catch(() => setAvailableAvatars([]));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -250,16 +257,16 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
               </div>
             )}
 
-            {isSignUp && (
+            {isSignUp && availableAvatars.length > 0 && (
               <div className="space-y-2">
                 <Label className="block">Choose an avatar (optional)</Label>
                 <div className="grid grid-cols-5 gap-2">
-                  {["avatar1.jpg","avatar2.jpg","avatar3.jpg","avatar4.jpg","avatar5.jpg"].map((file) => {
-                    const url = `/avatars/${file}`;
+                  {availableAvatars.map((url) => {
+                    const file = url.split('/').pop() || '';
                     const isSelected = selectedAvatarUrl === url;
                     return (
                       <button
-                        key={file}
+                        key={url}
                         type="button"
                         onClick={() => setSelectedAvatarUrl(url)}
                         className={`rounded-full overflow-hidden border ${isSelected ? 'border-neon-cyan' : 'border-white/20'} w-14 h-14`}
