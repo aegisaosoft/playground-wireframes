@@ -9,6 +9,7 @@ import { RichTextBlock } from './blocks/RichTextBlock';
 import { HighlightsBlock } from './blocks/HighlightsBlock';
 import { AgendaDayBlock } from './blocks/AgendaDayBlock';
 import { TicketsBlock } from './blocks/TicketsBlock';
+import { useUser } from '@/contexts/UserContext';
 import { GalleryBlock } from './blocks/GalleryBlock';
 import { FaqBlock } from './blocks/FaqBlock';
 import { CtaBlock } from './blocks/CtaBlock';
@@ -43,6 +44,8 @@ export const Canvas: React.FC<CanvasProps> = ({
   experienceId,
   onDeleteGalleryImage,
 }) => {
+  const { user } = useUser();
+  const isHost = !!user && /^(host|admin)$/i.test(user.role || '');
   // Find the dates block to get the date range
   const datesBlock = blocks.find(block => block.type === 'dates');
   const dateRange = datesBlock?.data ? {
@@ -72,6 +75,13 @@ export const Canvas: React.FC<CanvasProps> = ({
       case 'agendaDay':
         return <AgendaDayBlock {...props} dateRange={dateRange} />;
       case 'tickets':
+        if (!isHost) {
+          return (
+            <div className="p-4 border border-yellow-500/40 rounded-lg bg-yellow-500/10 text-yellow-400 text-sm">
+              Tickets are available to host accounts. Change your role to host to add ticket tiers.
+            </div>
+          );
+        }
         return <TicketsBlock {...props} />;
       case 'gallery':
         return <GalleryBlock {...props} experienceId={experienceId} onDeleteImage={onDeleteGalleryImage} />;

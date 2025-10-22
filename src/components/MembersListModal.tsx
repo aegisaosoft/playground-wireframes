@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useNotification } from '@/contexts/NotificationContext';
 import { brandsService, BrandMemberDto } from '@/services/brands.service';
@@ -24,6 +25,7 @@ export const MembersListModal: React.FC<MembersListModalProps> = ({
   const [members, setMembers] = useState<BrandMemberDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
+  const [memberSearchTerm, setMemberSearchTerm] = useState("");
   const { toast } = useToast();
   const { showConfirm, showSuccess, showError } = useNotification();
 
@@ -131,7 +133,26 @@ export const MembersListModal: React.FC<MembersListModalProps> = ({
             </div>
           ) : (
             <div className="space-y-3">
-              {members.map((member) => (
+              {members.length >= 5 && (
+                <div className="mb-2">
+                  <Input
+                    value={memberSearchTerm}
+                    onChange={(e) => setMemberSearchTerm(e.target.value)}
+                    placeholder="Find member by name or email"
+                    className="max-w-md"
+                  />
+                </div>
+              )}
+              {(() => {
+                const q = memberSearchTerm.trim().toLowerCase();
+                const list = q.length >= 2
+                  ? members.filter(m =>
+                      ((m.UserName || m.userName || '').toLowerCase().includes(q)) ||
+                      ((m.UserEmail || m.userEmail || '').toLowerCase().includes(q))
+                    )
+                  : members;
+                return list;
+              })().map((member) => (
                 <div
                   key={member.Id || member.id}
                   className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/8 transition-colors"
@@ -174,6 +195,18 @@ export const MembersListModal: React.FC<MembersListModalProps> = ({
                   </Button>
                 </div>
               ))}
+              {(() => {
+                const q = memberSearchTerm.trim().toLowerCase();
+                const list = q.length >= 2
+                  ? members.filter(m =>
+                      ((m.UserName || m.userName || '').toLowerCase().includes(q)) ||
+                      ((m.UserEmail || m.userEmail || '').toLowerCase().includes(q))
+                    )
+                  : members;
+                return list.length === 0;
+              })() && (
+                <div className="text-center text-muted-foreground">No members match your search.</div>
+              )}
             </div>
           )}
         </div>

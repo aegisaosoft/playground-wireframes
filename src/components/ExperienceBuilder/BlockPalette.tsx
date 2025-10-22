@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BlockType } from '@/types/experienceBuilder';
 import { Button } from '@/components/ui/button';
+import { useUser } from '@/contexts/UserContext';
 import { 
   Image, 
   FileText, 
@@ -43,6 +44,8 @@ const allBlocks = [
 ];
 
 export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceCreate, onScrollToBlock }) => {
+  const { user } = useUser();
+  const isHost = !!user && /^(host|admin)$/i.test(user.role || '');
 
   const renderBlockButton = (item: { type: BlockType; label: string; icon: any }) => {
     const IconComponent = item.icon;
@@ -100,8 +103,13 @@ export const BlockPalette: React.FC<BlockPaletteProps> = ({ onAddBlock, onVoiceC
       </h2>
       
       <div className="space-y-2">
-        {/* All blocks */}
-        {allBlocks.map(renderBlockButton)}
+        {/* All blocks, but restrict Tickets for role 'user' */}
+        {allBlocks.filter(b => b.type !== 'tickets' || isHost).map(renderBlockButton)}
+        {!isHost && (
+          <div className="text-xs text-muted-foreground mt-2">
+            Upgrade to host to add ticket tiers.
+          </div>
+        )}
       </div>
     </div>
   );

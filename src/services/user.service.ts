@@ -69,6 +69,30 @@ export const userService = {
   },
 
   /**
+   * Admin: Force verify a user's email
+   */
+  async forceVerifyEmail(userId: string): Promise<{ success?: boolean; message?: string }> {
+    try {
+      const response = await apiClient.post<{ success?: boolean; message?: string }>(`/Users/${userId}/force-verify`, {});
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Admin: Change a user's role
+   */
+  async changeUserRole(userId: string, role: string): Promise<{ success?: boolean; message?: string }> {
+    try {
+      const response = await apiClient.post<{ success?: boolean; message?: string }>(`/Users/${userId}/role`, { role });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
    * Get all users (admin use)
    */
   async getAllUsers(): Promise<UserProfile[]> {

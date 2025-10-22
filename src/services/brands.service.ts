@@ -87,6 +87,21 @@ export interface BrandResponse {
 
 class BrandsService {
   /**
+   * Get all brands with name and owner info (admin)
+   */
+  async getAllBrands(): Promise<Array<{ id: string; name: string; ownerId: string; ownerName: string; ownerEmail: string; membersCount: number }>> {
+    const res = await apiClient.get<any>('/Brands');
+    const list = (res && res.data && Array.isArray(res.data)) ? res.data : (Array.isArray(res) ? res : []);
+    return list.map((b: any) => ({
+      id: b.id || b.Id,
+      name: b.name || b.Name,
+      ownerId: b.ownerId || b.OwnerId,
+      ownerName: b.ownerName || b.OwnerName || '',
+      ownerEmail: b.ownerEmail || b.OwnerEmail || '',
+      membersCount: typeof b.membersCount === 'number' ? b.membersCount : (typeof b.MembersCount === 'number' ? b.MembersCount : 0)
+    }));
+  }
+  /**
    * Debug method to check user's brands
    */
   async debugMyBrands(): Promise<any> {
@@ -497,7 +512,9 @@ class BrandsService {
    */
   async getBrandMembers(brandId: string): Promise<BrandMemberDto[]> {
     try {
-      const response = await apiClient.get<{ success: boolean; data: BrandMemberDto[] }>(`/Users/brand/${brandId}/members`);
+      const response = await apiClient.get<{ success: boolean; data: BrandMemberDto[] }>(`/Users/brand/${brandId}/members`, {
+        headers: { 'X-From-Settings': 'true' }
+      });
       return response.data;
     } catch (error: any) {
       throw error;
