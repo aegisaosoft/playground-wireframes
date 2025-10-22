@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 3000,
     strictPort: true,
-    https: false,
+    https: true,
     // Proxy 
     proxy: mode === 'development' ? {
       '/api': {
