@@ -68,7 +68,7 @@ export default function ExperiencePortal() {
         dates: experience.startDate && experience.endDate 
           ? `${new Date(experience.startDate).toLocaleDateString()} - ${new Date(experience.endDate).toLocaleDateString()}`
           : 'Dates TBA',
-        image: experience.featuredImageUrl || experience.image || '/placeholder.svg',
+        image: experience.featuredImageUrl || experience.image || '/default-retreat-banner.png',
         description: experience.description || 'No description available',
         highlights: experience.highlights || [],
         
@@ -77,7 +77,7 @@ export default function ExperiencePortal() {
           id: experience.hostId || experience.creatorId || 'unknown',
           name: experience.hostName || experience.host?.name || 'Unknown Host',
           email: experience.host?.email || '',
-          avatar: experience.host?.profileImageUrl || '/placeholder.svg',
+          avatar: experience.host?.profileImageUrl || '/swfault_awatar.png',
           bio: experience.host?.bio || '',
           role: 'organizer'
         },
@@ -89,7 +89,7 @@ export default function ExperiencePortal() {
             id: experience.hostId || experience.creatorId || 'unknown',
             name: experience.hostName || experience.host?.name || 'Unknown Host',
             email: experience.host?.email || '',
-            avatar: experience.host?.profileImageUrl || '/placeholder.svg',
+            avatar: experience.host?.profileImageUrl || '/swfault_awatar.png',
             role: 'organizer'
           },
           // Add approved applications as attendees
@@ -99,7 +99,7 @@ export default function ExperiencePortal() {
               id: app.userId || app.user?.id || 'unknown',
               name: app.userName || app.user?.name || 'Unknown User',
               email: app.userEmail || app.user?.email || '',
-              avatar: app.userProfileImageUrl || app.user?.profileImageUrl || '/placeholder.svg',
+              avatar: app.userProfileImageUrl || app.user?.profileImageUrl || '/swfault_awatar.png',
               role: 'attendee' as const
             }))
         ],

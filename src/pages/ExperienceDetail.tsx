@@ -7,6 +7,10 @@ import { Separator } from "@/components/ui/separator";
 import { TicketTierDisplay } from "@/components/TicketTierDisplay";
 import { useToast } from "@/hooks/use-toast";
 import { experiencesService } from "@/services/experiences.service";
+import { getAvatarList } from "@/lib/avatars";
+import { userService } from "@/services/user.service";
+import { brandsService } from "@/services/brands.service";
+import { resolveApiResourceUrl } from "@/lib/api-client";
 import retreatBali from "@/assets/retreat-bali.jpg";
 import retreatCostaRica from "@/assets/retreat-costa-rica.jpg";
 import retreatTulum from "@/assets/retreat-tulum.jpg";
@@ -227,14 +231,43 @@ const ExperienceDetail = () => {
         const data = await experiencesService.getById(experienceId);
         
         
+        // Figure out organizer avatar
+        let organizerAvatar: string | null = data.host?.profileImageUrl || null;
+        if (!organizerAvatar && data.hostId) {
+          try {
+            const hostProfile = await userService.getUserProfile(data.hostId);
+            if (hostProfile?.profileImageUrl) {
+              organizerAvatar = hostProfile.profileImageUrl;
+            }
+          } catch {}
+        }
+        if (!organizerAvatar && data.hostName) {
+          try {
+            const slug = String(data.hostName).toLowerCase()
+              .replace(/[^a-z0-9\s-]/g, '')
+              .replace(/\s+/g, '-')
+              .replace(/^-+|-+$/g, '');
+            if (slug) {
+              const brand = await brandsService.getBrandBySlug(slug);
+              if (brand?.logo) {
+                organizerAvatar = brand.logo;
+              }
+            }
+          } catch {}
+        }
+        if (!organizerAvatar) {
+          const list = await getAvatarList();
+          organizerAvatar = list[0];
+        }
+
         // Use only real data from database (no mock data)
         const transformedExperience = {
           ...data,
           // Organizer from database
           organizer: {
             name: data.hostName || 'Host',
-            avatar: '/placeholder.svg',
-            bio: 'Experience host'
+            avatar: resolveApiResourceUrl(organizerAvatar) || organizerAvatar,
+            bio: data.host?.bio || 'Experience host'
           },
           // Category from database
           category: {
@@ -249,7 +282,7 @@ const ExperienceDetail = () => {
             ? `${Math.ceil((new Date(data.endDate).getTime() - new Date(data.startDate).getTime()) / (1000 * 60 * 60 * 24))} days`
             : 'TBA',
           // Use real image from database or placeholder
-          image: data.featuredImageUrl || data.image || '/placeholder.svg',
+          image: data.featuredImageUrl || data.image || '/default-retreat-banner.png',
           // Use real data from database
           agenda: data.agenda ? (typeof data.agenda === 'string' ? JSON.parse(data.agenda) : data.agenda) : [],
           highlights: data.highlights || [],

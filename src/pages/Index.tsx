@@ -41,7 +41,7 @@ const Index = () => {
         // Transform API experiences to Retreat format
         const transformedRetreats: Retreat[] = experiences.map(exp => ({
           id: parseInt(exp.id),
-          image: exp.featuredImageUrl || '/placeholder.svg',
+          image: exp.featuredImageUrl || '/default-retreat-banner.png',
           location: exp.location,
           date: formatExperienceDates(exp.startDate, exp.endDate, exp.date),
           title: exp.title,
@@ -53,7 +53,7 @@ const Index = () => {
           agendaVisibility: 'public',
           organizer: {
             name: exp.hostName || exp.host?.name || 'Unknown Host',
-            avatar: exp.host?.profileImageUrl || '/placeholder.svg',
+            avatar: exp.host?.profileImageUrl || '/swfault_awatar.png',
             profileLink: `/host/${exp.hostId || exp.host?.id}`
           }
         }));
@@ -120,7 +120,7 @@ const Index = () => {
       id: Math.max(...retreats.map(r => r.id), 0) + 1,
       organizer: {
         name: userBrandData?.name || user?.name || "Unknown Host",
-        avatar: userBrandData?.logo || "/placeholder.svg"
+        avatar: userBrandData?.logo || "/swfault_awatar.png"
       }
     };
     setRetreats([retreat, ...retreats]);

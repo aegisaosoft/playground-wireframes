@@ -137,9 +137,12 @@ export default function MyAccount() {
       setUser(userData);
       setName(userData.name);
       setSocialAccounts(userData.socialAccounts || {});
-      // Load profile image from user profile
+      // Load profile image from user profile; fallback to preset gallery if not set
       if (userData.profile?.profileImageUrl) {
         setProfilePic(userData.profile.profileImageUrl);
+      } else {
+        // Optional preset default
+        setProfilePic('/avatars/avatar1.jpg');
       }
     }
   }, []);
@@ -797,7 +800,7 @@ export default function MyAccount() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4">
                             <img
-                              src={application.image || '/placeholder.svg'}
+                              src={application.image || '/default-retreat-banner.png'}
                               alt={application.experienceTitle}
                               className="w-16 h-16 rounded-lg object-cover"
                             />
@@ -902,7 +905,7 @@ export default function MyAccount() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4">
                             <img
-                              src={ticket.experienceImage || '/placeholder.svg'}
+                              src={ticket.experienceImage || '/default-retreat-banner.png'}
                               alt={ticket.experienceTitle}
                               className="w-16 h-16 rounded-lg object-cover"
                             />
@@ -1168,7 +1171,7 @@ export default function MyAccount() {
                 <Card key={bookmark.id} className="bg-white/5 border-white/10 rounded-2xl hover:bg-white/8 transition-colors group">
                   <div className="aspect-video relative overflow-hidden rounded-t-2xl">
                     <img
-                      src={bookmark.image || '/placeholder.svg'}
+                      src={bookmark.image || '/default-retreat-banner.png'}
                       alt={bookmark.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
@@ -1229,7 +1232,7 @@ export default function MyAccount() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <Avatar className="w-16 h-16">
-                          <AvatarImage src={host.avatar || '/placeholder.svg'} alt={host.name} />
+                          <AvatarImage src={host.avatar || '/swfault_awatar.png'} alt={host.name} />
                           <AvatarFallback className="bg-neon-pink/20 text-neon-pink text-lg">
                             {host.name.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>

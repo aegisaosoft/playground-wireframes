@@ -21,10 +21,10 @@ export const Layout = ({ children }: LayoutProps) => {
       title: "Mindful Mountain Retreat",
       location: "Swiss Alps",
       date: "March 15-22, 2024",
-      image: "/placeholder.svg",
+      image: "/default-retreat-banner.png",
       organizer: {
         name: "Mindful Wellness Co.",
-        avatar: "/placeholder.svg"
+        avatar: "/swfault_awatar.png"
       }
     }
   ];

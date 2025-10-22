@@ -12,6 +12,10 @@ import { RetreatDetail } from "@/components/RetreatDetailsModal";
 import { ApplicationPreviewModal, TicketTier, ApplicationField } from "@/components/ApplicationPreviewModal";
 import { GoogleMapPreview } from "@/components/ExperiencePortal/GoogleMapPreview";
 import { experiencesService } from '@/services/experiences.service';
+import { userService } from '@/services/user.service';
+import { brandsService } from '@/services/brands.service';
+import { resolveApiResourceUrl } from '@/lib/api-client';
+import { getAvatarList } from '@/lib/avatars';
 import { bookmarksService } from '@/services/bookmarks.service';
 import { followsService } from '@/services/follows.service';
 import { useUser } from '@/contexts/UserContext';
@@ -60,7 +64,7 @@ export default function RetreatPage() {
           location: experience.location,
           date: experience.startDate ? new Date(experience.startDate).toLocaleDateString() : 'TBA',
           description: experience.description,
-          image: experience.featuredImageUrl || '/placeholder.svg',
+          image: experience.featuredImageUrl || '/default-retreat-banner.png',
           capacity: experience.totalCapacity || 10,
           spotsRemaining: (experience.totalCapacity || 10) - (experience.spotsTaken || 0),
           price: experience.basePriceCents ? experience.basePriceCents / 100 : 0,
@@ -96,7 +100,7 @@ export default function RetreatPage() {
           // Host information
           organizer: {
             name: experience.hostName || experience.host?.name || 'Unknown Host',
-            avatar: experience.host?.profileImageUrl || '/placeholder.svg',
+            avatar: experience.host?.profileImageUrl || '/swfault_awatar.png',
             bio: experience.host?.bio || '',
             socialAccounts: experience.host?.socialAccounts || {}
           },
@@ -113,6 +117,75 @@ export default function RetreatPage() {
         };
 
         setRetreatData(retreatDetail);
+
+        // Fallback: if organizer avatar missing, fetch by hostId
+        if ((!retreatDetail.organizer.avatar || retreatDetail.organizer.avatar === '/placeholder.svg') && (experience.hostId || experience.host?.id)) {
+          try {
+            const hostProfile = await userService.getUserProfile(experience.hostId || experience.host.id);
+            if (hostProfile?.profileImageUrl) {
+              setRetreatData(prev => prev ? {
+                ...prev,
+                organizer: {
+                  ...prev.organizer,
+                  avatar: resolveApiResourceUrl(hostProfile.profileImageUrl) as string
+                }
+              } : prev);
+            } else {
+              // No avatar in profile: use default preset
+              const list = await getAvatarList();
+              setRetreatData(prev => prev ? {
+                ...prev,
+                organizer: {
+                  ...prev.organizer,
+                  avatar: list[0]
+                }
+              } : prev);
+            }
+          } catch (e) {
+            // Not a user (likely a brand). Try brand logo by slug derived from hostName
+            try {
+              const slug = (experience.hostName || '').toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/^-+|-+$/g, '');
+              if (slug) {
+                const brand = await brandsService.getBrandBySlug(slug);
+                if (brand?.logo) {
+                  setRetreatData(prev => prev ? {
+                    ...prev,
+                    organizer: {
+                      ...prev.organizer,
+                      avatar: resolveApiResourceUrl(brand.logo) as string
+                    }
+                  } : prev);
+                } else {
+                  const list = await getAvatarList();
+                  setRetreatData(prev => prev ? {
+                    ...prev,
+                    organizer: {
+                      ...prev.organizer,
+                      avatar: list[1] || list[0]
+                    }
+                  } : prev);
+                }
+              }
+            } catch {}
+          }
+        }
+
+        // Final fallback: if current user is the host, use local profile image
+        if ((!retreatDetail.organizer.avatar || retreatDetail.organizer.avatar === '/placeholder.svg') && user?.profile?.profileImageUrl) {
+          const sameUser = (user?.name || '').toLowerCase() === (retreatDetail.organizer.name || '').toLowerCase();
+          if (sameUser) {
+            setRetreatData(prev => prev ? {
+              ...prev,
+              organizer: {
+                ...prev.organizer,
+                avatar: resolveApiResourceUrl(user.profile.profileImageUrl) as string
+              }
+            } : prev);
+          }
+        }
         
         // Check if user has bookmarked this experience
         if (user) {

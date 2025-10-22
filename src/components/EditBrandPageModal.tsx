@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { brandsService, BrandDto } from '@/services/brands.service';
 import { resolveApiResourceUrl } from '@/lib/api-client';
 import { useVoiceRecognition } from '@/hooks/useVoiceRecognition';
+import { StripeSettings } from '@/components/StripeSettings';
 import { maskStripeAccountId } from '@/utils/account-masking';
 
 interface BrandData {
@@ -92,6 +93,8 @@ export const EditBrandPageModal = ({
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [selectedLogoUrl, setSelectedLogoUrl] = useState<string | null>(null);
+  const [selectedBannerUrl, setSelectedBannerUrl] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -114,8 +117,11 @@ export const EditBrandPageModal = ({
       console.log('📝 initialData.logo:', initialData.logo);
       console.log('📝 initialData.banner:', initialData.banner);
       setBrandData(initialData);
-      setLogoPreview((resolveApiResourceUrl(initialData.logo) as string) || null);
-      setBannerPreview((resolveApiResourceUrl(initialData.banner) as string) || null);
+      const logoUrl = (resolveApiResourceUrl(initialData.logo) as string) || '';
+      const bannerUrl = (resolveApiResourceUrl(initialData.banner) as string) || '';
+      setLogoPreview(logoUrl || '/avatars/avatar1.jpg');
+      // Preview default banner image if none set; this is for display only
+      setBannerPreview(bannerUrl || '/default-retreat-banner.png');
     } else {
       // Set empty values for new brand
       const defaultData = {
@@ -208,8 +214,8 @@ export const EditBrandPageModal = ({
       console.log('🔍 EditBrandPageModal - Using method:', initialData ? 'saveBrand (edit)' : 'createBrand (new)');
       
       const response = initialData 
-        ? await brandsService.saveBrand(apiBrandData, logoFile || undefined, bannerFile || undefined, initialData.id)
-        : await brandsService.createBrand(apiBrandData, logoFile || undefined, bannerFile || undefined);
+        ? await brandsService.saveBrand(apiBrandData, logoToUpload, bannerToUpload, initialData.id)
+        : await brandsService.createBrand(apiBrandData, logoToUpload, bannerToUpload);
       
       console.log('🔄 Brand save response:', response);
       const respLogo = (response as any)?.data?.LogoUrl ?? (response as any)?.data?.logoUrl;
@@ -489,6 +495,7 @@ export const EditBrandPageModal = ({
                       onClick={() => {
                         setLogoPreview(null);
                         setLogoFile(null);
+                        setSelectedLogoUrl(null);
                         setBrandData(prev => ({ ...prev, logo: undefined }));
                       }}
                       className="border-red-500/50 text-red-400 hover:bg-red-500/10"
@@ -496,6 +503,27 @@ export const EditBrandPageModal = ({
                       <X className="w-4 h-4" />
                     </Button>
                   )}
+                </div>
+                {/* Preset logo gallery */}
+                <div className="pt-1">
+                  <Label className="text-xs text-[hsl(var(--foreground))]">Or choose from gallery</Label>
+                  <div className="grid grid-cols-6 gap-2 mt-2">
+                    {["avatar1.jpg","avatar2.jpg","avatar3.jpg","avatar4.jpg","avatar5.jpg","avatar6.jpg"].map((file) => {
+                      const url = `/avatars/${file}`;
+                      const isSelected = selectedLogoUrl === url;
+                      return (
+                        <button
+                          key={file}
+                          type="button"
+                          onClick={() => { setSelectedLogoUrl(url); setLogoFile(null); setLogoPreview(url); }}
+                          className={`rounded-full overflow-hidden border ${isSelected ? 'border-neon-cyan' : 'border-white/20'} w-10 h-10`}
+                          title={file}
+                        >
+                          <img src={url} alt={file} className="w-full h-full object-cover" />
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
@@ -539,6 +567,7 @@ export const EditBrandPageModal = ({
                       onClick={() => {
                         setBannerPreview(null);
                         setBannerFile(null);
+                        setSelectedBannerUrl(null);
                         setBrandData(prev => ({ ...prev, banner: undefined }));
                       }}
                       className="border-red-500/50 text-red-400 hover:bg-red-500/10"
@@ -546,6 +575,27 @@ export const EditBrandPageModal = ({
                       <X className="w-4 h-4" />
                     </Button>
                   )}
+                </div>
+                {/* Preset banner gallery (reuse avatars) */}
+                <div className="pt-1">
+                  <Label className="text-xs text-[hsl(var(--foreground))]">Or choose from gallery</Label>
+                  <div className="grid grid-cols-6 gap-2 mt-2">
+                    {["avatar1.jpg","avatar2.jpg","avatar3.jpg","avatar4.jpg","avatar5.jpg","avatar6.jpg"].map((file) => {
+                      const url = `/avatars/${file}`;
+                      const isSelected = selectedBannerUrl === url;
+                      return (
+                        <button
+                          key={file}
+                          type="button"
+                          onClick={() => { setSelectedBannerUrl(url); setBannerFile(null); setBannerPreview(url); }}
+                          className={`overflow-hidden border ${isSelected ? 'border-neon-cyan' : 'border-white/20'} w-full h-12 rounded`}
+                          title={file}
+                        >
+                          <img src={url} alt={file} className="w-full h-full object-cover" />
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
@@ -602,87 +652,9 @@ export const EditBrandPageModal = ({
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <h3 className="text-lg font-semibold text-[hsl(var(--foreground))]">Stripe Integration</h3>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="stripe-account-id" className="text-[hsl(var(--foreground))]">Stripe Account ID</Label>
-                <Input
-                  id="stripe-account-id"
-                  value={brandData.stripeAccountId ? maskStripeAccountId(brandData.stripeAccountId) : ''}
-                  onChange={(e) => {
-                    // Only allow editing if the user is typing a new value
-                    // Don't allow editing of masked values
-                    if (!e.target.value.includes('********')) {
-                      setBrandData(prev => ({ ...prev, stripeAccountId: e.target.value }));
-                    }
-                  }}
-                  placeholder="acct_1234567890"
-                  className="bg-[hsl(var(--input))] border-white/20 text-[hsl(var(--foreground))] focus:border-[#00FFFF] focus:ring-[#00FFFF]/20"
-                  readOnly={brandData.stripeAccountId ? true : false}
-                />
-                {brandData.stripeAccountId && (
-                  <p className="text-xs text-gray-400">
-                    Account ID is masked for security. Click "Clear" to enter a new one.
-                  </p>
-                )}
-              </div>
-              
-              <div className="flex items-end gap-2">
-                {!brandData.stripeAccountId && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      // TODO: Implement Stripe Connect flow
-                      console.log('Connect to Stripe clicked');
-                    }}
-                    className="border-green-500/40 text-green-500 hover:bg-green-500/10 flex-1"
-                  >
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Connect to Stripe
-                  </Button>
-                )}
-                
-                {brandData.stripeAccountId && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setBrandData(prev => ({ ...prev, stripeAccountId: '' }));
-                    }}
-                    className="border-red-500/40 text-red-500 hover:bg-red-500/10"
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    Clear
-                  </Button>
-                )}
-                
-                {brandData.stripeAccountId && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      // TODO: Implement Stripe account management
-                      console.log('Manage Stripe account clicked');
-                    }}
-                    className="border-blue-500/40 text-blue-500 hover:bg-blue-500/10"
-                  >
-                    <Settings className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-            
-            {brandData.stripeAccountId && (
-              <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <div className="flex items-center gap-2 text-green-500">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium">Stripe Connected</span>
-                </div>
-                <p className="text-xs text-green-400 mt-1">
-                  Account ID: {maskStripeAccountId(brandData.stripeAccountId)}
-                </p>
-              </div>
+            {/* Reuse the same StripeSettings component with brandId to get full Connect flow */}
+            {selectedBrand?.id && (
+              <StripeSettings brandId={selectedBrand.id} />
             )}
           </div>
         </div>

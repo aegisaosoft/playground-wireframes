@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { VoiceOnboardingModal } from "@/components/VoiceOnboarding";
 import { authService } from "@/services/auth.service";
+import { userService } from "@/services/user.service";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AuthModalProps {
@@ -26,6 +27,7 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [isSendingReset, setIsSendingReset] = useState(false);
+  const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -49,6 +51,19 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
         const res = await authService.login({ email, password });
         localStorage.setItem('user', JSON.stringify(res.user));
         localStorage.setItem('auth_token', res.token);
+        // If an avatar was selected before login, upload it now
+        if (selectedAvatarUrl) {
+          try {
+            const blob = await fetch(selectedAvatarUrl).then(r => r.blob());
+            const fileName = selectedAvatarUrl.split('/').pop() || 'avatar.jpg';
+            const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+            await userService.uploadAvatar(file);
+            // Update local user cache
+            const u = { ...res.user } as any;
+            u.profile = { ...(u.profile || {}), profileImageUrl: selectedAvatarUrl };
+            localStorage.setItem('user', JSON.stringify(u));
+          } catch {}
+        }
         onLogin({ name: res.user.name, email: res.user.email }, false);
         onClose();
         navigate('/account');
@@ -232,6 +247,30 @@ export const AuthModal = ({ isOpen, onClose, onLogin }: AuthModalProps) => {
                   placeholder="Confirm your password"
                   required
                 />
+              </div>
+            )}
+
+            {isSignUp && (
+              <div className="space-y-2">
+                <Label className="block">Choose an avatar (optional)</Label>
+                <div className="grid grid-cols-5 gap-2">
+                  {["avatar1.jpg","avatar2.jpg","avatar3.jpg","avatar4.jpg","avatar5.jpg"].map((file) => {
+                    const url = `/avatars/${file}`;
+                    const isSelected = selectedAvatarUrl === url;
+                    return (
+                      <button
+                        key={file}
+                        type="button"
+                        onClick={() => setSelectedAvatarUrl(url)}
+                        className={`rounded-full overflow-hidden border ${isSelected ? 'border-neon-cyan' : 'border-white/20'} w-14 h-14`}
+                        title={file}
+                      >
+                        <img src={url} alt={file} className="w-full h-full object-cover" />
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground">Place images in public/avatars (copied from C:\\Alex\\images) to show here.</p>
               </div>
             )}
 
