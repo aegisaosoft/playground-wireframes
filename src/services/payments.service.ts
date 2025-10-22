@@ -39,6 +39,26 @@ export interface VerifyCheckoutResponse {
   message?: string;
 }
 
+export interface PaymentSessionRow {
+  id: string;
+  sessionId: string;
+  userId: string;
+  userName?: string;
+  experienceId: string;
+  experienceTitle?: string;
+  hostId?: string;
+  ticketTierId?: string;
+  ticketTierName?: string;
+  amount: number;
+  currency: string;
+  quantity: number;
+  status: string;
+  paymentIntentId?: string;
+  createdAt: string;
+  updatedAt?: string;
+  expiresAt?: string;
+}
+
 export const paymentsService = {
   /**
    * Get Stripe Connect account status
@@ -71,5 +91,19 @@ export const paymentsService = {
     const response = await apiClient.get<{ success: boolean; data: VerifyCheckoutResponse }>(`/Checkout/verify/${sessionId}`);
     return response.data;
   },
+
+  /**
+   * Get payment sessions report filtered by optional from/to/hostId/experienceId
+   */
+  async getPaymentSessions(params: { from?: string; to?: string; hostId?: string; experienceId?: string }): Promise<PaymentSessionRow[]> {
+    const query = new URLSearchParams();
+    if (params.from) query.set('from', params.from);
+    if (params.to) query.set('to', params.to);
+    if (params.hostId) query.set('hostId', params.hostId);
+    if (params.experienceId) query.set('experienceId', params.experienceId);
+    const qs = query.toString();
+    const response = await apiClient.get<{ success: boolean; data: PaymentSessionRow[] }>(`/payments/sessions${qs ? `?${qs}` : ''}`);
+    return response.data || [];
+  }
 };
 

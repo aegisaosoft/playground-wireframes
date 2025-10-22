@@ -20,6 +20,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Users as UsersIcon, Building, ArrowLeft, CreditCard } from 'lucide-react';
+import { paymentsService, type PaymentSessionRow } from '@/services/payments.service';
 import { useUser } from '@/contexts/UserContext';
 import { Link } from 'react-router-dom';
 
@@ -51,6 +52,8 @@ const Settings = () => {
   const [paymentsExperienceName, setPaymentsExperienceName] = useState<string>("");
   const [paymentsExperiencePickerOpen, setPaymentsExperiencePickerOpen] = useState(false);
   const [paymentsExperienceSearch, setPaymentsExperienceSearch] = useState("");
+  const [paymentRows, setPaymentRows] = useState<PaymentSessionRow[]>([]);
+  const [loadingPayments, setLoadingPayments] = useState(false);
 
   const computePreviousWeekRange = () => {
     const pad = (n: number) => String(n).padStart(2, '0');
@@ -966,8 +969,65 @@ const Settings = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2" />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-white/20 text-foreground hover:bg-white/10"
+                        onClick={async () => {
+                          try {
+                            setLoadingPayments(true);
+                            const rows = await paymentsService.getPaymentSessions({
+                              from: paymentsFrom || undefined,
+                              to: paymentsTo || undefined,
+                              hostId: paymentsHostId || undefined,
+                              experienceId: paymentsExperienceId || undefined,
+                            });
+                            setPaymentRows(rows || []);
+                          } catch {
+                            setPaymentRows([]);
+                          } finally {
+                            setLoadingPayments(false);
+                          }
+                        }}
+                      >
+                        Show Report
+                      </Button>
+                    </div>
                   </div>
+                  {paymentRows.length > 0 && (
+                    <div className="mt-4 overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-left text-muted-foreground border-b border-white/10">
+                            <th className="py-2 pr-4">Created</th>
+                            <th className="py-2 pr-4">User</th>
+                            <th className="py-2 pr-4">Experience</th>
+                            <th className="py-2 pr-4">Amount</th>
+                            <th className="py-2 pr-4">Qty</th>
+                            <th className="py-2 pr-4">Status</th>
+                            <th className="py-2 pr-4">Session</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paymentRows.map(r => (
+                            <tr key={r.id} className="border-b border-white/5">
+                              <td className="py-2 pr-4">{new Date(r.createdAt).toLocaleString()}</td>
+                              <td className="py-2 pr-4">{r.userName || r.userId}</td>
+                              <td className="py-2 pr-4">{r.experienceTitle || r.experienceId}</td>
+                              <td className="py-2 pr-4">{r.currency} {(r.amount).toFixed(2)}</td>
+                              <td className="py-2 pr-4">{r.quantity}</td>
+                              <td className="py-2 pr-4">{r.status}</td>
+                              <td className="py-2 pr-4 text-xs text-muted-foreground">{r.sessionId}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                  {loadingPayments && (
+                    <div className="text-muted-foreground mt-2">Loading payments...</div>
+                  )}
                 </div>
               )}
             </CardContent>
