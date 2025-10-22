@@ -110,12 +110,13 @@ const PaymentForm: React.FC<{
 
     try {
       // Create checkout session
+      const appBase = (import.meta as any)?.env?.VITE_PUBLIC_APP_URL || window.location.origin.replace('http:', 'https:');
       const sessionResponse = await paymentsService.createCheckoutSession({
         experienceId: experience.id,
         ticketTierId: formData.ticketTierId || undefined,
         quantity: formData.quantity,
-        successUrl: `${window.location.origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/payment/cancel`
+        successUrl: `${appBase}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${appBase}/payment/cancel`
       });
 
       // Redirect to Stripe Checkout using modern approach
