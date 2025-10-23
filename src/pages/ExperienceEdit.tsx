@@ -208,6 +208,8 @@ const ExperienceEdit = () => {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [highlightedBlockId, setHighlightedBlockId] = useState<string | null>(null);
   const blockRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
+  // Mobile UI toggles
+  const [showPaletteMobile, setShowPaletteMobile] = useState(false);
 
   // Initialize user data when component mounts
   useEffect(() => {
@@ -1367,28 +1369,73 @@ const ExperienceEdit = () => {
         showBackButton={true}
         onBack={() => navigate('/account?tab=hosting')}
       />
-      
-      <div className="flex-1 flex overflow-hidden">
-        <BlockPalette 
-          onAddBlock={addBlock} 
-          onVoiceCreate={() => setShowVoiceModal(true)}
-          onScrollToBlock={scrollToBlockType}
-        />
-        
-        <Canvas
-          blocks={blocks}
-          titleData={titleData}
-          onUpdateTitleData={setTitleData}
-          onUpdateBlock={updateBlock}
-          onDeleteBlock={deleteBlock}
-          onDuplicateBlock={duplicateBlock}
-          onReorderBlocks={reorderBlocks}
-          blockRefsMap={blockRefsMap}
-          highlightedBlockId={highlightedBlockId}
-          experienceId={experienceId}
-          onDeleteGalleryImage={handleDeleteGalleryImage}
-        />
-        
+
+      {/* Mobile controls */}
+      <div className="md:hidden px-4 py-2 border-b border-white/10 flex gap-2 sticky top-0 z-40 bg-[#0b0b12]">
+        <Button
+          variant="outline"
+          className="border-white/20 text-foreground hover:bg-white/10 flex-1"
+          onClick={() => setShowPaletteMobile(v => !v)}
+        >
+          {showPaletteMobile ? 'Hide Blocks' : 'Show Blocks'}
+        </Button>
+      </div>
+
+      <div className="flex-1 overflow-hidden md:flex">
+        {/* Palette - desktop */}
+        <div className="hidden md:block md:w-72 lg:w-80 shrink-0 border-r border-white/10 overflow-y-auto">
+          <BlockPalette 
+            onAddBlock={addBlock} 
+            onVoiceCreate={() => setShowVoiceModal(true)}
+            onScrollToBlock={scrollToBlockType}
+          />
+        </div>
+
+        {/* Palette - mobile */}
+        {showPaletteMobile && (
+          <div className="md:hidden px-4 py-3 border-b border-white/10 overflow-auto">
+            <BlockPalette 
+              onAddBlock={addBlock} 
+              onVoiceCreate={() => setShowVoiceModal(true)}
+              onScrollToBlock={scrollToBlockType}
+            />
+          </div>
+        )}
+
+        {/* Canvas */}
+        <div className="flex-1 overflow-y-auto">
+          <Canvas
+            blocks={blocks}
+            titleData={titleData}
+            onUpdateTitleData={setTitleData}
+            onUpdateBlock={updateBlock}
+            onDeleteBlock={deleteBlock}
+            onDuplicateBlock={duplicateBlock}
+            onReorderBlocks={reorderBlocks}
+            blockRefsMap={blockRefsMap}
+            highlightedBlockId={highlightedBlockId}
+            experienceId={experienceId}
+            onDeleteGalleryImage={handleDeleteGalleryImage}
+          />
+        </div>
+
+        {/* Settings - desktop */}
+        <div className="hidden md:block md:w-80 xl:w-96 shrink-0 border-l border-white/10 overflow-y-auto">
+          <SettingsSidebar
+            isPublic={isPublic}
+            onToggleVisibility={setIsPublic}
+            selectedHost={selectedHost}
+            onHostChange={setSelectedHost}
+            teamMembers={teamMembers}
+            onAddTeamMember={handleAddTeamMember}
+            onRemoveTeamMember={handleRemoveTeamMember}
+            onUpdateTeamMemberRole={handleUpdateTeamMemberRole}
+          />
+        </div>
+      </div>
+
+      {/* Settings - mobile at bottom */}
+      <div className="md:hidden px-4 py-3 border-t border-white/10 overflow-auto">
         <SettingsSidebar
           isPublic={isPublic}
           onToggleVisibility={setIsPublic}
