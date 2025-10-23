@@ -105,5 +105,10 @@ export const paymentsService = {
     const response = await apiClient.get<{ success: boolean; data: PaymentSessionRow[] }>(`/payments/sessions${qs ? `?${qs}` : ''}`);
     return response.data || [];
   }
+  ,
+  /** Get a single payment session detail */
+  async getPaymentSession(sessionId: string): Promise<{ success?: boolean; data: any }> {
+    return await apiClient.get<{ success?: boolean; data: any }>(`/payments/sessions/${encodeURIComponent(sessionId)}`);
+  }
 };
 

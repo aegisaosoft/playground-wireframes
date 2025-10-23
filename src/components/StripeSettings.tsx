@@ -51,13 +51,14 @@ export const StripeSettings: React.FC<StripeSettingsProps> = ({ brandId, onStatu
       setStripeStatus(status);
       onStatusChange?.(status);
     } catch (err) {
-      console.error('Failed to fetch Stripe status:', err);
-      setError('Failed to load Stripe connection status.');
-      toast({
-        title: "Error",
-        description: "Failed to load Stripe connection status. Please try again.",
-        variant: "destructive",
-      });
+      // Treat failures as not connected; do not show errors
+      setStripeStatus({
+        hasAccount: false,
+        onboardingCompleted: false,
+        chargesEnabled: false,
+        payoutsEnabled: false,
+        detailsSubmitted: false,
+      } as StripeStatus);
     } finally {
       setIsLoading(false);
     }
@@ -320,20 +321,6 @@ export const StripeSettings: React.FC<StripeSettingsProps> = ({ brandId, onStatu
         <CardContent className="p-6 flex items-center justify-center">
           <Loader2 className="w-6 h-6 animate-spin text-neon-cyan mr-2" />
           <span className="text-muted-foreground">Loading Stripe settings...</span>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Card className="bg-white/5 border-white/10 rounded-2xl">
-        <CardContent className="p-6 text-center text-red-400">
-          <AlertCircle className="w-6 h-6 mx-auto mb-2" />
-          <p>{error}</p>
-          <Button onClick={loadStripeStatus} variant="outline" className="mt-4 border-red-500/30 text-red-400 hover:bg-red-500/10">
-            Retry
-          </Button>
         </CardContent>
       </Card>
     );

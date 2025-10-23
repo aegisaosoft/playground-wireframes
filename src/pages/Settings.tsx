@@ -26,7 +26,13 @@ import { useUser } from '@/contexts/UserContext';
 import { Link } from 'react-router-dom';
 
 const Settings = () => {
-  const [section, setSection] = useState<'users' | 'brands' | 'hosts' | 'payments'>('users');
+  const [section, setSection] = useState<'users' | 'brands' | 'hosts' | 'payments'>(() => {
+    try {
+      const sp = new URLSearchParams(window.location.search);
+      const s = sp.get('section');
+      return (s === 'users' || s === 'brands' || s === 'hosts' || s === 'payments') ? (s as any) : 'users';
+    } catch { return 'users'; }
+  });
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,14 +49,14 @@ const Settings = () => {
   const [showHostExperiencesModal, setShowHostExperiencesModal] = useState(false);
   const [selectedHostForExperiences, setSelectedHostForExperiences] = useState<{ id: string; name: string } | null>(null);
   const [experienceSearchTerm, setExperienceSearchTerm] = useState("");
-  const [paymentsFrom, setPaymentsFrom] = useState("");
-  const [paymentsTo, setPaymentsTo] = useState("");
-  const [paymentsHostId, setPaymentsHostId] = useState<string>("");
-  const [paymentsHostName, setPaymentsHostName] = useState<string>("");
+  const [paymentsFrom, setPaymentsFrom] = useState(() => new URLSearchParams(window.location.search).get('from') || "");
+  const [paymentsTo, setPaymentsTo] = useState(() => new URLSearchParams(window.location.search).get('to') || "");
+  const [paymentsHostId, setPaymentsHostId] = useState<string>(() => new URLSearchParams(window.location.search).get('hostId') || "");
+  const [paymentsHostName, setPaymentsHostName] = useState<string>(() => new URLSearchParams(window.location.search).get('hostName') || "");
   const [paymentsHostPickerOpen, setPaymentsHostPickerOpen] = useState(false);
   const [paymentsHostSearch, setPaymentsHostSearch] = useState("");
-  const [paymentsExperienceId, setPaymentsExperienceId] = useState<string>("");
-  const [paymentsExperienceName, setPaymentsExperienceName] = useState<string>("");
+  const [paymentsExperienceId, setPaymentsExperienceId] = useState<string>(() => new URLSearchParams(window.location.search).get('experienceId') || "");
+  const [paymentsExperienceName, setPaymentsExperienceName] = useState<string>(() => new URLSearchParams(window.location.search).get('experienceName') || "");
   const [paymentsExperiencePickerOpen, setPaymentsExperiencePickerOpen] = useState(false);
   const [paymentsExperienceSearch, setPaymentsExperienceSearch] = useState("");
   const [paymentRows, setPaymentRows] = useState<PaymentSessionRow[]>([]);
@@ -81,6 +87,7 @@ const Settings = () => {
   const [usersPage, setUsersPage] = useState(1);
   const [brandsPage, setBrandsPage] = useState(1);
   const [hostsPage, setHostsPage] = useState(1);
+  const [paymentsPage, setPaymentsPage] = useState(1);
 
   useEffect(() => {
     document.title = "Settings";
@@ -240,6 +247,58 @@ const Settings = () => {
     onPaginationChange: (updater: any) => {
       const next = typeof updater === 'function' ? updater({ pageIndex: Math.max(0, usersPage - 1), pageSize: PAGE_SIZE }) : updater;
       if (typeof next?.pageIndex === 'number') setUsersPage(next.pageIndex + 1);
+    },
+  });
+
+  // Payments table (React Table v8)
+  type PaymentRow = PaymentSessionRow;
+  const paymentsColumns = useMemo<ColumnDef<PaymentRow>[]>(() => [
+    {
+      header: 'Created',
+      cell: ({ row }) => new Date((row.original as any).createdAt).toLocaleString()
+    },
+    {
+      header: 'User',
+      cell: ({ row }) => (row.original as any).userName || (row.original as any).userId
+    },
+    {
+      header: 'Experience',
+      cell: ({ row }) => (row.original as any).experienceTitle || (row.original as any).experienceId
+    },
+    {
+      header: 'Amount',
+      cell: ({ row }) => `${(row.original as any).currency} ${Number((row.original as any).amount).toFixed(2)}`
+    },
+    {
+      header: 'Qty',
+      cell: ({ row }) => (row.original as any).quantity
+    },
+    {
+      header: 'Status',
+      cell: ({ row }) => (row.original as any).status
+    },
+    {
+      header: 'Session',
+      cell: ({ row }) => {
+        const sid = (row.original as any).sessionId;
+        return (
+          <Link to={`/payments/session/${encodeURIComponent(sid)}`} className="text-neon-cyan hover:underline break-all text-xs">
+            {sid}
+          </Link>
+        );
+      }
+    }
+  ], []);
+
+  const paymentsTable = useReactTable({
+    data: paymentRows as any[],
+    columns: paymentsColumns as any[],
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    state: { pagination: { pageIndex: Math.max(0, paymentsPage - 1), pageSize: PAGE_SIZE } },
+    onPaginationChange: (updater: any) => {
+      const next = typeof updater === 'function' ? updater({ pageIndex: Math.max(0, paymentsPage - 1), pageSize: PAGE_SIZE }) : updater;
+      if (typeof next?.pageIndex === 'number') setPaymentsPage(next.pageIndex + 1);
     },
   });
 
@@ -984,7 +1043,25 @@ const Settings = () => {
                               hostId: paymentsHostId || undefined,
                               experienceId: paymentsExperienceId || undefined,
                             });
-                            setPaymentRows(rows || []);
+                            // Optional status verification: only for reports, only if Stripe is connected
+                            let finalRows = rows || [];
+                            try {
+                              const stripe = await paymentsService.getStripeStatus();
+                              if (stripe && (stripe.chargesEnabled || stripe.payoutsEnabled || stripe.onboardingCompleted)) {
+                                const checked = await Promise.all(finalRows.map(async (r) => {
+                                  if (!r.sessionId) return r;
+                                  try {
+                                    const verify = await paymentsService.verifyCheckoutSession(r.sessionId);
+                                    if (verify && verify.status) {
+                                      return { ...r, status: verify.status, paymentIntentId: verify.paymentIntentId || r.paymentIntentId } as PaymentSessionRow;
+                                    }
+                                  } catch {}
+                                  return r;
+                                }));
+                                finalRows = checked;
+                              }
+                            } catch {}
+                            setPaymentRows(finalRows);
                           } catch {
                             setPaymentRows([]);
                           } finally {
@@ -1000,30 +1077,47 @@ const Settings = () => {
                     <div className="mt-4 overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="text-left text-muted-foreground border-b border-white/10">
-                            <th className="py-2 pr-4">Created</th>
-                            <th className="py-2 pr-4">User</th>
-                            <th className="py-2 pr-4">Experience</th>
-                            <th className="py-2 pr-4">Amount</th>
-                            <th className="py-2 pr-4">Qty</th>
-                            <th className="py-2 pr-4">Status</th>
-                            <th className="py-2 pr-4">Session</th>
-                          </tr>
+                          {paymentsTable.getHeaderGroups().map(hg => (
+                            <tr key={hg.id} className="text-left text-muted-foreground border-b border-white/10">
+                              {hg.headers.map(h => (
+                                <th key={h.id} className="py-2 pr-4">
+                                  {flexRender(h.column.columnDef.header, h.getContext())}
+                                </th>
+                              ))}
+                            </tr>
+                          ))}
                         </thead>
                         <tbody>
-                          {paymentRows.map(r => (
+                          {paymentsTable.getRowModel().rows.map(r => (
                             <tr key={r.id} className="border-b border-white/5">
-                              <td className="py-2 pr-4">{new Date(r.createdAt).toLocaleString()}</td>
-                              <td className="py-2 pr-4">{r.userName || r.userId}</td>
-                              <td className="py-2 pr-4">{r.experienceTitle || r.experienceId}</td>
-                              <td className="py-2 pr-4">{r.currency} {(r.amount).toFixed(2)}</td>
-                              <td className="py-2 pr-4">{r.quantity}</td>
-                              <td className="py-2 pr-4">{r.status}</td>
-                              <td className="py-2 pr-4 text-xs text-muted-foreground">{r.sessionId}</td>
+                              {r.getVisibleCells().map(c => (
+                                <td key={c.id} className="py-2 pr-4">
+                                  {flexRender(c.column.columnDef.cell, c.getContext())}
+                                </td>
+                              ))}
                             </tr>
                           ))}
                         </tbody>
                       </table>
+                      {paymentsTable.getPageCount() > 1 && (
+                        <div className="flex items-center justify-end gap-2 text-sm mt-2">
+                          <button
+                            className="px-2 py-1 border border-white/20 rounded disabled:opacity-50"
+                            disabled={!paymentsTable.getCanPreviousPage()}
+                            onClick={() => paymentsTable.previousPage()}
+                          >
+                            Prev
+                          </button>
+                          <span className="text-muted-foreground">Page {paymentsPage} of {paymentsTable.getPageCount()}</span>
+                          <button
+                            className="px-2 py-1 border border-white/20 rounded disabled:opacity-50"
+                            disabled={!paymentsTable.getCanNextPage()}
+                            onClick={() => paymentsTable.nextPage()}
+                          >
+                            Next
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                   {loadingPayments && (
