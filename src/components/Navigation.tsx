@@ -44,6 +44,7 @@ export const Navigation = ({
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const [isRetreatModalOpen, setIsRetreatModalOpen] = useState(false);
   const [isVoiceOnboardingOpen, setIsVoiceOnboardingOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout: contextLogout, login } = useUser();
   const navigate = useNavigate();
 
@@ -117,15 +118,15 @@ export const Navigation = ({
     (/admin/i.test((user as any).profile?.role || ''))
   ));
   return (
-    <nav className="w-full bg-background border-b border-border px-6 py-4">
+    <nav className="w-full bg-background border-b border-border px-4 py-3 md:px-6 md:py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
           <BrandLogo />
         </div>
 
-        {/* Navigation Buttons */}
-        <div className="flex items-center space-x-6">
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center space-x-6">
           <Link to="/experiences" className="text-foreground hover:text-neon-cyan transition-colors font-medium">
             Experiences
           </Link>
@@ -208,7 +209,100 @@ export const Navigation = ({
             </Button>
           )}
         </div>
+
+        {/* Mobile: hamburger + condensed actions */}
+        <div className="md:hidden flex items-center gap-2">
+          {user && (
+            <Link to="/account">
+              <Button 
+                variant="default" 
+                className="bg-neon-pink text-background hover:bg-neon-purple shadow-neon h-9 px-3"
+              >
+                Account
+              </Button>
+            </Link>
+          )}
+          <button
+            aria-label="Open menu"
+            className="p-2 rounded-md border border-white/20 text-foreground"
+            onClick={() => setIsMobileMenuOpen(v => !v)}
+          >
+            <span className="block w-5 h-0.5 bg-current mb-1" />
+            <span className="block w-5 h-0.5 bg-current mb-1" />
+            <span className="block w-5 h-0.5 bg-current" />
+          </button>
+        </div>
       </div>
+
+      {/* Mobile menu panel */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-border">
+          <div className="max-w-7xl mx-auto px-4 py-3 space-y-2">
+            <Link
+              to="/experiences"
+              className="block text-foreground hover:text-neon-cyan font-medium"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Experiences
+            </Link>
+            <Link
+              to="/community"
+              className="block text-foreground hover:text-neon-cyan font-medium"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Community
+            </Link>
+
+            {/* Create Experience */}
+            {user ? (
+              <Link to="/create" onClick={() => setIsMobileMenuOpen(false)}>
+                <Button 
+                  variant="outline" 
+                  className="w-full bg-transparent border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-background transition-all font-semibold"
+                >
+                  Create Experience
+                </Button>
+              </Link>
+            ) : (
+              <Button 
+                variant="outline" 
+                className="w-full bg-transparent border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-background transition-all font-semibold"
+                onClick={() => { setIsAuthModalOpen(true); setIsMobileMenuOpen(false); }}
+              >
+                Create Experience
+              </Button>
+            )}
+
+            {/* Admin settings */}
+            {user && isAdmin && (
+              <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-white/10">
+                  Settings
+                </Button>
+              </Link>
+            )}
+
+            {/* Auth controls */}
+            {user ? (
+              <Button
+                variant="outline"
+                className="w-full bg-transparent border-white/20 text-foreground hover:bg-white/10"
+                onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
+              >
+                Log out
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                className="w-full bg-transparent border-white/20 text-foreground hover:bg-white/10"
+                onClick={() => { setIsAuthModalOpen(true); setIsMobileMenuOpen(false); }}
+              >
+                Log in
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
 
       <AuthModal 
         isOpen={isAuthModalOpen} 

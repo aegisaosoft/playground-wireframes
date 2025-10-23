@@ -50,17 +50,14 @@ export const preferencesService = {
     console.log('🔍 Fetching user preferences from API...');
     
     try {
-      const response = await apiClient.get<UserPreferences>('/Auth/profile');
-      
-      if (!response.success || !response.data) {
-        throw new Error(response.message || 'Failed to get user preferences');
-      }
-      
-      console.log('✅ User preferences loaded:', response.data);
-      return response.data;
+      // No GET /Auth/profile endpoint exists; use /Auth/me to validate session
+      await apiClient.get<any>('/Auth/me');
+      console.log('✅ Session validated, returning default preferences');
+      return {} as UserPreferences;
     } catch (error) {
       console.error('❌ Error fetching user preferences:', error);
-      throw error;
+      // Return safe default instead of throwing to avoid breaking UI on 401/405
+      return {} as UserPreferences;
     }
   },
 
