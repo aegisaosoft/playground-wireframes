@@ -1601,18 +1601,19 @@ export default function MyAccount() {
             </div>
           </div>
 
-          {/* Mobile Navigation Tabs */}
+          {/* Mobile Navigation Tabs (wrapped, no horizontal scroll) */}
           <div className="lg:hidden mb-6">
-            <div className="flex overflow-x-auto pb-2 gap-2">
+            {/* Profile group */}
+            <div className="px-1 mb-2 text-xs uppercase tracking-wider text-foreground/70">Profile</div>
+            <div className="grid grid-cols-2 gap-2 mb-4">
               {profileItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
-                
                 return (
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap transition-all ${
+                    className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl transition-all ${
                       isActive 
                         ? 'bg-gradient-neon text-background shadow-neon' 
                         : 'bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10'
@@ -1623,28 +1624,29 @@ export default function MyAccount() {
                   </button>
                 );
               })}
-              <>
-                <div className="w-px bg-white/20 mx-2" />
-                {hostingItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeTab === item.id;
-                  
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => setActiveTab(item.id)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap transition-all ${
-                        isActive 
-                          ? 'bg-gradient-neon text-background shadow-neon' 
-                          : 'bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span className="font-medium">{item.label}</span>
-                    </button>
-                  );
-                })}
-              </>
+            </div>
+
+            {/* Hosting group */}
+            <div className="px-1 mb-2 text-xs uppercase tracking-wider text-foreground/70">Hosting</div>
+            <div className="grid grid-cols-2 gap-2">
+              {hostingItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl transition-all ${
+                      isActive 
+                        ? 'bg-gradient-neon text-background shadow-neon' 
+                        : 'bg-white/5 text-muted-foreground hover:text-foreground hover:bg-white/10'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="font-medium">{item.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
