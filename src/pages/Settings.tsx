@@ -62,6 +62,14 @@ const Settings = () => {
   const [paymentRows, setPaymentRows] = useState<PaymentSessionRow[]>([]);
   const [loadingPayments, setLoadingPayments] = useState(false);
 
+  // Stripe Account ID edit modal state
+  const [showStripeModal, setShowStripeModal] = useState(false);
+  const [stripeBrandId, setStripeBrandId] = useState<string>("");
+  const [stripeBrandName, setStripeBrandName] = useState<string>("");
+  const [stripeAccountIdInput, setStripeAccountIdInput] = useState<string>("");
+  const [loadingStripe, setLoadingStripe] = useState(false);
+  const [savingStripe, setSavingStripe] = useState(false);
+
   const computePreviousWeekRange = () => {
     const pad = (n: number) => String(n).padStart(2, '0');
     const fmt = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -672,7 +680,7 @@ const Settings = () => {
                                     <td className="py-2 pr-4 text-foreground font-medium">{b.name}</td>
                                     <td className="py-2 pr-4 text-muted-foreground">{b.ownerName || b.ownerEmail}</td>
                                     <td className="py-2 pr-4 text-muted-foreground">{(b as any).membersCount ?? '-'}</td>
-                                    <td className="py-2 pr-4">
+                                    <td className="py-2 pr-4 space-x-2">
                                       <Button
                                         variant="outline"
                                         size="sm"
@@ -680,6 +688,28 @@ const Settings = () => {
                                         onClick={() => { setSelectedBrandForMembers({ id: b.id, name: b.name }); setShowMembersModal(true); }}
                                       >
                                         Show Members
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="border-white/20 text-foreground hover:bg-white/10"
+                                        onClick={async () => {
+                                          try {
+                                            setStripeBrandId(b.id);
+                                            setStripeBrandName(b.name);
+                                            setStripeAccountIdInput("");
+                                            setShowStripeModal(true);
+                                            setLoadingStripe(true);
+                                            const current = await brandsService.getCurrentStripeAccountId(b.id);
+                                            setStripeAccountIdInput(current || "");
+                                          } catch {
+                                            setStripeAccountIdInput("");
+                                          } finally {
+                                            setLoadingStripe(false);
+                                          }
+                                        }}
+                                      >
+                                        Edit Stripe ID
                                       </Button>
                                     </td>
                                   </tr>
@@ -1137,6 +1167,51 @@ const Settings = () => {
           brandName={selectedBrandForMembers.name}
         />
       )}
+      {/* Edit Stripe Account ID Modal */}
+      <Dialog open={showStripeModal} onOpenChange={setShowStripeModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Stripe Account ID</DialogTitle>
+            <DialogDescription>
+              Brand: {stripeBrandName}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            {loadingStripe ? (
+              <div className="text-muted-foreground">Loading current Stripe account ID…</div>
+            ) : (
+              <>
+                <Input
+                  value={stripeAccountIdInput}
+                  onChange={(e) => setStripeAccountIdInput(e.target.value)}
+                  placeholder="acct_..."
+                />
+                <div className="flex items-center justify-end gap-2">
+                  <Button variant="outline" onClick={() => setShowStripeModal(false)} className="border-white/20 text-foreground hover:bg-white/10">
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      if (!stripeBrandId) return;
+                      try {
+                        setSavingStripe(true);
+                        await brandsService.saveStripeAccountId(stripeBrandId, stripeAccountIdInput.trim());
+                        setShowStripeModal(false);
+                      } catch {
+                      } finally {
+                        setSavingStripe(false);
+                      }
+                    }}
+                    disabled={savingStripe}
+                  >
+                    {savingStripe ? 'Saving…' : 'Save'}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
       <Dialog open={showHostExperiencesModal} onOpenChange={setShowHostExperiencesModal}>
         <DialogContent>
           <DialogHeader>
