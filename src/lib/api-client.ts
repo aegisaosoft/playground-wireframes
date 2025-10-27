@@ -4,8 +4,24 @@
 
 // Read from environment variable (compat with non-Vite type checking)
 const ENV_BASE = (import.meta as any)?.env?.VITE_API_URL as string | undefined;
-// Smart default: when running locally without an env, target local API; otherwise Azure
-const DEFAULT_BASE = (typeof window !== 'undefined' && window.location.hostname === 'localhost')
+// Smart default: when running locally (including private LAN IPs) without an env, target local API; otherwise Azure
+function isPrivateLan(hostname: string): boolean {
+  // 127.0.0.1 and localhost
+  if (hostname === 'localhost' || hostname === '127.0.0.1') return true;
+  // 192.168.x.x
+  if (/^192\.168\./.test(hostname)) return true;
+  // 10.x.x.x
+  if (/^10\./.test(hostname)) return true;
+  // 172.16.0.0 – 172.31.255.255
+  const m = hostname.match(/^172\.(\d{1,2})\./);
+  if (m) {
+    const n = Number(m[1]);
+    if (n >= 16 && n <= 31) return true;
+  }
+  return false;
+}
+
+const DEFAULT_BASE = (typeof window !== 'undefined' && isPrivateLan(window.location.hostname))
   ? 'https://localhost:7183'
   : 'https://goplayground-web-api-2025-cgbkabcxh6abccd6.canadacentral-01.azurewebsites.net';
 const API_BASE_URL = ENV_BASE || DEFAULT_BASE;

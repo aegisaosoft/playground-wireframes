@@ -210,6 +210,8 @@ const ExperienceEdit = () => {
   const blockRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
   // Mobile UI toggles
   const [showPaletteMobile, setShowPaletteMobile] = useState(false);
+  // Loading state for initial experience fetch
+  const [isLoadingExperience, setIsLoadingExperience] = useState<boolean>(false);
 
   // Initialize user data when component mounts
   useEffect(() => {
@@ -254,6 +256,7 @@ const ExperienceEdit = () => {
       }
 
       try {
+        setIsLoadingExperience(true);
         
         // Fetch experience from API
         const experience = await experiencesService.getById(experienceId);
@@ -498,6 +501,8 @@ const ExperienceEdit = () => {
           variant: "destructive",
         });
         navigate('/account?tab=hosting');
+      } finally {
+        setIsLoadingExperience(false);
       }
     };
 
@@ -1370,7 +1375,18 @@ const ExperienceEdit = () => {
         onBack={() => navigate('/account?tab=hosting')}
       />
 
+      {/* Global loading indicator while fetching experience */}
+      {isLoadingExperience && (
+        <div className="flex-1 flex items-center justify-center p-12">
+          <div className="flex items-center gap-3 text-muted-foreground">
+            <div className="h-5 w-5 rounded-full border-2 border-white/20 border-t-neon-cyan animate-spin" />
+            <span>Loading experience…</span>
+          </div>
+        </div>
+      )}
+
       {/* Mobile controls */}
+      {!isLoadingExperience && (
       <div className="md:hidden px-4 py-2 border-b border-white/10 flex gap-2 sticky top-0 z-40 bg-[#0b0b12]">
         <Button
           variant="outline"
@@ -1380,7 +1396,9 @@ const ExperienceEdit = () => {
           {showPaletteMobile ? 'Hide Blocks' : 'Show Blocks'}
         </Button>
       </div>
+      )}
 
+      {!isLoadingExperience && (
       <div className="flex-1 overflow-hidden md:flex">
         {/* Palette - desktop */}
         <div className="hidden md:block md:w-72 lg:w-80 shrink-0 border-r border-white/10 overflow-y-auto">
@@ -1433,8 +1451,10 @@ const ExperienceEdit = () => {
           />
         </div>
       </div>
+      )}
 
       {/* Settings - mobile at bottom */}
+      {!isLoadingExperience && (
       <div className="md:hidden px-4 py-3 border-t border-white/10 overflow-auto">
         <SettingsSidebar
           isPublic={isPublic}
@@ -1447,10 +1467,11 @@ const ExperienceEdit = () => {
           onUpdateTeamMemberRole={handleUpdateTeamMemberRole}
         />
       </div>
+      )}
 
       {/* Voice Experience Modal */}
       <VoiceExperienceModal 
-        isOpen={showVoiceModal}
+        isOpen={!isLoadingExperience && showVoiceModal}
         onClose={() => setShowVoiceModal(false)}
         onPrefillBuilder={prefillFromVoice}
       />

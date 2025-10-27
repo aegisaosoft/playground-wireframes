@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { imageFallback } from "@/lib/image-utils";
 import { MapPin, Calendar, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -53,6 +54,7 @@ const ExperienceCard = ({
           <img 
             src={image} 
             alt={title}
+            onError={imageFallback()}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
           />
           

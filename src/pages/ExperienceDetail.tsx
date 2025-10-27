@@ -11,6 +11,7 @@ import { getAvatarList } from "@/lib/avatars";
 import { userService } from "@/services/user.service";
 import { brandsService } from "@/services/brands.service";
 import { resolveApiResourceUrl } from "@/lib/api-client";
+import { imageFallback, avatarFallback } from "@/lib/image-utils";
 import retreatBali from "@/assets/retreat-bali.jpg";
 import retreatCostaRica from "@/assets/retreat-costa-rica.jpg";
 import retreatTulum from "@/assets/retreat-tulum.jpg";
@@ -405,6 +406,7 @@ const ExperienceDetail = () => {
             <img 
               src={experience.image} 
               alt={experience.title}
+              onError={imageFallback()}
               className="w-full h-full object-cover"
             />
             
@@ -483,6 +485,7 @@ const ExperienceDetail = () => {
                 <img 
                   src={experience.organizer.avatar} 
                   alt={experience.organizer.name}
+                  onError={avatarFallback()}
                   className="w-12 h-12 rounded-full"
                 />
                 <div>
@@ -551,6 +554,7 @@ const ExperienceDetail = () => {
                     <img 
                       src={image.url || image} 
                       alt={image.alt || `${experience.title} gallery ${index + 1}`}
+                      onError={imageFallback()}
                       className="w-full h-48 object-cover rounded-lg hover:opacity-90 transition-opacity"
                     />
                     {image.alt && (
